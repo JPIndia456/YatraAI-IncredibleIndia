@@ -351,7 +351,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
         priceNum: parseInt(String(r.price || '800').replace(/[^0-9]/g, '')) || 800, 
         icon: Car, 
         raw: r 
-      })).sort((a, b) => a.priceNum - b.priceNum);
+      })).sort((a: any, b: any) => a.priceNum - b.priceNum);
       
       if (localList.length < 3) {
         const taxiOptions = [
@@ -360,12 +360,12 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
           { label: 'Mobility', name: 'Private Airport Taxi', detail: 'Pre-booked • Meet & Greet', price: '₹1,500', priceNum: 1500, icon: Car }
         ];
         taxiOptions.forEach(p => {
-          if (!localList.some(h => h.name === p.name)) {
+          if (!localList.some((h: any) => h.name === p.name)) {
             localList.push(p);
           }
         });
       }
-      setAllLocals(localList.sort((a, b) => a.priceNum - b.priceNum));
+      setAllLocals(localList.sort((a: any, b: any) => a.priceNum - b.priceNum));
 
     } catch (e) { console.error(e); }
     setLoading(false);
