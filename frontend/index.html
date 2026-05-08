@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YatraAI | Your Intelligent Gateway to India</title>
+    <meta name="description" content="Experience the soul of India with YatraAI. Hyper-personalized itineraries, real-time multi-modal transport, and cultural immersion powered by state-of-the-art AI.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;600;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --saffron: #FF9933;
+            --white: #FFFFFF;
+            --green: #138808;
+            --navy: #000080;
+            --bg: #050505;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--white);
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Immersive Background */
+        .hero-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(to bottom, rgba(5, 5, 5, 0.4), rgba(5, 5, 5, 0.9)), 
+                        url('images/landing-bg.png');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.8);
+            animation: slowZoom 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes slowZoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 5%;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 900;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .logo-box {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--saffron), #FF4D00);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(255, 153, 51, 0.4);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+            opacity: 0.8;
+        }
+
+        .nav-links a:hover {
+            color: var(--saffron);
+            opacity: 1;
+        }
+
+        .btn-primary {
+            background: var(--saffron);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 20px rgba(255, 153, 51, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(255, 153, 51, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 10%;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            letter-spacing: -2px;
+        }
+
+        .hero h1 span {
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255,255,255,0.3);
+            display: block;
+        }
+
+        .hero h1 b {
+            background: linear-gradient(to right, var(--saffron), #FFCC33);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 600px;
+            margin-bottom: 3rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 400;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 5%;
+            background: var(--bg);
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title h2 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .section-title p {
+            color: var(--saffron);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 40px;
+            border-radius: 30px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--saffron);
+            transform: translateY(-10px);
+        }
+
+        .icon-container {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 153, 51, 0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            color: var(--saffron);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 60px 5%;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            background: var(--bg);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero h1 { font-size: 3.5rem; }
+        }
+
+        /* Animations */
+        [data-aos] {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        [data-aos].active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-bg"></div>
+
+    <nav>
+        <div class="logo">
+            <div class="logo-box">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            </div>
+            Yatra<span>AI</span>
+        </div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#about">About</a>
+            <a href="/" class="btn-primary">Launch App</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <h1 data-aos>
+            <span>DISCOVER THE</span>
+            <b>SOUL OF INDIA</b>
+        </h1>
+        <p data-aos>Your hyper-personalized, AI-powered travel concierge for crafting unforgettable Indian journeys.</p>
+        <div data-aos>
+            <a href="/" class="btn-primary" style="font-size: 1.1rem; padding: 18px 45px;">Start Your Adventure</a>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="section-title" data-aos>
+            <p>Intelligence Meets Wanderlust</p>
+            <h2>Engineered for India</h2>
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card" data-aos>
+                <div class="icon-container">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+                <h3>Intelligent Itineraries</h3>
+                <p>Advanced AI reasoning that understands the nuance of Indian geography, festivals, and hidden gems.</p>
+            </div>
+            <div class="feature-card" data-aos>
+                <div class="icon-container">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 13h6"/></svg>
+                </div>
+                <h3>Bhashini Multilingual</h3>
+                <p>Speak your heart out. Our platform supports major Indian languages, making travel accessible to everyone.</p>
+            </div>
+            <div class="feature-card" data-aos>
+                <div class="icon-container">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><polyline points="13 11 9 17 15 17 11 23"/></svg>
+                </div>
+                <h3>Live Grounding</h3>
+                <p>Real-time updates on flights, trains, and buses integrated directly into your personal travel feed.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="about" style="background: rgba(255, 255, 255, 0.02);">
+        <div class="section-title" data-aos>
+            <p>Our Mission</p>
+            <h2>Connecting Culture & Tech</h2>
+        </div>
+        <div style="max-width: 800px; margin: 0 auto; text-align: center; color: rgba(255,255,255,0.7);" data-aos>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">YatraAI was born from a simple idea: making the incredible diversity of India accessible through the power of Generative AI. We don't just plan trips; we curate experiences that respect local traditions, support sustainable travel, and bridge language barriers.</p>
+            <a href="/legal" style="color: var(--saffron); text-decoration: none; font-weight: 600;">View our Legal & Privacy Policy &rarr;</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 YatraAI. Built with passion for Incredible India.</p>
+        <div style="margin-top: 15px; display: flex; justify-content: center; gap: 20px;">
+            <a href="/legal" style="color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.8rem;">Terms of Service</a>
+            <a href="/legal" style="color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.8rem;">Privacy Policy</a>
+            <a href="/profile" style="color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.8rem;">My Account</a>
+        </div>
+    </footer>
+
+    <script>
+        // Simple Scroll Animation
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('[data-aos]').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

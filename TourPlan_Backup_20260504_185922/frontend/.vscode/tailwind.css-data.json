@@ -1,0 +1,25 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@tailwind",
+      "description": "Tailwind CSS directive. Inserts Tailwind's base, components, or utilities styles.",
+      "references": [{ "name": "Tailwind Docs", "url": "https://tailwindcss.com/docs/functions-and-directives#tailwind" }]
+    },
+    {
+      "name": "@apply",
+      "description": "Tailwind CSS directive. Applies utility classes inline inside custom CSS.",
+      "references": [{ "name": "Tailwind Docs", "url": "https://tailwindcss.com/docs/functions-and-directives#apply" }]
+    },
+    {
+      "name": "@layer",
+      "description": "Tailwind CSS directive. Registers custom styles in the base, components, or utilities layer.",
+      "references": [{ "name": "Tailwind Docs", "url": "https://tailwindcss.com/docs/functions-and-directives#layer" }]
+    },
+    {
+      "name": "@config",
+      "description": "Tailwind CSS directive. Specifies which config file Tailwind should use for this CSS file.",
+      "references": [{ "name": "Tailwind Docs", "url": "https://tailwindcss.com/docs/functions-and-directives#config" }]
+    }
+  ]
+}

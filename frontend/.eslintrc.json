@@ -1,0 +1,36 @@
+{
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-require-imports": "off",
+    "@typescript-eslint/triple-slash-reference": "off",
+    "react/no-unescaped-entities": "off",
+    "react/display-name": "off",
+    "prefer-const": "off"
+  },
+  "ignorePatterns": [
+    ".next/",
+    "node_modules/",
+    "dist/",
+    "build/",
+    "out/"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "app/api/auth/**/*.ts",
+        "app/api/booking/**/*.ts",
+        "app/api/payment/**/*.ts",
+        "app/api/mcp/**/*.ts",
+        "app/api/telegram/**/*.ts",
+        "app/api/trips/**/*.ts",
+        "lib/supabaseAdmin.ts"
+      ],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "error",
+        "prefer-const": "error",
+        "@typescript-eslint/no-unused-vars": "error"
+      }
+    }
+  ]
+}

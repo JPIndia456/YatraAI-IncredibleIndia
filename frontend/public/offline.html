@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline | YatraAI</title>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .tricolor { height: 4px; width: 200px; background: linear-gradient(90deg, #FF9933 33%, #fff 33% 66%, #138808 66%); border-radius: 99px; margin-bottom: 32px; }
+        h1 { font-weight: 900; margin-bottom: 8px; }
+        p { color: #a1a1aa; max-width: 300px; }
+    </style>
+</head>
+<body>
+    <div class="tricolor"></div>
+    <h1>You're Offline</h1>
+    <p>YatraAI is still with you. Your saved itineraries are accessible once you're back online.</p>
+    <button onclick="window.location.reload()" style="margin-top: 24px; padding: 12px 24px; background: #FF9933; border: none; border-radius: 12px; font-weight: 900; cursor: pointer;">Retry Connection</button>
+</body>
+</html>

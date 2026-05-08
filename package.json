@@ -1,0 +1,13 @@
+{
+  "name": "jpindia-master",
+  "version": "1.0.0",
+  "description": "Root workspace for JPIndia project",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix frontend run start",
+    "lint": "npm --prefix frontend run lint",
+    "backup-check": "npm --prefix frontend run backup-check"
+  },
+  "private": true
+}
