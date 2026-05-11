@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { User, Landmark, Sparkles, Heart, Utensils, Gem, Wallet, Mountain, History, Camera, Compass, Users, Languages, Check, X, Shield, LogOut, UserCircle, Fingerprint } from 'lucide-react';
+import { User, Landmark, Sparkles, Heart, Utensils, Gem, Wallet, Mountain, History, Camera, Compass, Users, Languages, Check, X, Shield, LogOut, UserCircle, Fingerprint, Ban } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
