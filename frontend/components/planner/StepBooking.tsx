@@ -410,7 +410,7 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
         </div>
 
         <p className="text-[13px] text-zinc-600 leading-relaxed font-bold">
-          {telegramId ? t('booking_telegram_desc') : 'Link your Telegram to receive live PNR updates, boarding alerts, and concierge support.'}
+          {telegramId ? t('booking_telegram_desc') : 'Link your Telegram to receive live PNR updates, boarding alerts, and Travel Guide support.'}
         </p>
 
         {!telegramId ? (

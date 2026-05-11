@@ -312,7 +312,7 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
                    <div className="flex items-center justify-between">
                      <div className="flex items-center gap-3">
                        <Send className="w-4 h-4 text-sky-500" />
-                       <h3 className="text-xs font-black text-[#000080] uppercase tracking-[0.2em]">Telegram Concierge</h3>
+                       <h3 className="text-xs font-black text-[#000080] uppercase tracking-[0.2em]">Telegram Guide</h3>
                      </div>
                      {form.telegram_id && (
                        <div className="flex items-center gap-1.5">

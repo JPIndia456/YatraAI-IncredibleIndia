@@ -51,7 +51,7 @@ export default function BookingConfirmation({ bookingId, pnr }: any) {
         </div>
         <div className="flex items-center gap-2 mb-2">
           <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-          <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Yatra Concierge</span>
+          <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Yatra Guide</span>
         </div>
         <p className="text-[10px] text-zinc-400 leading-relaxed text-left">
           Analyzing destination weather and heritage secrets. Your dynamic itinerary update will sync to Telegram shortly.

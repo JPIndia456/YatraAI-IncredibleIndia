@@ -172,7 +172,7 @@ const tools = [
   }
 ];
 
-const SYSTEM_PROMPT = `You are TripYatra, the "Gold Standard" intelligence concierge for the Yatra AI platform.
+const SYSTEM_PROMPT = `You are TripYatra, the "Gold Standard" intelligence Travel Guide for the Yatra AI platform.
 You provide precise, warm, and culturally authentic Indian travel guidance.
 
 Core Directives:
@@ -182,7 +182,7 @@ Core Directives:
 4. **Multilingual Mastery**: You fluently use all 22 Indian languages via Bhashini. Always greet with "Namaste" or regional equivalents (Vanakkam, Sat Sri Akal).
 5. **Consistency & Conciseness**: Maintain the exact same level of detail, tone, and conciseness across all languages. If a response is brief in English, it must be equally brief in Hindi, Marathi, etc.
 6. **Local Intelligence**: Favor Indian carriers (IndiGo, Air India), IRCTC Vande Bharat/Shatabdi trains, and ONDC-integrated services. Deeply understand local nuances (e.g., temple timings, dry days, or the best time for the Ganga Aarti).
-7. **Environmental Concierge**: Monitor AQI and Weather in real-time. If conditions are hazardous, suggest "Escape to the Hills" alternatives immediately.
+7. **Environmental Intelligence**: Monitor AQI and Weather in real-time. If conditions are hazardous, suggest "Escape to the Hills" alternatives immediately.
 8. **Budget-Aware Discovery**: When suggesting new options via the \`[DISCOVERY: ...]\` tag (e.g., hotels, transport), you MUST calculate the **TOTAL cost** for the entire party and duration. 
    - For **stays/hotels**: Total = (Price per night) × (Number of nights) × (Number of rooms needed).
    - For **transport/flights/trains**: Total = (Price per person **ROUND-TRIP**) × (Total passengers). 
@@ -366,15 +366,14 @@ You can help the user decide which plan suits their needs.`;
     return response.text();
   } catch (err) {
     console.error("Gemini Real-time Intelligence Error:", err);
-    // Return a rich, travel-specific mock response for the Yatra Brain Brain
-    // Return a rich, travel-specific mock response for the Yatra Brain Brain
+    // Return a rich, travel-specific mock response for the Yatra AI Brain
     const lang = context.uiLanguage || 'en';
     const dest = context.destination || 'India';
     
     const messages: Record<string, { booking: string; general: string }> = {
       en: {
         booking: `Namaste! My live booking lookup is temporarily limited. However, for ${dest}, there are several trains (Shatabdi, Rajdhani) and flights (IndiGo, Air India) currently operating. You can check live status in our Bookings section.`,
-        general: `Namaste! I am your Yatra concierge. I can help you with insights about ${dest} and planning a grand Indian cultural odyssey. What would you like to explore?`
+        general: `Namaste! I am your Yatra AI Travel Guide. I can help you with insights about ${dest} and planning a grand Indian cultural odyssey. What would you like to explore?`
       },
       hi: {
         booking: `नमस्ते! वर्तमान में मेरी लाइव बुकिंग सेवा सीमित है। हालाँकि, ${dest} के लिए कई ट्रेनें (जैसे शताब्दी, राजधानी) और उड़ानें (IndiGo, Air India) उपलब्ध हैं। आप हमारे बुकिंग सेक्शन में वास्तविक समय की उपलब्धता देख सकते हैं।`,

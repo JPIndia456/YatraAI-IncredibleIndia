@@ -42,7 +42,7 @@ export const TelegramService = {
 
       if (!error && updated && updated.length > 0) {
         console.log(`[TelegramService] Successfully linked profile for ${digits10}`);
-        await this.sendMessage(from, "🙏 *Namaste!*\n\nYour account is now securely linked. I will send your PNRs and live itinerary updates directly to this chat.");
+        await this.sendMessage(from, "🙏 *Namaste!* 🟠⚪🟢\n\nYour account is now securely linked. I am your *Yatra AI Travel Guide*. I will send your PNRs and live itinerary updates directly to this chat.");
       } else {
         console.error(`[TelegramService] Profile Link Error or No Match:`, error || 'No matching profile found for ' + digits10);
         await this.sendMessage(from, "❌ *Linkage Failed*\n\nI couldn't find a profile with the phone number you shared. Please ensure your mobile number is correctly set in the Yatra app profile first.");
@@ -212,7 +212,7 @@ export const TelegramService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           chat_id: to, 
-          text: "🙏 *Namaste!*\n\nWelcome to Yatra AI Concierge. Please tap the button below to share your contact so I can securely link your account and send your live PNRs and itinerary updates.",
+          text: "🙏 *Namaste!* 🟠⚪🟢\n\nWelcome to your *Yatra AI Travel Guide*. Please tap the button below to share your contact so I can securely link your account and send your live PNRs and itinerary updates.",
           parse_mode: 'Markdown',
           reply_markup: {
             keyboard: [[{ text: "📲 Share Contact", request_contact: true }]],

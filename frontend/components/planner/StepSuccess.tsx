@@ -484,7 +484,7 @@ export default function StepSuccess({
                       <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-center" />
                     </div>
                     <div className="space-y-1">
-                      <h4 className="text-2xl font-black uppercase text-[#FF9933]">Travel Concierge</h4>
+                      <h4 className="text-2xl font-black uppercase text-[#FF9933]">Travel Guide</h4>
                       <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none">Yatra Sahayak Active</p>
                     </div>
                   </div>
