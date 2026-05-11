@@ -214,7 +214,7 @@ export default function StepInputs({
             aria-label="Planner language"
           >
             {LANG_OPTIONS.map((lang) => (
-              <option key={lang.code} value={lang.code} className="bg-white text-[#1A1A2E]">
+              <option key={lang.code} value={lang.code} className="bg-white text-[#000080]">
                 {lang.native} - {lang.name}
               </option>
             ))}
@@ -289,7 +289,7 @@ export default function StepInputs({
                     setStartDisplay(inputs.startDate ? isoDateToDdMmYyyy(inputs.startDate) : '');
                   }
                 }}
-                className="min-w-0 flex-1 bg-white border border-orange-100 rounded-xl px-3 py-2 text-sm text-[#1A1A2E] outline-none focus:border-saffron/50 transition-all placeholder:text-slate-400"
+                className="min-w-0 flex-1 bg-white border border-orange-100 rounded-xl px-3 py-2 text-sm text-[#000080] outline-none focus:border-saffron/50 transition-all placeholder:text-slate-400"
               />
               <button
                 type="button"
@@ -342,7 +342,7 @@ export default function StepInputs({
                     setEndDisplay(inputs.endDate ? isoDateToDdMmYyyy(inputs.endDate) : '');
                   }
                 }}
-                className="min-w-0 flex-1 bg-white border border-orange-100 rounded-xl px-3 py-2 text-sm text-[#1A1A2E] outline-none focus:border-saffron/50 transition-all disabled:cursor-not-allowed disabled:opacity-60 placeholder:text-slate-400"
+                className="min-w-0 flex-1 bg-white border border-orange-100 rounded-xl px-3 py-2 text-sm text-[#000080] outline-none focus:border-saffron/50 transition-all disabled:cursor-not-allowed disabled:opacity-60 placeholder:text-slate-400"
               />
               <button
                 type="button"
@@ -747,7 +747,7 @@ export default function StepInputs({
 
       <button
         onClick={onDiscover}
-        className="w-full py-5 bg-gradient-to-r from-saffron via-white to-green text-[#1A1A2E] rounded-2xl font-black text-xs uppercase shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all border border-orange-100 mt-4"
+        className="w-full py-5 bg-gradient-to-r from-saffron via-white to-green text-[#000080] rounded-2xl font-black text-xs uppercase shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all border border-orange-100 mt-4"
       >
         {t('discover_potential', 'Discover Potential Itineraries →')}
       </button>

@@ -6,10 +6,10 @@
 
 /* ── Design Tokens ─────────────────────────────────────────────────────── */
 :root {
-  /* Incredible India Tricolour Palette */
-  --primary-saffron: #FF671F;
-  --primary-green: #046A38;
-  --dark-navy: #1A1A2E;
+  /* Incredible India Tricolour Palette — Strict Production Standard */
+  --primary-saffron: #FF9933;
+  --primary-green: #138808;
+  --dark-navy: #000080;
   --accent-gold: #FFD700;
   
   --primary-teal: var(--primary-saffron); /* Alias for backward compat */
@@ -269,8 +269,8 @@ li, td, th {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%);
-  color: var(--white-replacement);
+  background: linear-gradient(135deg, #FF9933 0%, #FF8000 100%);
+  color: #FFFFFF;
   font-family: var(--font-inter), sans-serif;
   font-size: var(--text-sm);
   font-weight: 600;
@@ -310,6 +310,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 input[type="date"] {

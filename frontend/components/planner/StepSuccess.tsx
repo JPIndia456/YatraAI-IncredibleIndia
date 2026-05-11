@@ -136,7 +136,7 @@ export default function StepSuccess({
             className="absolute inset-0 blur-3xl opacity-30 bg-[#FF9933]"
           />
           <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto relative border-2 bg-emerald-50 border-emerald-500 shadow-2xl`}>
-            <CheckCircle2 className="w-7 h-7 text-[#046A38]" />
+            <CheckCircle2 className="w-7 h-7 text-[#138808]" />
           </div>
         </div>
         <div className="space-y-2">
@@ -161,9 +161,9 @@ export default function StepSuccess({
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex-1 py-4 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest transition-all relative ${activeTab === tab.id ? 'text-[#FF9933] bg-white' : 'text-slate-400 hover:text-slate-600'}`}
             >
-              <tab.icon className={`w-3.5 h-3.5 ${activeTab === tab.id ? 'text-[#046A38]' : 'text-slate-300'}`} />
+              <tab.icon className={`w-3.5 h-3.5 ${activeTab === tab.id ? 'text-[#138808]' : 'text-slate-300'}`} />
               {tab.label}
-              {activeTab === tab.id && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-[#046A38]" />}
+              {activeTab === tab.id && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-[#138808]" />}
             </button>
           ))}
         </div>
@@ -176,10 +176,10 @@ export default function StepSuccess({
                 <div className="space-y-10">
                   <div className="space-y-3">
                     <p className="text-[14px] font-black text-[#FF9933] uppercase tracking-[0.25em]">Route Intelligence</p>
-                    <h3 className="text-6xl font-black text-[#1A1A2E] uppercase leading-[0.9] tracking-tighter">
+                    <h3 className="text-6xl font-black text-[#000080] uppercase leading-[0.9] tracking-tighter">
                        <span className="text-[#FF9933]">{activeItinerary?.from || from_city}</span> 
                        <span className="mx-4 text-slate-200">/</span> 
-                       <span className="text-[#046A38]">{activeItinerary?.to || destination}</span>
+                       <span className="text-[#138808]">{activeItinerary?.to || destination}</span>
                     </h3>
                   </div>
                     <div className="space-y-6">
@@ -190,7 +190,7 @@ export default function StepSuccess({
                           : (departure_date ? `${isoDateToDdMmYyyy(departure_date)} – ${isoDateToDdMmYyyy(return_date)}` : '—'),
                           color: 'text-[#003366]', bg: 'bg-[#003366]/5'
                         },
-                        { icon: CheckCircle2, label: 'Status', val: `Confirmed • PNR: ${confirmationSuffix}`, color: 'text-[#046A38]', bg: 'bg-[#046A38]/5' }
+                        { icon: CheckCircle2, label: 'Status', val: `Confirmed • PNR: ${confirmationSuffix}`, color: 'text-[#138808]', bg: 'bg-[#138808]/5' }
                       ].map((s, i) => (
                         <div key={i} className="flex gap-6 items-center group/item">
                           <div className={`w-16 h-16 rounded-[2rem] ${s.bg} flex items-center justify-center shrink-0 shadow-sm border border-slate-100 group-hover/item:scale-110 transition-transform`}>
@@ -206,7 +206,7 @@ export default function StepSuccess({
                 </div>
                 <div className="flex flex-col justify-center space-y-8">
                   {weather ? (
-                    <div className="bg-[#046A38] p-10 rounded-[3rem] text-white space-y-6 shadow-2xl relative overflow-hidden group border-t-8 border-t-[#FF9933]">
+                    <div className="bg-[#138808] p-10 rounded-[3rem] text-white space-y-6 shadow-2xl relative overflow-hidden group border-t-8 border-t-[#FF9933]">
                       <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 blur-[80px] group-hover:bg-white/10 transition-all" />
                       <div className="flex items-center justify-between relative z-10">
                         <div>
@@ -223,15 +223,15 @@ export default function StepSuccess({
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-[#046A38]/10 p-8 rounded-[2.5rem] border border-[#046A38]/20 space-y-4 shadow-sm relative overflow-hidden">
+                    <div className="bg-[#138808]/10 p-8 rounded-[2.5rem] border border-[#138808]/20 space-y-4 shadow-sm relative overflow-hidden">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-[10px] font-black text-[#046A38] uppercase tracking-widest leading-none mb-2">Climate Pulse</p>
-                          <h4 className="text-4xl font-black italic text-[#046A38]/20">--°C</h4>
+                          <p className="text-[10px] font-black text-[#138808] uppercase tracking-widest leading-none mb-2">Climate Pulse</p>
+                          <h4 className="text-4xl font-black italic text-[#138808]/20">--°C</h4>
                         </div>
                         <div className="text-right">
-                          <CloudSun className="w-10 h-10 text-[#046A38]/20 mb-1 ml-auto" />
-                          <p className="text-[10px] font-black uppercase tracking-tighter text-[#046A38]/40 italic">Discovery Mode</p>
+                          <CloudSun className="w-10 h-10 text-[#138808]/20 mb-1 ml-auto" />
+                          <p className="text-[10px] font-black uppercase tracking-tighter text-[#138808]/40 italic">Discovery Mode</p>
                         </div>
                       </div>
                     </div>
@@ -241,12 +241,12 @@ export default function StepSuccess({
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
                         <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Travel Mode</p>
-                        <p className="text-xl font-black text-[#1A1A2E] uppercase tracking-tighter">{activeItinerary?.transport?.name || 'Standard'}</p>
+                        <p className="text-xl font-black text-[#000080] uppercase tracking-tighter">{activeItinerary?.transport?.name || 'Standard'}</p>
                       </div>
                       <div className="w-px h-10 bg-slate-200" />
                       <div className="flex flex-col text-right">
                         <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Accommodation</p>
-                        <p className="text-xl font-black text-[#1A1A2E] uppercase tracking-tighter">{activeItinerary?.hotel?.name || 'Selected Stay'}</p>
+                        <p className="text-xl font-black text-[#000080] uppercase tracking-tighter">{activeItinerary?.hotel?.name || 'Selected Stay'}</p>
                       </div>
                     </div>
                   </div>
@@ -260,7 +260,7 @@ export default function StepSuccess({
                           <Camera className="w-8 h-8 text-[#FF9933]" />
                         </div>
                         <div>
-                          <h4 className="text-4xl font-black uppercase text-[#1A1A2E] tracking-tighter leading-none">{t('destination_gallery', 'Discovery Highlights')}</h4>
+                          <h4 className="text-4xl font-black uppercase text-[#000080] tracking-tighter leading-none">{t('destination_gallery', 'Discovery Highlights')}</h4>
                           <p className="text-sm font-black text-slate-400 uppercase tracking-[0.3em] mt-1">Monuments, Markets & Landscapes</p>
                         </div>
                       </div>
@@ -310,7 +310,7 @@ export default function StepSuccess({
               >
                 {(renderableDayPlan || []).map((day: any, i: number) => (
                   <div key={i} className="group relative pl-8 pb-10 last:pb-0">
-                    <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full border-2 border-[#046A38] bg-white group-hover:bg-[#046A38] transition-colors z-10 shadow-sm" />
+                    <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full border-2 border-[#138808] bg-white group-hover:bg-[#138808] transition-colors z-10 shadow-sm" />
                     {i !== renderableDayPlan.length - 1 && <div className="absolute left-[7px] top-4 bottom-0 w-0.5 bg-slate-100" />}
                     
                     <div className="space-y-4">
@@ -330,7 +330,7 @@ export default function StepSuccess({
                               className="bg-white p-5 rounded-[1.5rem] border border-slate-100 flex gap-4 hover:border-[#FF9933]/30 hover:shadow-xl hover:shadow-[#FF9933]/5 transition-all group/item"
                             >
                               <div className="w-20 shrink-0">
-                                <p className="text-[9px] font-black text-[#046A38] uppercase tracking-wider">{a.time || 'Flexible'}</p>
+                                <p className="text-[9px] font-black text-[#138808] uppercase tracking-wider">{a.time || 'Flexible'}</p>
                                 <div className="w-4 h-0.5 bg-[#FF9933]/20 mt-1" />
                               </div>
                               <p className="text-[12px] font-bold text-slate-700 uppercase leading-relaxed group-hover/item:text-[#FF9933] transition-colors">
@@ -359,7 +359,7 @@ export default function StepSuccess({
                         <Sparkles className="w-6 h-6 text-saffron" />
                       </div>
                       <div>
-                        <h4 className="text-2xl font-black uppercase text-[#1A1A2E]">{t('odyssey_summary', 'Odyssey Summary')}</h4>
+                        <h4 className="text-2xl font-black uppercase text-[#000080]">{t('odyssey_summary', 'Odyssey Summary')}</h4>
                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none">Curated Discovery Intelligence</p>
                       </div>
                     </div>
@@ -372,11 +372,11 @@ export default function StepSuccess({
                 <div className="space-y-8">
                   <div className="bg-white border p-8 rounded-[2.5rem] space-y-6 shadow-sm hover:shadow-md transition-all">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-[#046A38]/10 flex items-center justify-center">
-                        <ShieldCheck className="w-6 h-6 text-[#046A38]" />
+                      <div className="w-12 h-12 rounded-2xl bg-[#138808]/10 flex items-center justify-center">
+                        <ShieldCheck className="w-6 h-6 text-[#138808]" />
                       </div>
                       <div>
-                        <h6 className="text-[12px] font-black text-[#046A38] uppercase tracking-widest">Grounding Score</h6>
+                        <h6 className="text-[12px] font-black text-[#138808] uppercase tracking-widest">Grounding Score</h6>
                         <p className="text-xl font-black text-[#FF9933]">9.8 / 10 Integrity</p>
                       </div>
                     </div>
@@ -401,7 +401,7 @@ export default function StepSuccess({
                   </div>
                 </div>
 
-                <div className="bg-[#046A38] rounded-[2.5rem] p-8 text-white space-y-8 flex flex-col justify-center border border-slate-800 relative overflow-hidden">
+                <div className="bg-[#138808] rounded-[2.5rem] p-8 text-white space-y-8 flex flex-col justify-center border border-slate-800 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF9933]/20 blur-3xl" />
                   <div className="flex items-center gap-4 relative">
                     <div className="w-14 h-14 rounded-2xl overflow-hidden border border-[#FF9933]/40 shadow-2xl shrink-0 bg-white">
@@ -432,7 +432,7 @@ export default function StepSuccess({
 
       {/* ── Odyssey Actions ── */}
       <div className="flex flex-col sm:flex-row gap-6 justify-center">
-         <Link href="/my-trip" className="px-12 py-7 bg-[#046A38] text-white rounded-[2.5rem] font-black text-sm uppercase shadow-[0_20px_50px_rgba(4,106,56,0.3)] hover:bg-[#035a2f] transition-all flex items-center gap-4 hover:-translate-y-1">
+         <Link href="/my-trip" className="px-12 py-7 bg-[#138808] text-white rounded-[2.5rem] font-black text-sm uppercase shadow-[0_20px_50px_rgba(4,106,56,0.3)] hover:bg-[#035a2f] transition-all flex items-center gap-4 hover:-translate-y-1">
            {t('view_dashboard')} <ArrowRight className="w-5 h-5 text-[#FF9933]" />
          </Link>
          <button onClick={onReset} className="px-12 py-7 bg-white text-[#FF9933] border-2 border-[#FF9933]/10 rounded-[2.5rem] font-black text-sm uppercase shadow-xl hover:bg-slate-50 transition-all hover:-translate-y-1">

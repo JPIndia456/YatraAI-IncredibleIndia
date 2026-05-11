@@ -59,7 +59,7 @@ export default function NavigationWrapper({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleBack}
-            className="flex-1 max-w-[132px] md:max-w-[146px] bg-[#046A38] px-3.5 md:px-5 py-2.5 md:py-3 rounded-xl text-white font-black text-xs md:text-sm flex items-center justify-center space-x-2 shadow-lg shadow-green/20 transition-all hover:bg-[#03522b] active:scale-95"
+            className="flex-1 max-w-[132px] md:max-w-[146px] bg-[#138808] px-3.5 md:px-5 py-2.5 md:py-3 rounded-xl text-white font-black text-xs md:text-sm flex items-center justify-center space-x-2 shadow-lg shadow-green/20 transition-all hover:bg-[#03522b] active:scale-95"
           >
             {isRTL ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
             <span className="uppercase tracking-widest">{backLabel || t('back')}</span>
@@ -82,7 +82,7 @@ export default function NavigationWrapper({
               whileTap={disabledNext ? {} : { scale: 0.95 }}
               onClick={onNext}
               disabled={disabledNext}
-              className={`flex-1 max-w-[260px] md:max-w-[280px] bg-[#FF671F] px-4.5 md:px-7 py-3 md:py-4 rounded-2xl text-white font-black text-xs md:text-sm flex items-center justify-center space-x-2 shadow-xl shadow-saffron/30 transition-all ${disabledNext ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:bg-orange-600'}`}
+              className={`flex-1 max-w-[260px] md:max-w-[280px] bg-[#FF9933] px-4.5 md:px-7 py-3 md:py-4 rounded-2xl text-white font-black text-xs md:text-sm flex items-center justify-center space-x-2 shadow-xl shadow-saffron/30 transition-all ${disabledNext ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:bg-orange-600'}`}
             >
               <Sparkles className="w-4 h-4 text-white animate-pulse" />
               <span className="uppercase tracking-[0.12em]">{nextLabel || t('next')}</span>

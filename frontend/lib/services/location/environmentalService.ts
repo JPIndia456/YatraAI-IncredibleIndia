@@ -16,11 +16,10 @@ export const EnvironmentalService = {
    * Fetch current environmental data for an Indian city.
    * Standardizes data from CPCB (AQI) and IMD (Weather) patterns.
    */
-  async getRealTimeData(city: string): Promise<EnvironmentalData> {
+  async getRealTimeData(_location: string): Promise<EnvironmentalData> {
     try {
       // 1. In production, this would call OpenWeather / WAQI APIs
       // For the Yatra Brain, we simulate current conditions based on seasonality (Apr 2026)
-      const location = city.toLowerCase();
       
       const aqi = 40 + Math.floor(Math.random() * 60); // Generic healthy to moderate AQI
       const temp = '27°C';

@@ -40,7 +40,7 @@ export async function getDestinationFromCache(name: string): Promise<Destination
     }
 
     return data;
-  } catch (err) {
+  } catch {
     return null;
   }
 }
@@ -68,7 +68,7 @@ export async function upsertCachedReport(name: string, report: any) {
           updated_at: new Date().toISOString() 
         });
     }
-  } catch (err) {
+  } catch {
     console.warn('[Cache Upsert] Failed for', name);
   }
 }

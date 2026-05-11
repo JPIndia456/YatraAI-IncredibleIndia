@@ -1,17 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { GoogleGenAI } from "@google/genai";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import * as railway from "@/indian-railways-mcp/src/railwayService";
-import { GoogleFlightsService } from "@/lib/services/flights/googleFlightsService";
-import { TripAdvisorService } from "@/lib/services/tripadvisor/tripadvisorService";
-import { AmadeusService } from "@/lib/services/travel/amadeus";
-
 import { getDestinationFromCache, upsertCachedReport } from "@/lib/services/destinations";
 import { bhashiniTools, executeBhashiniTool } from "@/indian-bhashini-mcp/src/index";
 import { GEMINI_MODEL } from '@/lib/geminiModel';
+import * as railway from "@/indian-railways-mcp/src/railwayService";
+import { TripAdvisorService } from "@/lib/services/tripadvisor/tripadvisorService";
+import { AmadeusService } from "@/lib/services/travel/amadeus";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "dummy_key_prevent_crash");
-const genAINew = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "dummy_key" });
 
 export interface IntelligenceContext {
   userId?: string;
@@ -380,7 +376,7 @@ You can help the user decide which plan suits their needs.`;
       },
       kn: {
         booking: `ನಮಸ್ತೆ! ಪ್ರಸ್ತುತ ನನ್ನ ಲೈವ್ ಬುಕಿಂಗ್ ಸೇವೆ ಸೀಮಿತವಾಗಿದೆ. ಆದಾಗ್ಯೂ, ${dest} ಗಾಗಿ ಹಲವಾರು ರೈಲುಗಳು (ಶತಾಬ್ದಿ, ರಾಜಧಾನಿಯಂತಹ) ಮತ್ತು ವಿಮಾನಗಳು (IndiGo, Air India) ಲಭ್ಯವಿವೆ. ನಮ್ಮ ಬುಕಿಂಗ್ ವಿಭಾಗದಲ್ಲಿ ನೀವು ನೈಜ-ಸಮಯದ ಲಭ್ಯತೆಯನ್ನು ಪರಿಶೀಲಿಸಬಹುದು.`,
-        general: `ನಮಸ್ತೆ! ನಾನು ನಿಮ್ಮ ಯಾತ್ರಾAI ಸಲಹೆಗಾರ. ನಾನು ನಿಮಗೆ ${dest} ಬಗ್ಗೆ ಮಾಹಿತಿ ನೀಡಲು ಮತ್ತು ಭವ್ಯವಾದ ಭಾರತೀಯ ಸಾಂસ્કೃತિક ಪ್ರವಾಸವನ್ನು ಯೋಜಿಸಲು ಸಹಾಯ ಮಾಡಬಹುದು. ನೀವು ಏನನ್ನು ಅನ್ವೇಷಿಸಲು ಬಯಸುತ್ತೀರಿ?`
+        general: `ನಮಸ್ತೆ! ನಾನು ನಿಮ್ಮ ಯಾತ್ರಾAI ಸಲಹೆಗಾರ. ನಾನು ನಿಮಗೆ ${dest} ಬಗ್ಗೆ ಮಾಹಿತಿ ನೀಡಲು ಮತ್ತು ಭವ್ಯವಾದ ಭಾರತೀಯ ಸಾಂಸ್ಕೃತಿಕ ಪ್ರವಾಸವನ್ನು ಯೋಜಿಸಲು ಸಹಾಯ ಮಾಡಬಹುದು. ನೀವು ಏನನ್ನು ಅನ್ವೇಷಿಸಲು ಬಯಸುತ್ತೀರಿ?`
       },
       bn: {
         booking: `নমস্তে! বর্তমানে আমার লাইভ বুকিং পরিষেবা সীমিত। তবে, ${dest}-এর জন্য বেশ কিছু ট্রেন (যেমন শতাব্দী, রাজধানী) এবং ফ্লাইট (IndiGo, Air India) চালু রয়েছে। আপনি আমাদের বুকিং বিভাগে রিয়েল-টাইম প্রাপ্যতা পরীক্ষা করতে পারেন।`,
@@ -411,6 +407,15 @@ You can help the user decide which plan suits their needs.`;
 /**
  * Get Structured Travel Intelligence Report
  */
+export async function getEnvironmentalStats() {
+  // Mock data for production hardening
+  return {
+    aqi: 45,
+    status: "Good",
+    weather: "Sunny, 28°C"
+  };
+}
+
 export async function getIntelligenceReport(category: string, location: string, language: string) {
   const apiKey = process.env.GEMINI_API_KEY;
   
@@ -424,8 +429,6 @@ export async function getIntelligenceReport(category: string, location: string, 
   if (apiKey && apiKey !== 'YOUR_GEMINI_KEY' && apiKey !== 'dummy_key') {
     try {
       // 2. Use NEW Gemini SDK with Google Search Grounding for real-time web data
-      const groundingTool = { googleSearch: {} };
-
       const prompt = `You are Yatra's travel intelligence engine. 
 Search the web RIGHT NOW and generate a REAL, CURRENT travel intelligence report for: **${location}**, India.
 Category focus: ${category} traveler. Language: ${language}.
@@ -444,31 +447,13 @@ Return ONLY raw JSON (no markdown, no code blocks) in this exact structure:
 }
 Exactly 3 items per pillar. Only real, verified places in ${location}.`;
 
-      const response = await genAINew.models.generateContent({
-        model: GEMINI_MODEL,
-        contents: prompt,
-        config: {
-          tools: [groundingTool as any],
-          temperature: 0.3,
-        }
+      const result = await genAI.getGenerativeModel({ model: GEMINI_MODEL }).generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        tools: [{ googleSearch: {} }] as any
       });
 
-      const outputText = response.text ?? '';
-      
-      // Strict JSON cleaning
-      let cleanedJson = outputText.trim();
-      if (cleanedJson.includes('```')) {
-        cleanedJson = cleanedJson.split(/```(?:json)?/)[1]?.split('```')[0]?.trim() || cleanedJson;
-      }
-      
-      // Strip any leading/trailing non-JSON text
-      const jsonStart = cleanedJson.indexOf('{');
-      const jsonEnd = cleanedJson.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        cleanedJson = cleanedJson.slice(jsonStart, jsonEnd + 1);
-      }
-
-      const report = JSON.parse(cleanedJson);
+      const text = result.response.text();
+      const report = JSON.parse(text.replace(/```json/g, '').replace(/```/g, ''));
       
       // 3. Persist to cache for instant future loads
       if (location && report && typeof report === 'object') {
@@ -493,9 +478,6 @@ Exactly 3 items per pillar. Only real, verified places in ${location}.`;
  * Used when Gemini API is unavailable. Keyed by lowercase city name.
  */
 function getCuratedFallback(location: string): Record<string, { name: string; desc: string }[]> {
-  const loc = location.toLowerCase().trim();
-
-  // No specific city fallbacks per user request for a blank start
   // Generic Indian city fallback — uses location name dynamically
   return {
     culinary: [

@@ -23,7 +23,7 @@ export default function ShellToolbar() {
   useEffect(() => { setMounted(true); }, []);
 
   if (!mounted) return (
-    <div className="h-16 bg-zinc-950/50 backdrop-blur-xl border-b border-zinc-900" />
+    <div className="h-16 bg-[#000080]/50 backdrop-blur-xl border-b border-zinc-900" />
   );
 
   if (pathname === '/') return null;
@@ -49,7 +49,7 @@ export default function ShellToolbar() {
     <motion.header
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="sticky top-0 z-50 bg-[#FDFDFB]/80 backdrop-blur-md border-b border-zinc-100 no-print"
+      className="sticky top-0 z-50 bg-[#FDFDFB]/80 backdrop-blur-md border-b border-[#000080]/10 no-print"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-4">
 
@@ -64,10 +64,10 @@ export default function ShellToolbar() {
             </div>
           </div>
           <div className="hidden sm:block">
-            <div className="text-xl font-semibold tracking-tight text-zinc-900 group-hover:text-saffron transition-colors leading-none">
-              YA<span className="text-saffron font-bold">TRA</span>
+            <div className="text-xl font-semibold tracking-tight text-[#000080] group-hover:text-[#FF9933] transition-colors leading-none">
+              YA<span className="text-[#FF9933] font-bold">TRA</span>
             </div>
-            <div className="text-[11px] text-saffron opacity-90 group-hover:opacity-100 transition-opacity mt-1 uppercase tracking-wider font-bold">
+            <div className="text-[11px] text-[#FF9933] opacity-90 group-hover:opacity-100 transition-opacity mt-1 uppercase tracking-wider font-bold">
               Intelligence • Odyssey
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function ShellToolbar() {
                  key={href}
                  onClick={() => router.push(href)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all relative group overflow-hidden ${
-                    isActive ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-800'
+                    isActive ? 'text-[#000080]' : 'text-[#000080]/60 hover:text-zinc-800'
                   }`}
                >
                  {/* Active background pill */}
@@ -95,7 +95,7 @@ export default function ShellToolbar() {
                  )}
                  <div className={`absolute inset-0 bg-zinc-100 -z-20 ${isActive ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 transition-opacity rounded-2xl`} />
                  
-                 <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'text-zinc-900' : 'text-zinc-500'}`} />
+                 <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'text-[#000080]' : 'text-[#000080]/60'}`} />
                  {label}
                </button>
              );
@@ -108,8 +108,8 @@ export default function ShellToolbar() {
 
           {/* Language Selector */}
           <div className="relative group/lang flex items-center">
-            <button className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer">
-              <Globe className="w-4 h-4 text-saffron" />
+            <button className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-zinc-200 text-zinc-600 hover:text-[#000080] transition-colors cursor-pointer">
+              <Globe className="w-4 h-4 text-[#FF9933]" />
               <span className="text-xs font-bold uppercase tracking-wide hidden sm:block">{language?.toUpperCase() || 'EN'}</span>
             </button>
             <div className="absolute top-full right-0 mt-2 w-48 max-h-80 overflow-y-auto overflow-x-hidden bg-white border border-zinc-200 rounded-xl shadow-xl opacity-0 invisible group-hover/lang:opacity-100 group-hover/lang:visible transition-all flex flex-col z-50">
@@ -118,7 +118,7 @@ export default function ShellToolbar() {
                   key={lang.code}
                   onClick={() => setLanguage(lang.code)}
                   className={`flex items-center justify-between w-full text-left px-4 py-2 text-xs font-semibold hover:bg-zinc-50 transition-colors ${
-                    language === lang.code ? 'bg-saffron/10 text-saffron' : 'text-zinc-500 hover:text-zinc-700'
+                    language === lang.code ? 'bg-saffron/10 text-[#FF9933]' : 'text-[#000080]/60 hover:text-zinc-700'
                   }`}
                 >
                   <span>{lang.name}</span>
@@ -159,16 +159,16 @@ export default function ShellToolbar() {
               <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-zinc-200 rounded-2xl shadow-xl opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible transition-all flex flex-col z-50 p-2 overflow-hidden">
                 <button
                   onClick={() => router.push('/profile')}
-                  className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 rounded-xl transition-all"
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-zinc-600 hover:text-[#000080] hover:bg-zinc-50 rounded-xl transition-all"
                 >
                   <User className="w-4 h-4 text-green" />
                   {t('profile')}
                 </button>
                 <button
                   onClick={() => router.push('/my-trip')}
-                  className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 rounded-xl transition-all"
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-zinc-600 hover:text-[#000080] hover:bg-zinc-50 rounded-xl transition-all"
                 >
-                  <ClipboardList className="w-4 h-4 text-saffron" />
+                  <ClipboardList className="w-4 h-4 text-[#FF9933]" />
                   {t('my_trips')}
                 </button>
                 <div className="h-px bg-zinc-100 my-1 mx-2" />
@@ -189,9 +189,9 @@ export default function ShellToolbar() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2.5 rounded-2xl hover:bg-zinc-50 transition-all border border-transparent hover:border-zinc-100"
+            className="md:hidden p-2.5 rounded-2xl hover:bg-zinc-50 transition-all border border-transparent hover:border-[#000080]/10"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5 text-zinc-900" /> : <Menu className="w-5 h-5 text-zinc-900" />}
+            {mobileMenuOpen ? <X className="w-5 h-5 text-[#000080]" /> : <Menu className="w-5 h-5 text-[#000080]" />}
           </motion.button>
 
         </div>
@@ -204,14 +204,14 @@ export default function ShellToolbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-zinc-100 bg-white/98 overflow-hidden"
+            className="md:hidden border-t border-[#000080]/10 bg-white/98 overflow-hidden"
           >
             <div className="px-4 py-4 space-y-2">
               {pathname !== '/' && navLinks.map(({ label, icon: Icon, href }) => (
                 <button
                   key={href}
                   onClick={() => { router.push(href); setMobileMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 transition-all text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-zinc-600 hover:text-[#000080] hover:bg-zinc-50 transition-all text-left"
                 >
                   <Icon className="w-4 h-4" />
                   {label}
@@ -220,7 +220,7 @@ export default function ShellToolbar() {
 
 
               {user && (
-                <div className="flex items-center gap-3 p-4 bg-zinc-50 rounded-2xl border border-zinc-100 mb-4">
+                <div className="flex items-center gap-3 p-4 bg-zinc-50 rounded-2xl border border-[#000080]/10 mb-4">
                   <div className="w-10 h-10 bg-gradient-to-br from-saffron to-yellow-500 rounded-xl flex items-center justify-center text-xs font-bold text-white overflow-hidden shrink-0">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt={userName} className="w-full h-full object-cover" />
@@ -230,7 +230,7 @@ export default function ShellToolbar() {
                   </div>
                   <div className="overflow-hidden">
                     <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-widest leading-none mb-1">{t('authenticated_as')}</div>
-                    <div className="text-xs font-bold text-zinc-900 truncate">{userName}</div>
+                    <div className="text-xs font-bold text-[#000080] truncate">{userName}</div>
                   </div>
                 </div>
               )}
@@ -251,7 +251,7 @@ export default function ShellToolbar() {
                     }
                     setMobileMenuOpen(false); 
                   }}
-                  className="w-full py-3 bg-saffron/5 border border-saffron/10 text-saffron rounded-2xl text-sm font-bold"
+                  className="w-full py-3 bg-saffron/5 border border-saffron/10 text-[#FF9933] rounded-2xl text-sm font-bold"
                 >
                   {t('sign_in')}
                 </button>
@@ -264,7 +264,7 @@ export default function ShellToolbar() {
 
     {/* Mobile Bottom Navigation Bar (App-like feel) */}
     {showMobileBottomDock && (
-      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] bg-zinc-950/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] z-50 flex items-center justify-around py-3 px-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] no-print">
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] bg-[#000080]/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] z-50 flex items-center justify-around py-3 px-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] no-print">
       {navLinks.map(({ label, icon: Icon, href, color }) => {
         const isActive = pathname === href || (href !== '/planner' && pathname.startsWith(href));
         return (
@@ -284,7 +284,7 @@ export default function ShellToolbar() {
             <div className={`p-2 rounded-2xl transition-all ${isActive ? `bg-gradient-to-br ${color} shadow-lg shadow-white/5` : ''}`}>
               <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-zinc-200'}`} />
             </div>
-            <span className={`text-11 font-semibold uppercase tracking-wide ${isActive ? 'text-white' : 'text-zinc-500'}`}>{label}</span>
+            <span className={`text-11 font-semibold uppercase tracking-wide ${isActive ? 'text-white' : 'text-[#000080]/60'}`}>{label}</span>
           </button>
         );
       })}

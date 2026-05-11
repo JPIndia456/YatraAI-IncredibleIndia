@@ -3,9 +3,10 @@
 import { useState, useEffect, type Dispatch, type SetStateAction } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import {
-  Sparkles, MapPin, Hotel, Train, Plane, Car,
-  ShieldCheck, Heart, Leaf, Compass, X, Info, Check, Calendar, Zap
+import { 
+  Sparkles, ShieldCheck, MapPin, Search, 
+  ArrowRight, CheckCircle2, ShoppingBag, Utensils,
+  Hotel, Train, Plane, Car, Heart, Leaf, X, Info, Check, Calendar, Zap
 } from 'lucide-react';
 import type { PlannerInputs } from './StepInputs';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -207,7 +208,7 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
            <div className="absolute top-4 left-4">
               <div className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-full border border-orange-100 flex items-center gap-2 shadow-lg">
                  <Sparkles className="w-3 h-3 text-saffron" />
-                 <span className="text-[10px] font-black text-[#1A1A2E] uppercase tracking-widest italic">AI Recommended</span>
+                 <span className="text-[10px] font-black text-[#000080] uppercase tracking-widest italic">AI Recommended</span>
               </div>
            </div>
         </div>
@@ -223,14 +224,14 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
                 ))}
               </div>
             )}
-            <h3 className="text-3xl font-black text-[#1A1A2E] group-hover:text-[#FF9933] transition-colors leading-[1.1] uppercase tracking-tighter">{s.title}</h3>
+            <h3 className="text-3xl font-black text-[#000080] group-hover:text-[#FF9933] transition-colors leading-[1.1] uppercase tracking-tighter">{s.title}</h3>
             <div className="flex items-center gap-2 mt-1">
               <MapPin className="w-4 h-4 text-[#FF9933] shrink-0" />
               <p className="text-sm font-black text-slate-400 uppercase tracking-widest">{s.destination}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-sm font-black px-4 py-1.5 rounded-full bg-[#046A38]/10 border border-[#046A38]/20 text-[#046A38] uppercase">Verified</span>
+            <span className="text-sm font-black px-4 py-1.5 rounded-full bg-[#138808]/10 border border-[#138808]/20 text-[#138808] uppercase">Verified</span>
           </div>
         </div>
 
@@ -249,19 +250,19 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
               </div>
               <div>
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Duration</p>
-                <p className="text-2xl font-black text-[#1A1A2E] uppercase tracking-tighter leading-none">{s.nights} Nights</p>
+                <p className="text-2xl font-black text-[#000080] uppercase tracking-tighter leading-none">{s.nights} Nights</p>
               </div>
            </div>
 
            <div className="w-px h-12 bg-slate-100" />
 
            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#046A38]/5 flex items-center justify-center border border-[#046A38]/10">
-                <Zap className="w-7 h-7 text-[#046A38]" />
+              <div className="w-14 h-14 rounded-2xl bg-[#138808]/5 flex items-center justify-center border border-[#138808]/10">
+                <Zap className="w-7 h-7 text-[#138808]" />
               </div>
               <div>
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Total Odyssey</p>
-                <p className="text-2xl font-black text-[#046A38] uppercase tracking-tighter leading-none">₹{s.totalPrice || '24,500'}</p>
+                <p className="text-2xl font-black text-[#138808] uppercase tracking-tighter leading-none">₹{s.totalPrice || '24,500'}</p>
               </div>
            </div>
         </div>
@@ -273,9 +274,9 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
             aria-label="Location clarification"
           >
             <div className="flex gap-2.5">
-              <Info className="w-4 h-4 text-[#FF671F] shrink-0 mt-0.5" aria-hidden />
+              <Info className="w-4 h-4 text-[#FF9933] shrink-0 mt-0.5" aria-hidden />
               <div className="min-w-0 space-y-1 flex-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#FF671F]">Quick check</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#FF9933]">Quick check</p>
                 <p className="text-sm text-zinc-700 font-medium leading-snug">{locationCheckText}</p>
               </div>
             </div>
@@ -298,7 +299,7 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
                         : 'Thanks — your picks will align with this card.',
                     });
                   }}
-                  className="px-5 py-2.5 rounded-xl bg-[#FF671F] hover:bg-orange-600 text-white text-xs font-black transition-all shadow-md shadow-saffron/20 active:scale-95"
+                  className="px-5 py-2.5 rounded-xl bg-[#FF9933] hover:bg-orange-600 text-white text-xs font-black transition-all shadow-md shadow-saffron/20 active:scale-95"
                 >
                   Yes
                 </button>
@@ -353,18 +354,18 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
               return (
                 <div key={idx} className={`flex items-center justify-between p-5 rounded-3xl border border-slate-50 bg-slate-50/30 transition-all ${isGrey ? 'opacity-30 grayscale scale-95' : 'hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 hover:border-[#FF9933]/20 group/row'}`}>
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${isGrey ? 'bg-slate-100 text-slate-300' : (item.color === 'green' ? 'bg-[#046A38]/10 text-[#046A38]' : 'bg-[#FF9933]/10 text-[#FF9933]')}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${isGrey ? 'bg-slate-100 text-slate-300' : (item.color === 'green' ? 'bg-[#138808]/10 text-[#138808]' : 'bg-[#FF9933]/10 text-[#FF9933]')}`}>
                       <item.icon className="w-6 h-6" />
                     </div>
                     <div>
                       <p className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${isGrey ? 'text-slate-400' : 'text-[#FF9933]'}`}>{item.label}</p>
-                      <p className={`text-base font-black uppercase tracking-tighter ${isGrey ? 'text-slate-500' : 'text-[#1A1A2E]'}`}>
+                      <p className={`text-base font-black uppercase tracking-tighter ${isGrey ? 'text-slate-500' : 'text-[#000080]'}`}>
                         {isNoData ? 'Data Sync Pending' : (isExcluded ? 'Option Excluded' : item.detail)}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-xl font-black italic tracking-tighter ${isGrey ? 'text-slate-300' : 'text-[#1A1A2E]'}`}>
+                    <p className={`text-xl font-black italic tracking-tighter ${isGrey ? 'text-slate-300' : 'text-[#000080]'}`}>
                       {isNoData ? '—' : formatPrice(item.val, item.pax, (item as any).isTransit)}
                     </p>
                   </div>
@@ -505,7 +506,7 @@ export default function StepSuggestions({
       <div className="flex flex-col items-center gap-4 pt-4">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-xs font-black text-white uppercase tracking-widest bg-[#046A38] border border-green-600 px-8 py-4 rounded-2xl shadow-lg transition-all active:scale-95 hover:bg-green-800"
+          className="flex items-center gap-2 text-xs font-black text-white uppercase tracking-widest bg-[#138808] border border-green-600 px-8 py-4 rounded-2xl shadow-lg transition-all active:scale-95 hover:bg-green-800"
         >
           ← {t('adjust_details')}
         </button>

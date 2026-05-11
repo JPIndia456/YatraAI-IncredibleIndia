@@ -193,7 +193,7 @@ export default function MyTripPage() {
 
   if (!effectivePlan) {
     return (
-      <div className="min-h-screen bg-[#FDFDFB] flex flex-col items-center justify-center p-6 text-center text-[#1A1A2E]">
+      <div className="min-h-screen bg-[#FDFDFB] flex flex-col items-center justify-center p-6 text-center text-[#000080]">
         <Sparkles className={`text-saffron/20 mb-6 ${loadingDbTrip ? 'animate-pulse' : ''}`} size={60} />
         <h1 className="text-xl font-black mb-2 uppercase tracking-widest text-saffron">
           {loadingDbTrip ? 'Loading My Trips' : 'No Active Discovery'}
@@ -220,7 +220,7 @@ export default function MyTripPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FDFDFB] text-[#1A1A2E] font-sans antialiased selection:bg-saffron/30">
+    <div className="min-h-screen bg-[#FDFDFB] text-[#000080] font-sans antialiased selection:bg-saffron/30">
       
       {/* ── 1. STICKY HEADER ────────────────────────────────────────────── */}
       <header className="sticky top-0 z-[100] bg-[#FDFDFB]/90 backdrop-blur-3xl border-b border-orange-100 px-6 py-5 flex items-center justify-between">
@@ -253,7 +253,7 @@ export default function MyTripPage() {
             <div className="flex justify-between items-start">
                <div>
                  <div className="text-[10px] font-black text-saffron uppercase tracking-[0.2em] mb-2">Selected Adventure</div>
-                 <h2 className="text-3xl font-black tracking-tight leading-none uppercase italic text-[#1A1A2E]">{effectivePlan.destination}</h2>
+                 <h2 className="text-3xl font-black tracking-tight leading-none uppercase italic text-[#000080]">{effectivePlan.destination}</h2>
                  <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Via {origin || 'Direct Access'}</p>
                </div>
                {getStatusBadge('Confirmed')}
@@ -264,13 +264,13 @@ export default function MyTripPage() {
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     <Calendar size={10} className="text-saffron" /> Date Range
                   </p>
-                  <p className="text-sm font-black text-[#1A1A2E]">{startDate} – {endDate}</p>
+                  <p className="text-sm font-black text-[#000080]">{startDate} – {endDate}</p>
                </div>
                <div className="space-y-1">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     <User size={10} className="text-saffron" /> Travelers
                   </p>
-                  <p className="text-sm font-black text-[#1A1A2E]">{adults}A, {kids}K • {effectivePlan.duration}</p>
+                  <p className="text-sm font-black text-[#000080]">{adults}A, {kids}K • {effectivePlan.duration}</p>
                </div>
                <div className="space-y-1">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -324,7 +324,7 @@ export default function MyTripPage() {
                         </div>
                         <div>
                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t.mode}</p>
-                           <p className="text-xs font-bold text-[#1A1A2E]">{t.from} → {effectivePlan.destination}</p>
+                           <p className="text-xs font-bold text-[#000080]">{t.from} → {effectivePlan.destination}</p>
                         </div>
                      </div>
                      <p className="text-xs font-black text-blue-700">{t.price}</p>
@@ -349,7 +349,7 @@ export default function MyTripPage() {
                         </div>
                         <div className="min-w-0">
                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Accommodation</p>
-                           <p className="text-xs font-bold text-[#1A1A2E] truncate">{h.name}</p>
+                           <p className="text-xs font-bold text-[#000080] truncate">{h.name}</p>
                         </div>
                      </div>
                      <p className="text-xs font-black text-blue-700">{h.price}</p>
@@ -378,7 +378,7 @@ export default function MyTripPage() {
                     <MapPin className="w-7 h-7 text-saffron/90" aria-hidden />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm font-black text-[#1A1A2E] uppercase tracking-tight italic">No journey timeline yet</p>
+                    <p className="text-sm font-black text-[#000080] uppercase tracking-tight italic">No journey timeline yet</p>
                     <p className="text-[11px] text-slate-500 leading-relaxed max-sm:mx-auto">
                       Day-by-day activities appear after the planner saves an itinerary (Discover → Confirm & Plan). Older bookings may only have totals until you regenerate.
                     </p>
@@ -399,7 +399,7 @@ export default function MyTripPage() {
                       <div className="w-8 h-8 rounded-full bg-saffron/10 border border-saffron/20 flex items-center justify-center text-[10px] font-black text-saffron">
                         {day.day}
                       </div>
-                      <h4 className="text-sm font-black text-[#1A1A2E] uppercase tracking-tight italic">{day.title}</h4>
+                      <h4 className="text-sm font-black text-[#000080] uppercase tracking-tight italic">{day.title}</h4>
                     </div>
 
                     <div className="space-y-4 border-l border-orange-100 ml-4 pl-6">
@@ -431,7 +431,7 @@ export default function MyTripPage() {
                  <div key={i} className="min-w-[200px] p-5 bg-white border border-orange-100 rounded-3xl space-y-3 shadow-sm">
                     <div>
                        <p className="text-[8px] font-black text-saffron uppercase tracking-widest mb-1">{f.type}</p>
-                       <p className="text-xs font-black text-[#1A1A2E] uppercase">{f.name}</p>
+                       <p className="text-xs font-black text-[#000080] uppercase">{f.name}</p>
                     </div>
                     <p className="text-[9px] text-slate-500 font-bold leading-relaxed italic border-t border-orange-50 pt-2">
                        <span className="text-saffron">Try:</span> {f.must}
@@ -461,7 +461,7 @@ export default function MyTripPage() {
            <button onClick={() => window.print()} className="w-full flex items-center justify-center gap-3 p-4 bg-white border border-orange-100 rounded-2xl hover:bg-orange-50 transition-all text-center shadow-sm">
               <Download className="text-green w-5 h-5" />
               <div className="min-w-0 text-left">
-                 <p className="text-[10px] font-black text-[#1A1A2E] uppercase truncate">Download PDF</p>
+                 <p className="text-[10px] font-black text-[#000080] uppercase truncate">Download PDF</p>
                  <p className="text-[8px] text-slate-400 font-black uppercase">Full Guide</p>
               </div>
            </button>

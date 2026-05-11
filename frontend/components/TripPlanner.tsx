@@ -621,7 +621,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
   if (!displayDestination || displayDestination.length < 2) {
     return (
       <div className="py-20 text-center">
-        <p className="text-slate-400 font-black uppercase tracking-widest" suppressHydrationWarning>
+        <p className="text-[#000080]/40 font-black uppercase tracking-widest" suppressHydrationWarning>
           {mounted ? t('planner_preparing_itinerary') : 'Preparing your itinerary...'}
         </p>
       </div>
@@ -636,17 +636,17 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
           <CheckCircle2 className="w-12 h-12 text-white" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-4xl font-black text-[#1A1A2E] uppercase italic tracking-tighter">{t('booking_confirmed', 'TRIP CONFIRMED!')}.</h2>
-          <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">{t('booking_confirmed_desc', 'Your incredible journey has been finalized.')}</p>
+          <h2 className="text-4xl font-black text-[#000080] uppercase italic tracking-tighter">{t('booking_confirmed', 'TRIP CONFIRMED!')}.</h2>
+          <p className="text-[#000080]/60 font-bold uppercase tracking-widest text-xs">{t('booking_confirmed_desc', 'Your incredible journey has been finalized.')}</p>
         </div>
-        <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 space-y-4">
-          <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest text-slate-400">
+        <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-[#000080]/10 space-y-4">
+          <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest text-[#000080]/40">
             <span>{t('indicative_total')}</span>
-            <span className="text-xl text-[#1A1A2E] tracking-tighter">₹{mixTotal.toLocaleString()}</span>
+            <span className="text-xl text-[#000080] tracking-tighter">₹{mixTotal.toLocaleString()}</span>
           </div>
           <button 
             onClick={() => router.push('/dashboard')}
-            className="w-full py-5 bg-[#1A1A2E] text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl hover:bg-slate-900 transition-all active:scale-95"
+            className="w-full py-5 bg-[#000080] text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl hover:bg-slate-900 transition-all active:scale-95"
           >
             {t('view_dashboard', 'Go to Dashboard')}
           </button>
@@ -658,30 +658,30 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
   return (
     <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative max-w-7xl mx-auto pb-24 px-4 sm:px-6">
       {/* --- HEADER --- */}
-      <div className="py-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+      <div className="py-8 border-b border-[#000080]/10 flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
         <div className="space-y-1 text-center md:text-left">
-           <h2 className="text-3xl font-black text-[#1A1A2E] uppercase italic tracking-tighter flex items-center justify-center md:justify-start gap-3">
+           <h2 className="text-3xl font-black text-[#000080] uppercase italic tracking-tighter flex items-center justify-center md:justify-start gap-3">
               <MapPin className="w-8 h-8 text-saffron" />
               {displayDest}
            </h2>
            <div className="mt-2 flex items-center justify-center md:justify-start">
              {weather ? (
-               <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#046A38] border border-[#FF671F]/20 rounded-full shadow-lg shadow-emerald-900/10">
-                 <CloudSun className="w-3.5 h-3.5 text-[#FF671F]" />
+               <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#138808] border border-[#FF9933]/20 rounded-full shadow-lg shadow-emerald-900/10">
+                 <CloudSun className="w-3.5 h-3.5 text-[#FF9933]" />
                  <span className="text-[10px] font-black text-white uppercase tracking-widest italic">
                    Climate Pulse: {weather.temp || '--'}°C • {weather.condition || 'Updating...'}
                  </span>
                </div>
              ) : (
-               <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#046A38]/5 border border-[#046A38]/10 rounded-full shadow-sm">
-                 <CloudSun className="w-3.5 h-3.5 text-[#046A38]/30" />
-                 <span className="text-[10px] font-black text-[#046A38]/40 uppercase tracking-widest italic">
+               <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#138808]/5 border border-[#138808]/10 rounded-full shadow-sm">
+                 <CloudSun className="w-3.5 h-3.5 text-[#138808]/30" />
+                 <span className="text-[10px] font-black text-[#138808]/40 uppercase tracking-widest italic">
                    Climate: Discovery Mode
                  </span>
                </div>
              )}
            </div>
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-[10px] font-bold text-[#000080]/40 uppercase tracking-widest">
             <span>{displayOrigin}</span>
             <ArrowRight className="w-3 h-3" />
             <span>{isoToDdMonthYy(displayStart)} — {isoToDdMonthYy(displayEnd)}</span>
@@ -690,9 +690,9 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
           </div>
         </div>
         <div className="flex gap-4">
-           <div className="px-6 py-3 bg-slate-50 rounded-2xl border border-slate-100 text-center min-w-[120px]">
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{t('nights', 'Nights')}</p>
-              <p className="text-lg font-black text-[#1A1A2E]">{nights}</p>
+           <div className="px-6 py-3 bg-slate-50 rounded-2xl border border-[#000080]/10 text-center min-w-[120px]">
+              <p className="text-[8px] font-black text-[#000080]/40 uppercase tracking-widest">{t('nights', 'Nights')}</p>
+              <p className="text-lg font-black text-[#000080]">{nights}</p>
            </div>
            {weather && (
              <div className="px-6 py-3 bg-saffron/5 rounded-2xl border border-saffron/10 text-center min-w-[120px]">
@@ -711,7 +711,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Sparkles className="w-5 h-5 text-saffron" />
-              <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('select_intelligence_tier', 'Select Your Travel Style')}</h4>
+              <h4 className="text-[11px] font-black text-[#000080]/40 uppercase tracking-[0.2em]">{t('select_intelligence_tier', 'Select Your Travel Style')}</h4>
             </div>
             <div className="grid grid-cols-3 gap-4">
               {[
@@ -733,12 +733,12 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                     const bestTransport = (tier.id === 'economy' ? allOutbound.find(t => t.label === 'Train') : allOutbound.find(t => t.label === 'Flight')) || allOutbound[0];
                     setMixPicks({ hotel: bestHotel, transport: bestTransport });
                   }}
-                  className={`p-4 rounded-3xl border transition-all flex flex-col items-center gap-2 group ${hotelTier === tier.id ? `${tier.bg} ${tier.border} shadow-lg scale-[1.02]` : 'bg-white border-slate-100 hover:border-slate-200'}`}
+                  className={`p-4 rounded-3xl border transition-all flex flex-col items-center gap-2 group ${hotelTier === tier.id ? `${tier.bg} ${tier.border} shadow-lg scale-[1.02]` : 'bg-white border-[#000080]/10 hover:border-slate-200'}`}
                 >
-                  <div className={`p-2 rounded-xl ${hotelTier === tier.id ? `${tier.bg} ${tier.color}` : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100'}`}>
+                  <div className={`p-2 rounded-xl ${hotelTier === tier.id ? `${tier.bg} ${tier.color}` : 'bg-slate-50 text-[#000080]/40 group-hover:bg-slate-100'}`}>
                     <tier.icon className="w-5 h-5" />
                   </div>
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${hotelTier === tier.id ? tier.color : 'text-slate-400'}`}>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${hotelTier === tier.id ? tier.color : 'text-[#000080]/40'}`}>
                     {tier.label}
                   </span>
                 </button>
@@ -753,23 +753,23 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                  <Plane className="w-6 h-6" />
                </div>
                 <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                  <h3 className="text-xl font-black text-[#1A1A2E] uppercase italic tracking-tight">{t('travel_options', 'TRAVEL OPTIONS')}</h3>
+                  <h3 className="text-xl font-black text-[#000080] uppercase italic tracking-tight">{t('travel_options', 'TRAVEL OPTIONS')}</h3>
                   {!loading && (
                     <button 
                       onClick={fetchAll}
-                      className="flex items-center gap-1.5 text-[8px] font-black text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-[0.2em]"
+                      className="flex items-center gap-1.5 text-[8px] font-black text-[#000080]/40 hover:text-blue-600 transition-colors uppercase tracking-[0.2em]"
                     >
                       <RotateCcw className="w-3 h-3" />
                       Refresh Live Fares
                     </button>
                   )}
                 </div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-[#000080]/40 uppercase tracking-widest">
                   {loading ? 'Sourcing real-time availability...' : `Live transit to ${displayDest}`}
                 </p>
             </div>
 
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-[2.5rem] border border-[#000080]/10 shadow-sm overflow-hidden">
                <div className="p-6 bg-blue-50/50 border-b border-blue-100 flex justify-between items-center">
                   <div className="flex items-center gap-4">
                      <span className="px-3 py-1 bg-blue-600 text-white text-[8px] font-black uppercase rounded-full">Outbound</span>
@@ -792,25 +792,25 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                         className={`p-5 rounded-2xl border transition-all cursor-pointer flex justify-between items-center group ${mixPicks.transport?.name === item.name ? 'bg-blue-50 border-blue-200' : 'bg-white border-transparent hover:bg-slate-50'}`}
                       >
                         <div className="flex items-center gap-5">
-                           <div className={`p-3 rounded-xl transition-colors ${mixPicks.transport?.name === item.name ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600'}`}>
+                           <div className={`p-3 rounded-xl transition-colors ${mixPicks.transport?.name === item.name ? 'bg-blue-600 text-white' : 'bg-slate-50 text-[#000080]/40 group-hover:bg-blue-100 group-hover:text-blue-600'}`}>
                              {item.icon ? <item.icon className="w-5 h-5" /> : <Plane className="w-5 h-5" />}
                            </div>
                            <div>
-                             <h5 className="font-black text-sm text-[#1A1A2E] tracking-tight">{item.name}</h5>
-                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{item.detail}</p>
+                             <h5 className="font-black text-sm text-[#000080] tracking-tight">{item.name}</h5>
+                             <p className="text-[10px] font-bold text-[#000080]/60 uppercase tracking-widest">{item.detail}</p>
                            </div>
                         </div>
                         <div className="text-right flex flex-col items-end gap-2">
                            <div className="flex items-center gap-2">
                               <p className="text-base font-black text-blue-600 tracking-tighter">{item.price}</p>
-                              <span className={`px-2 py-0.5 rounded text-[7px] font-black uppercase ${item.source === 'live' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'}`}>
+                              <span className={`px-2 py-0.5 rounded text-[7px] font-black uppercase ${item.source === 'live' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-[#000080]/60'}`}>
                                 {item.source === 'live' ? 'Live' : 'Est'}
                               </span>
                            </div>
                            {mixPicks.transport?.name === item.name ? (
                              <span className="px-3 py-1 bg-blue-600 text-white text-[8px] font-black uppercase rounded-full italic animate-pulse">Selected</span>
                            ) : (
-                             <button className="px-4 py-1.5 bg-slate-100 text-slate-400 group-hover:bg-blue-600 group-hover:text-white text-[9px] font-black uppercase rounded-xl transition-all">Select</button>
+                             <button className="px-4 py-1.5 bg-slate-100 text-[#000080]/40 group-hover:bg-blue-600 group-hover:text-white text-[9px] font-black uppercase rounded-xl transition-all">Select</button>
                            )}
                         </div>
                       </div>
@@ -820,7 +820,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
             </div>
 
             {tripType === 'round' && (
-              <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-[2.5rem] border border-[#000080]/10 shadow-sm overflow-hidden">
                 <div className="p-6 bg-indigo-50/50 border-b border-indigo-100 flex justify-between items-center">
                     <div className="flex items-center gap-4">
                       <span className="px-3 py-1 bg-indigo-600 text-white text-[8px] font-black uppercase rounded-full">Return</span>
@@ -843,12 +843,12 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                           className={`p-5 rounded-2xl border transition-all cursor-pointer flex justify-between items-center group ${mixPicks.returnTransport?.name === item.name ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-transparent hover:bg-slate-50'}`}
                         >
                           <div className="flex items-center gap-5">
-                             <div className={`p-3 rounded-xl transition-colors ${mixPicks.returnTransport?.name === item.name ? 'bg-indigo-600 text-white' : 'bg-slate-50 text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600'}`}>
+                             <div className={`p-3 rounded-xl transition-colors ${mixPicks.returnTransport?.name === item.name ? 'bg-indigo-600 text-white' : 'bg-slate-50 text-[#000080]/40 group-hover:bg-indigo-100 group-hover:text-indigo-600'}`}>
                                {item.icon ? <item.icon className="w-5 h-5" /> : <Plane className="w-5 h-5" />}
                              </div>
                              <div>
-                               <h5 className="font-black text-sm text-[#1A1A2E] tracking-tight">{item.name}</h5>
-                               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{item.detail}</p>
+                               <h5 className="font-black text-sm text-[#000080] tracking-tight">{item.name}</h5>
+                               <p className="text-[10px] font-bold text-[#000080]/60 uppercase tracking-widest">{item.detail}</p>
                              </div>
                           </div>
                           <div className="text-right flex flex-col items-end gap-2">
@@ -856,7 +856,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                              {mixPicks.returnTransport?.name === item.name ? (
                                <span className="px-3 py-1 bg-indigo-600 text-white text-[8px] font-black uppercase rounded-full italic animate-pulse">Selected</span>
                              ) : (
-                               <button className="px-4 py-1.5 bg-slate-100 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white text-[9px] font-black uppercase rounded-xl transition-all">Select</button>
+                               <button className="px-4 py-1.5 bg-slate-100 text-[#000080]/40 group-hover:bg-indigo-600 group-hover:text-white text-[9px] font-black uppercase rounded-xl transition-all">Select</button>
                              )}
                           </div>
                         </div>
@@ -874,12 +874,12 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                  <Hotel className="w-6 h-6" />
                </div>
                <div>
-                 <h3 className="text-xl font-black text-[#1A1A2E] uppercase italic tracking-tight">{t('stay_options', 'STAY OPTIONS')}</h3>
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Premium hotels in {displayDest}</p>
+                 <h3 className="text-xl font-black text-[#000080] uppercase italic tracking-tight">{t('stay_options', 'STAY OPTIONS')}</h3>
+                 <p className="text-[10px] font-bold text-[#000080]/40 uppercase tracking-widest">Premium hotels in {displayDest}</p>
                </div>
             </div>
 
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-[2.5rem] border border-[#000080]/10 shadow-sm overflow-hidden">
                <div className="p-6 bg-amber-50/50 border-b border-amber-100 flex justify-between items-center">
                   <div className="flex items-center gap-4">
                      <span className="px-3 py-1 bg-amber-600 text-white text-[8px] font-black uppercase rounded-full">In Cart</span>
@@ -902,12 +902,12 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                         className={`p-5 rounded-2xl border transition-all cursor-pointer flex justify-between items-center group ${mixPicks.hotel?.name === item.name ? 'bg-amber-50 border-amber-200' : 'bg-white border-transparent hover:bg-slate-50'}`}
                       >
                         <div className="flex items-center gap-5">
-                           <div className={`p-3 rounded-xl transition-colors ${mixPicks.hotel?.name === item.name ? 'bg-amber-600 text-white' : 'bg-slate-50 text-slate-400 group-hover:bg-amber-100 group-hover:text-amber-600'}`}>
+                           <div className={`p-3 rounded-xl transition-colors ${mixPicks.hotel?.name === item.name ? 'bg-amber-600 text-white' : 'bg-slate-50 text-[#000080]/40 group-hover:bg-amber-100 group-hover:text-amber-600'}`}>
                              <Hotel className="w-5 h-5" />
                            </div>
                            <div>
-                             <h5 className="font-black text-sm text-[#1A1A2E] tracking-tight">{item.name}</h5>
-                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{item.detail}</p>
+                             <h5 className="font-black text-sm text-[#000080] tracking-tight">{item.name}</h5>
+                             <p className="text-[10px] font-bold text-[#000080]/60 uppercase tracking-widest">{item.detail}</p>
                            </div>
                         </div>
                         <div className="text-right">
@@ -928,12 +928,12 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                  <Car className="w-6 h-6" />
                </div>
                <div>
-                 <h3 className="text-xl font-black text-[#1A1A2E] uppercase italic tracking-tight">{t('local_options', 'LOCAL TRANSIT')}</h3>
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Elite local mobility in {displayDest}</p>
+                 <h3 className="text-xl font-black text-[#000080] uppercase italic tracking-tight">{t('local_options', 'LOCAL TRANSIT')}</h3>
+                 <p className="text-[10px] font-bold text-[#000080]/40 uppercase tracking-widest">Elite local mobility in {displayDest}</p>
                </div>
             </div>
 
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-[2.5rem] border border-[#000080]/10 shadow-sm overflow-hidden">
                <div className="p-6 bg-emerald-50/50 border-b border-emerald-100 flex justify-between items-center">
                   <div className="flex items-center gap-4">
                      <span className="px-3 py-1 bg-emerald-600 text-white text-[8px] font-black uppercase rounded-full">In Cart</span>
@@ -950,12 +950,12 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                       className={`p-5 rounded-2xl border transition-all cursor-pointer flex justify-between items-center group ${mixPicks.local?.name === item.name ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-transparent hover:bg-slate-50'}`}
                     >
                       <div className="flex items-center gap-5">
-                         <div className={`p-3 rounded-xl transition-colors ${mixPicks.local?.name === item.name ? 'bg-emerald-600 text-white' : 'bg-slate-50 text-slate-400 group-hover:bg-emerald-100 group-hover:text-emerald-600'}`}>
+                         <div className={`p-3 rounded-xl transition-colors ${mixPicks.local?.name === item.name ? 'bg-emerald-600 text-white' : 'bg-slate-50 text-[#000080]/40 group-hover:bg-emerald-100 group-hover:text-emerald-600'}`}>
                            {item.icon ? <item.icon className="w-5 h-5" /> : <Car className="w-5 h-5" />}
                          </div>
                          <div>
-                           <h5 className="font-black text-sm text-[#1A1A2E] tracking-tight">{item.name}</h5>
-                           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{item.detail}</p>
+                           <h5 className="font-black text-sm text-[#000080] tracking-tight">{item.name}</h5>
+                           <p className="text-[10px] font-bold text-[#000080]/60 uppercase tracking-widest">{item.detail}</p>
                          </div>
                       </div>
                       <div className="text-right flex flex-col items-end gap-2">
@@ -963,14 +963,14 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                            <p className="text-base font-black text-emerald-600 tracking-tighter">
                              {item.price && item.price !== 'Included' ? item.price : '₹2,500'}
                            </p>
-                           <span className={`px-2 py-0.5 rounded text-[7px] font-black uppercase ${item.source === 'live' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'}`}>
+                           <span className={`px-2 py-0.5 rounded text-[7px] font-black uppercase ${item.source === 'live' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-[#000080]/60'}`}>
                               {item.source === 'live' ? 'Live' : 'Est'}
                            </span>
                          </div>
                          {mixPicks.local?.name === item.name ? (
                            <span className="px-3 py-1 bg-emerald-600 text-white text-[8px] font-black uppercase rounded-full italic animate-pulse">Selected</span>
                          ) : (
-                           <button className="px-4 py-1.5 bg-slate-100 text-slate-400 group-hover:bg-emerald-600 group-hover:text-white text-[9px] font-black uppercase rounded-xl transition-all">Select</button>
+                           <button className="px-4 py-1.5 bg-slate-100 text-[#000080]/40 group-hover:bg-emerald-600 group-hover:text-white text-[9px] font-black uppercase rounded-xl transition-all">Select</button>
                          )}
                       </div>
                     </div>
@@ -982,7 +982,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
 
          {/* --- STICKY SUMMARY SIDEBAR (RIGHT) --- */}
          <aside className="lg:col-span-4 sticky top-8">
-            <div className="bg-[#046A38] rounded-[2.5rem] p-6 text-white shadow-2xl space-y-6 border border-white/5 relative overflow-hidden">
+            <div className="bg-[#138808] rounded-[2.5rem] p-6 text-white shadow-2xl space-y-6 border border-white/5 relative overflow-hidden">
                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF9933]/10 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
                
                <div className="flex items-center gap-3">
@@ -1020,7 +1020,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                    disabled={isVerifying || !mixPicks.transport || !mixPicks.hotel}
                    className={`w-full py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-2xl flex flex-col items-center gap-1.5 leading-none ${
                      !isVerifying && mixPicks.transport && mixPicks.hotel 
-                       ? 'bg-[#FF671F] text-white hover:bg-orange-600 hover:-translate-y-1 active:scale-95 shadow-orange-950/40' 
+                       ? 'bg-[#FF9933] text-white hover:bg-orange-600 hover:-translate-y-1 active:scale-95 shadow-orange-950/40' 
                        : 'bg-white/10 text-white/20 cursor-not-allowed grayscale'
                    }`}
                  >

@@ -205,7 +205,7 @@ export function parseDiscoverySuggestionsJson(raw: string): unknown[] {
       return parsed;
     } catch {
       const msg = first instanceof Error ? first.message : String(first);
-      throw new Error(`Search refined. Some technical details were adjusted — please try selecting again for the best results.`);
+      throw new Error(`Search refined: ${msg}. Please try selecting again.`);
     }
   }
 }

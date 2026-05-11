@@ -121,7 +121,7 @@ export default function BookingPage() {
               </div>
               <button 
                 onClick={() => setStep('CONFIRMED')}
-                className="px-12 py-5 bg-[#FF671F] text-white rounded-2xl font-black text-xl hover:bg-orange-600 transition-all shadow-xl shadow-saffron/20"
+                className="px-12 py-5 bg-[#FF9933] text-white rounded-2xl font-black text-xl hover:bg-orange-600 transition-all shadow-xl shadow-saffron/20"
               >
                 Confirm & Finalize Booking
               </button>

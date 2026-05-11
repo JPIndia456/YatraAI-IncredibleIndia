@@ -57,8 +57,7 @@ Return ONLY a valid JSON array (no markdown fences) of exactly 4 objects:
     const result = await resilientGenerateContent(`Trips from ${origin}`, {
       useGrounding: true,
       systemPrompt,
-      jsonMode: true,
-      context: { targetBudget }
+      jsonMode: true
     });
 
     if (!result || !result.text) {

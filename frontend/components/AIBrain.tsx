@@ -61,7 +61,7 @@ const VOICE_CHROME_SPEECH_ONLY = process.env.NEXT_PUBLIC_VOICE_CHROME_SPEECH_ONL
 
 // ── Typing cursor blink ───────────────────────────────────────────────────────
 const Cursor = () => (
-  <span className="inline-block w-[2px] h-[1em] bg-[#FF671F] ml-0.5 align-middle animate-cursor-blink" />
+  <span className="inline-block w-[2px] h-[1em] bg-[#FF9933] ml-0.5 align-middle animate-cursor-blink" />
 );
 
 // ── Quick Reply Chips ────────────────────────────────────────────────────────
@@ -140,7 +140,7 @@ const DiscoveryCard = memo(function DiscoveryCard({ data }: { data: Record<strin
         <div className="absolute top-4 left-4">
           <div className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-full border border-orange-100 flex items-center gap-2 shadow-lg">
             <Sparkles className="w-3 h-3 text-saffron" />
-            <span className="text-[10px] font-black text-[#1A1A2E] uppercase tracking-widest italic">AI Discovery</span>
+            <span className="text-[10px] font-black text-[#000080] uppercase tracking-widest italic">AI Discovery</span>
           </div>
         </div>
       </div>
@@ -152,19 +152,19 @@ const DiscoveryCard = memo(function DiscoveryCard({ data }: { data: Record<strin
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Elite Discovery</p>
-            <h4 className="text-xl font-black text-[#1A1A2E] uppercase tracking-tighter leading-none">{title}</h4>
+            <h4 className="text-xl font-black text-[#000080] uppercase tracking-tighter leading-none">{title}</h4>
           </div>
         </div>
         
         <div className="flex items-center gap-6 py-4 border-y border-slate-100">
           <div className="flex-1">
              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Investment</p>
-             <p className="text-lg font-black text-[#046A38] uppercase tracking-tighter">{budget}</p>
+             <p className="text-lg font-black text-[#138808] uppercase tracking-tighter">{budget}</p>
           </div>
           <div className="w-px h-8 bg-slate-100" />
           <div className="flex-1 text-right">
              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Duration</p>
-             <p className="text-lg font-black text-[#1A1A2E] uppercase tracking-tighter">{duration}</p>
+             <p className="text-lg font-black text-[#000080] uppercase tracking-tighter">{duration}</p>
           </div>
         </div>
       </div>
@@ -209,13 +209,13 @@ const AIBrainSelectionCard = memo(function AIBrainSelectionCard({ type, index }:
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{isUnavailable ? 'Sold Out' : `Elite ${type}`}</p>
-            <h4 className="text-xl font-black text-[#1A1A2E] uppercase tracking-tighter leading-none truncate max-w-[180px]">{name}</h4>
+            <h4 className="text-xl font-black text-[#000080] uppercase tracking-tighter leading-none truncate max-w-[180px]">{name}</h4>
           </div>
         </div>
         {!isUnavailable && (
           <div className="text-right">
              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Investment</p>
-             <p className="text-xl font-black text-[#046A38] uppercase tracking-tighter">{price}</p>
+             <p className="text-xl font-black text-[#138808] uppercase tracking-tighter">{price}</p>
           </div>
         )}
       </div>
@@ -289,7 +289,7 @@ const MessageBubble = memo(function MessageBubble({
           className={`px-5 py-4 rounded-3xl text-sm leading-relaxed font-bold shadow-sm
             ${isUser
               ? 'bg-[#FF9933] text-white rounded-tr-sm shadow-orange-200'
-              : 'bg-white border border-slate-100 text-[#1A1A2E] rounded-tl-sm'
+              : 'bg-white border border-slate-100 text-[#000080] rounded-tl-sm'
             }`}
         >
           {/* Render content using ReactMarkdown, but hide [SELECT:...] and [UPDATE:...] tags from the UI */}
@@ -298,12 +298,12 @@ const MessageBubble = memo(function MessageBubble({
               remarkPlugins={[remarkGfm]}
               components={{
                 p: ({children}) => <p className="mb-1 last:mb-0">{children}</p>,
-                strong: ({children}) => <strong className="font-black text-[#FF671F]">{children}</strong>,
+                strong: ({children}) => <strong className="font-black text-[#FF9933]">{children}</strong>,
                 ul: ({children}) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
                 li: ({children}) => <li className="text-[11px] leading-snug">{children}</li>,
-                h1: ({children}) => <h1 className="text-sm font-black uppercase tracking-tight text-[#FF671F] mb-1">{children}</h1>,
-                h2: ({children}) => <h2 className="text-xs font-black uppercase tracking-tight text-[#FF671F] mb-1">{children}</h2>,
-                h3: ({children}) => <h3 className="text-xs font-black uppercase tracking-tight text-[#FF671F] mb-1">{children}</h3>,
+                h1: ({children}) => <h1 className="text-sm font-black uppercase tracking-tight text-[#FF9933] mb-1">{children}</h1>,
+                h2: ({children}) => <h2 className="text-xs font-black uppercase tracking-tight text-[#FF9933] mb-1">{children}</h2>,
+                h3: ({children}) => <h3 className="text-xs font-black uppercase tracking-tight text-[#FF9933] mb-1">{children}</h3>,
               }}
             >
               {displayContent
@@ -319,7 +319,7 @@ const MessageBubble = memo(function MessageBubble({
           {isLong && (
             <button 
               onClick={() => setIsExpanded(!isExpanded)}
-              className="block mt-2 text-[10px] text-[#FF671F] font-bold uppercase tracking-widest hover:text-[#FF671F] transition-colors"
+              className="block mt-2 text-[10px] text-[#FF9933] font-bold uppercase tracking-widest hover:text-[#FF9933] transition-colors"
             >
               {isExpanded ? 'Show Less' : 'Read More'}
             </button>
@@ -395,7 +395,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
           </div>
           <div className="text-left">
             <p className="text-micro font-black text-saffron uppercase tracking-widest">Active Safety</p>
-            <p className="text-[10px] text-[#1A1A2E] font-bold tracking-tight">Telegram Connected</p>
+            <p className="text-[10px] text-[#000080] font-bold tracking-tight">Telegram Connected</p>
           </div>
         </div>
         <p className="text-[9px] text-black/40 leading-relaxed text-left">
@@ -419,7 +419,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
             </div>
             <div className="text-left">
               <p className="text-micro font-black text-saffron uppercase tracking-widest">Master Control</p>
-              <p className="text-[10px] text-[#1A1A2E] font-bold tracking-tight">Modify & Re-Craft</p>
+              <p className="text-[10px] text-[#000080] font-bold tracking-tight">Modify & Re-Craft</p>
             </div>
           </div>
           <p className="text-[9px] text-black/50 leading-relaxed text-left italic">
@@ -440,10 +440,10 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
           className="w-full py-4 bg-gradient-to-r from-saffron to-orange-600 rounded-2xl flex items-center justify-center gap-3 shadow-xl shadow-saffron/20 group transition-all active:scale-95"
         >
           <div className="w-8 h-8 rounded-xl bg-slate-200 flex items-center justify-center group-hover:scale-110 transition-transform">
-             <CheckCircle2 className="w-4 h-4 text-[#1A1A2E]" />
+             <CheckCircle2 className="w-4 h-4 text-[#000080]" />
           </div>
           <div className="text-left">
-             <p className="text-[10px] font-black text-[#1A1A2E] uppercase tracking-widest leading-none">Select/Choose</p>
+             <p className="text-[10px] font-black text-[#000080] uppercase tracking-widest leading-none">Select/Choose</p>
              <p className="text-[11px] font-bold text-black/70 italic">Best Options Available →</p>
           </div>
         </button>
@@ -457,7 +457,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 rounded-lg bg-orange-50"><Plane className="w-3 h-3 text-saffron" /></div>
                       <div className="text-left">
-                        <p className="text-[9px] font-black text-[#1A1A2E] uppercase leading-none">{mixPicks.transport.name}</p>
+                        <p className="text-[9px] font-black text-[#000080] uppercase leading-none">{mixPicks.transport.name}</p>
                         <p className="text-[8px] text-black/40 font-bold uppercase">{mixPicks.transport.price}</p>
                       </div>
                     </div>
@@ -471,7 +471,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 rounded-lg bg-green/10"><Hotel className="w-3 h-3 text-green" /></div>
                       <div className="text-left">
-                        <p className="text-[9px] font-black text-[#1A1A2E] uppercase leading-none">{mixPicks.hotel.name}</p>
+                        <p className="text-[9px] font-black text-[#000080] uppercase leading-none">{mixPicks.hotel.name}</p>
                         <p className="text-[8px] text-black/40 font-bold uppercase">{mixPicks.hotel.price}/night (Per night before taxes)</p>
                       </div>
                     </div>
@@ -485,7 +485,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 rounded-lg bg-orange-50"><Car className="w-3 h-3 text-saffron" /></div>
                       <div className="text-left">
-                        <p className="text-[9px] font-black text-[#1A1A2E] uppercase leading-none">{mixPicks.local.name}</p>
+                        <p className="text-[9px] font-black text-[#000080] uppercase leading-none">{mixPicks.local.name}</p>
                         <p className="text-[8px] text-black/40 font-bold uppercase">{mixPicks.local.price}</p>
                       </div>
                     </div>
@@ -504,7 +504,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
         {/* AI-side quick selectors synced with Planner via shared store */}
         {(flightOptions.length > 0 || trainOptions.length > 0 || ferryOptions.length > 0 || hotelOptions.length > 0 || mobilityOptions.length > 0) && (
           <div className="bg-slate-50 border border-black/5 rounded-2xl p-4 space-y-4 shadow-xl">
-            <p className="text-[9px] font-black text-[#FF671F] uppercase tracking-[0.2em]">AI Quick Selectors</p>
+            <p className="text-[9px] font-black text-[#FF9933] uppercase tracking-[0.2em]">AI Quick Selectors</p>
 
             {flightOptions.length > 0 && (
               <div className="space-y-2">
@@ -515,7 +515,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                     const detail = `${f.departure || ''} → ${f.arrival || ''}${f.duration ? ` · ${f.duration}` : ''}`;
                     const selected = (mixPicks?.transport?.name === name) && (mixPicks?.transport?.label === 'Flight');
                     return (
-                      <label key={`ai-flight-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-[#FF671F]/40 bg-[#FF671F]/10' : 'border-black/5 bg-white/80'}`}>
+                      <label key={`ai-flight-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-[#FF9933]/40 bg-[#FF9933]/10' : 'border-black/5 bg-white/80'}`}>
                         <input
                           type="radio"
                           name="ai-flight-select"
@@ -534,13 +534,13 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                               },
                             })
                           }
-                          className="accent-[#FF671F]"
+                          className="accent-[#FF9933]"
                         />
                         <div className="min-w-0">
-                          <p className="text-[9px] font-black text-[#1A1A2E] uppercase truncate">{name}</p>
+                          <p className="text-[9px] font-black text-[#000080] uppercase truncate">{name}</p>
                           <p className="text-[8px] text-black/40 font-bold uppercase truncate">{detail}</p>
                         </div>
-                        <span className="ml-auto text-[9px] font-black text-[#FF671F]">{f.price || '—'}</span>
+                        <span className="ml-auto text-[9px] font-black text-[#FF9933]">{f.price || '—'}</span>
                       </label>
                     );
                   })}
@@ -579,7 +579,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                           className="accent-green"
                         />
                         <div className="min-w-0">
-                          <p className="text-[9px] font-black text-[#1A1A2E] uppercase truncate">{name}</p>
+                          <p className="text-[9px] font-black text-[#000080] uppercase truncate">{name}</p>
                           <p className="text-[8px] text-black/40 font-bold uppercase truncate">{detail || 'Recommended stay'}</p>
                         </div>
                         <span className="ml-auto text-[9px] font-black text-blue-700">{String(h.price || '').replace(/\(|\)/g, '') || '—'}</span>
@@ -599,7 +599,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                     const detail = `${t.departure || ''} → ${t.arrival || ''}${t.duration ? ` · ${t.duration}` : ''}`;
                     const selected = (mixPicks?.transport?.name === name) && (mixPicks?.transport?.label === 'Train');
                     return (
-                      <label key={`ai-train-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-[#FF671F]/40 bg-[#FF671F]/10' : 'border-black/5 bg-white/80'}`}>
+                      <label key={`ai-train-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-[#FF9933]/40 bg-[#FF9933]/10' : 'border-black/5 bg-white/80'}`}>
                         <input
                           type="radio"
                           name="ai-train-select"
@@ -618,13 +618,13 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                               },
                             })
                           }
-                          className="accent-[#FF671F]"
+                          className="accent-[#FF9933]"
                         />
                         <div className="min-w-0">
-                          <p className="text-[9px] font-black text-[#1A1A2E] uppercase truncate">{name}</p>
+                          <p className="text-[9px] font-black text-[#000080] uppercase truncate">{name}</p>
                           <p className="text-[8px] text-black/40 font-bold uppercase truncate">{detail}</p>
                         </div>
-                        <span className="ml-auto text-[9px] font-black text-[#FF671F]">{String(t.price || '').replace(/\(|\)/g, '') || '—'}</span>
+                        <span className="ml-auto text-[9px] font-black text-[#FF9933]">{String(t.price || '').replace(/\(|\)/g, '') || '—'}</span>
                       </label>
                     );
                   })}
@@ -663,7 +663,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                           className="accent-green"
                         />
                         <div className="min-w-0">
-                          <p className="text-[9px] font-black text-[#1A1A2E] uppercase truncate">{name}</p>
+                          <p className="text-[9px] font-black text-[#000080] uppercase truncate">{name}</p>
                           <p className="text-[8px] text-black/40 font-bold uppercase truncate">{detail || 'Sea crossing'}</p>
                         </div>
                         <span className="ml-auto text-[9px] font-black text-blue-700">{String(f.price || '').replace(/\(|\)/g, '') || '—'}</span>
@@ -705,7 +705,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                           className="accent-saffron"
                         />
                         <div className="min-w-0">
-                          <p className="text-[9px] font-black text-[#1A1A2E] uppercase truncate">{name}</p>
+                          <p className="text-[9px] font-black text-[#000080] uppercase truncate">{name}</p>
                           <p className="text-[8px] text-black/40 font-bold uppercase truncate">{detail}</p>
                         </div>
                         <span className="ml-auto text-[9px] font-black text-blue-700">{String(m.price || '').replace(/\(|\)/g, '') || '—'}</span>
@@ -736,10 +736,10 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
     )}
 
     {(activeItinerary || (tiers && tiers.length > 0)) && (
-      <div className="bg-[#FF671F]/5 border border-[#FF671F]/15 rounded-2xl p-4 space-y-2 text-left">
+      <div className="bg-[#FF9933]/5 border border-[#FF9933]/15 rounded-2xl p-4 space-y-2 text-left">
         <div className="flex items-center gap-2 mb-1">
-          <Sparkles className="w-3.5 h-3.5 text-[#FF671F]" />
-          <span className="text-[9px] font-black text-[#FF671F] uppercase tracking-widest">
+          <Sparkles className="w-3.5 h-3.5 text-[#FF9933]" />
+          <span className="text-[9px] font-black text-[#FF9933] uppercase tracking-widest">
             {activeItinerary ? `${activeItinerary.tierLabel} Plan Active` : 'Trip Plans Ready'}
           </span>
         </div>
@@ -750,38 +750,38 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
               <p className="text-[9px] text-black/40 mt-1 line-clamp-2">Transport: <span className="text-black/50">{activeItinerary.transport.name}</span></p>
               <p className="text-[9px] text-black/40 line-clamp-2">Hotel: <span className="text-black/50">{activeItinerary.hotel.name}</span></p>
               <p className="text-[9px] text-black/40 line-clamp-2">Activities: <span className="text-black/50">{activeItinerary.local.name}</span></p>
-              <p className="text-sm font-black text-[#FF671F] mt-2">{activeItinerary.total}</p>
+              <p className="text-sm font-black text-[#FF9933] mt-2">{activeItinerary.total}</p>
             </div>
             
-            <div className="border-t border-[#FF671F]/20 pt-2">
+            <div className="border-t border-[#FF9933]/20 pt-2">
               <p className="text-[8px] font-black uppercase tracking-widest text-black/40 mb-2">Explore Alternatives</p>
               <div className="grid grid-cols-3 gap-2">
                 <button 
                   onClick={() => sendMessage(`Show me alternative Flight options for my trip from ${activeItinerary.from} to ${activeItinerary.to}`)}
-                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-black/5 rounded-lg hover:border-[#FF671F]/50 hover:bg-[#FF671F]/10 transition-all"
+                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-black/5 rounded-lg hover:border-[#FF9933]/50 hover:bg-[#FF9933]/10 transition-all"
                 >
-                  <Plane className="w-4 h-4 text-[#FF671F]" />
+                  <Plane className="w-4 h-4 text-[#FF9933]" />
                   <span className="text-[8px] font-bold text-black/50">Flights</span>
                 </button>
                 <button 
                   onClick={() => sendMessage(`Show me alternative Train options for my trip from ${activeItinerary.from} to ${activeItinerary.to}`)}
-                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-black/5 rounded-lg hover:border-[#FF671F]/50 hover:bg-[#FF671F]/10 transition-all"
+                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-black/5 rounded-lg hover:border-[#FF9933]/50 hover:bg-[#FF9933]/10 transition-all"
                 >
-                  <Train className="w-4 h-4 text-[#FF671F]" />
+                  <Train className="w-4 h-4 text-[#FF9933]" />
                   <span className="text-[8px] font-bold text-black/50">Trains</span>
                 </button>
                 <button 
                   onClick={() => sendMessage(`Show me alternative Hotel options in ${activeItinerary.to}`)}
-                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-black/5 rounded-lg hover:border-[#FF671F]/50 hover:bg-[#FF671F]/10 transition-all"
+                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-black/5 rounded-lg hover:border-[#FF9933]/50 hover:bg-[#FF9933]/10 transition-all"
                 >
-                  <Moon className="w-4 h-4 text-[#FF671F]" />
+                  <Moon className="w-4 h-4 text-[#FF9933]" />
                   <span className="text-[8px] font-bold text-black/50">Hotels</span>
                 </button>
               </div>
             </div>
             
             <button onClick={() => { sendMessage(`Tell me more about my ${activeItinerary.tierLabel} trip plan from ${activeItinerary.from} to ${activeItinerary.to} costing ${activeItinerary.total}`); }}
-              className="w-full py-2 bg-[#FF671F]/10 border border-[#FF671F]/20 text-[#FF671F] text-[10px] font-black rounded-xl hover:bg-[#FF671F]/20 transition-all">
+              className="w-full py-2 bg-[#FF9933]/10 border border-[#FF9933]/20 text-[#FF9933] text-[10px] font-black rounded-xl hover:bg-[#FF9933]/20 transition-all">
               Ask AI to analyze this plan
             </button>
           </div>
@@ -798,7 +798,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                 const budgetList = tiers?.map((t: any) => `${t.label}: ${t.total}`).join(', ') || 'available';
                 sendMessage(`I'm planning a trip. My budget options are ${budgetList}. Which do you recommend?`);
               }}
-              className="mt-1 w-full py-1.5 bg-[#FF671F]/10 border border-[#FF671F]/20 text-[#FF671F] text-[9px] font-black rounded-xl hover:bg-[#FF671F]/20 transition-all"
+              className="mt-1 w-full py-1.5 bg-[#FF9933]/10 border border-[#FF9933]/20 text-[#FF9933] text-[9px] font-black rounded-xl hover:bg-[#FF9933]/20 transition-all"
             >
               Get AI Recommendation &rarr;
             </button>
@@ -809,8 +809,8 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
 
     <div className="bg-orange-500/5 border border-orange-500/15 rounded-2xl p-4 space-y-2 text-left">
       <div className="flex items-center gap-2">
-        <ShieldCheck className="w-3.5 h-3.5 text-[#046A38]" />
-        <span className="text-[9px] font-bold text-[#046A38] uppercase tracking-widest">Caring AI Agent</span>
+        <ShieldCheck className="w-3.5 h-3.5 text-[#138808]" />
+        <span className="text-[9px] font-bold text-[#138808] uppercase tracking-widest">Caring AI Agent</span>
       </div>
       <p className="text-[9px] text-black/40 leading-relaxed">
         I monitor <strong className="text-black/70">AQI, Weather</strong> and <strong className="text-black/70">Safety</strong> trends for your trip. Your security and comfort are my top priority.
@@ -833,7 +833,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
           onClick={() => { setUseVoiceMode(true); }}
           className="w-10 h-10 bg-orange-400 rounded-full flex items-center justify-center shadow-lg shadow-orange-400/30 relative group shrink-0"
         >
-          <Mic className="w-5 h-5 text-[#1A1A2E] group-hover:scale-110 transition-transform" />
+          <Mic className="w-5 h-5 text-[#000080] group-hover:scale-110 transition-transform" />
           <div className="absolute inset-0 rounded-full border-2 border-orange-400 opacity-20 animate-ping" />
         </motion.button>
       </div>
@@ -865,10 +865,10 @@ const ChatView = memo(({
           key={label}
           onClick={() => sendMessage(prompt)}
           disabled={isStreaming}
-          className={`flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-black/5 rounded-full whitespace-nowrap hover:border-[#FF671F]/50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-black/5 rounded-full whitespace-nowrap hover:border-[#FF9933]/50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed`}
         >
-          <Icon className="w-3 h-3 text-[#046A38]" />
-          <span className="text-[8px] font-black uppercase tracking-widest text-black/40 group-hover:text-[#1A1A2E]">{label}</span>
+          <Icon className="w-3 h-3 text-[#138808]" />
+          <span className="text-[8px] font-black uppercase tracking-widest text-black/40 group-hover:text-[#000080]">{label}</span>
         </button>
       ))}
     </div>
@@ -1856,7 +1856,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                   y: [0, -30, 0]
                 }}
                 transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#FF671F]/20 rounded-full blur-[80px]" 
+                className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#FF9933]/20 rounded-full blur-[80px]" 
               />
               <motion.div 
                 animate={{ 
@@ -1865,7 +1865,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                   y: [0, 40, 0]
                 }}
                 transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-[#046A38]/10 rounded-full blur-[100px]" 
+                className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-[#138808]/10 rounded-full blur-[100px]" 
               />
               <motion.div 
                 animate={{ 
@@ -1873,7 +1873,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                   scale: [1, 1.1, 1]
                 }}
                 transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-[20%] right-[10%] w-[40%] h-[40%] bg-[#FF671F]/15 rounded-full blur-[60px]" 
+                className="absolute top-[20%] right-[10%] w-[40%] h-[40%] bg-[#FF9933]/15 rounded-full blur-[60px]" 
               />
             </div>
 
@@ -1883,8 +1883,8 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
             <div className="shrink-0 flex items-center gap-3 px-4 h-14 border-b border-slate-200 bg-white/[0.02]">
               {/* Identity */}
               <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF671F] to-orange-500 flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/20">
-                  <Sparkles className="text-[#1A1A2E]" size={15} />
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF9933] to-orange-500 flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/20">
+                  <Sparkles className="text-[#000080]" size={15} />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -1939,7 +1939,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                     setAudioFeedback(!audioFeedback);
                     if (audioFeedback && audioRef.current) audioRef.current.pause();
                   }}
-                  className={`p-1.5 rounded-lg transition-all ${audioFeedback ? 'text-[#FF671F] bg-[#FF671F]/10 border border-[#FF671F]/20' : 'text-black/40 hover:bg-orange-50 hover:text-saffron'}`}
+                  className={`p-1.5 rounded-lg transition-all ${audioFeedback ? 'text-[#FF9933] bg-[#FF9933]/10 border border-[#FF9933]/20' : 'text-black/40 hover:bg-orange-50 hover:text-saffron'}`}
                   title={audioFeedback ? 'Mute AI voice' : 'Enable AI voice'}
                 >
                   {audioFeedback ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -1972,11 +1972,11 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
 
             {/* ── ACTIVE TRIP CONTEXT BAR ── */}
             {destination && !wizardStep && (
-              <div className="shrink-0 flex flex-col gap-1 px-4 py-2 bg-[#FF671F]/5 border-b border-[#FF671F]/10">
+              <div className="shrink-0 flex flex-col gap-1 px-4 py-2 bg-[#FF9933]/5 border-b border-[#FF9933]/10">
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-3 h-3 text-[#FF671F] shrink-0" />
-                  <span className="text-[10px] font-bold text-[#1A1A2E] truncate">{destination}</span>
-                  <span className="ml-auto text-[8px] font-black text-[#FF671F] bg-[#FF671F]/10 px-2 py-0.5 rounded-full uppercase tracking-widest border border-[#FF671F]/15 shrink-0">Active Trip</span>
+                  <MapPin className="w-3 h-3 text-[#FF9933] shrink-0" />
+                  <span className="text-[10px] font-bold text-[#000080] truncate">{destination}</span>
+                  <span className="ml-auto text-[8px] font-black text-[#FF9933] bg-[#FF9933]/10 px-2 py-0.5 rounded-full uppercase tracking-widest border border-[#FF9933]/15 shrink-0">Active Trip</span>
                 </div>
                 <div className="flex items-center gap-3 pl-5">
                   <div className="flex items-center gap-1.5">
@@ -2104,7 +2104,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                         ? 'bg-black/5 animate-pulse'
                         : 'bg-black/5 hover:bg-black/10 border border-black/10'}`}
                   >
-                    <Mic className="w-6 h-6 text-[#1A1A2E]" />
+                    <Mic className="w-6 h-6 text-[#000080]" />
                   </button>
                   <span
                     className={`text-[10px] font-bold uppercase tracking-widest ${
@@ -2139,7 +2139,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                             description: 'Tap the mic — if VPN/firewall blocks Google, switch back or set Bhashini.',
                           });
                         }}
-                        className="text-[9px] font-bold text-[#FF671F]/90 hover:text-[#FF671F] uppercase tracking-wider"
+                        className="text-[9px] font-bold text-[#FF9933]/90 hover:text-[#FF9933] uppercase tracking-wider"
                       >
                         Use Chrome speech instead
                       </button>
@@ -2169,7 +2169,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                     <div className="relative w-10 h-10 shrink-0">
                       <img src={selectedImage} alt="Attached" className="w-full h-full object-cover rounded-lg border border-zinc-700" />
                       <button onClick={() => setSelectedImage(null)} className="absolute -top-1.5 -right-1.5 bg-red-500 w-4 h-4 rounded-full flex items-center justify-center shadow">
-                        <X size={8} className="text-[#1A1A2E]" />
+                        <X size={8} className="text-[#000080]" />
                       </button>
                     </div>
                   ) : (
@@ -2188,7 +2188,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                       <div className="flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <div className="relative flex-1 group">
                           <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <Calendar className="w-3.5 h-3.5 text-[#FF671F]" />
+                            <Calendar className="w-3.5 h-3.5 text-[#FF9933]" />
                           </div>
                           <input
                             type="date"
@@ -2196,9 +2196,9 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                             onChange={(e) => {
                               if (e.target.value) sendMessage(e.target.value);
                             }}
-                            className="w-full bg-[#FF671F]/5 border border-[#FF671F]/20 rounded-xl pl-9 pr-3 py-2 text-xs font-black text-[#1A1A2E] outline-none focus:border-[#FF671F] focus:ring-1 focus:ring-[#FF671F]/20 transition-all cursor-pointer appearance-none"
+                            className="w-full bg-[#FF9933]/5 border border-[#FF9933]/20 rounded-xl pl-9 pr-3 py-2 text-xs font-black text-[#000080] outline-none focus:border-[#FF9933] focus:ring-1 focus:ring-[#FF9933]/20 transition-all cursor-pointer appearance-none"
                           />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-[#FF671F]/40 pointer-events-none uppercase tracking-tighter">Dropdown Calendar</span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-[#FF9933]/40 pointer-events-none uppercase tracking-tighter">Dropdown Calendar</span>
                         </div>
                       </div>
                     )}
@@ -2226,7 +2226,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                       }
                       disabled={isStreaming}
                       rows={1}
-                      className="w-full bg-black/5 border border-black/5 rounded-xl px-3 py-2 text-[13px] text-[#1A1A2E] placeholder-black/40 outline-none focus:border-saffron/30 transition-colors resize-none disabled:opacity-50 leading-relaxed"
+                      className="w-full bg-black/5 border border-black/5 rounded-xl px-3 py-2 text-[13px] text-[#000080] placeholder-black/40 outline-none focus:border-saffron/30 transition-colors resize-none disabled:opacity-50 leading-relaxed"
                       style={{ maxHeight: '120px' }}
                     />
                   </div>
@@ -2299,7 +2299,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => setOpen(true)}
-              className="relative w-16 h-16 rounded-full flex items-center justify-center text-[#1A1A2E] shadow-[0_12px_40px_rgba(255,191,0,0.4)] border border-slate-300 group overflow-hidden bg-black"
+              className="relative w-16 h-16 rounded-full flex items-center justify-center text-[#000080] shadow-[0_12px_40px_rgba(255,191,0,0.4)] border border-slate-300 group overflow-hidden bg-black"
             >
               {/* Siri Orb Gradient Mesh */}
               <div className="absolute inset-0 z-0 bg-gradient-to-br from-accent-amber via-orange-500 to-amber-600 opacity-80 group-hover:opacity-100 transition-opacity" />

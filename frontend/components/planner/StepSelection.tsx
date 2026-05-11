@@ -112,12 +112,12 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
                  <label className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{t('selection_studio_travel_party')}</label>
                  <div className="flex items-center justify-between bg-white/40 rounded-xl p-2 border border-orange-100">
                     <button onClick={() => useTripStore.getState().setTravelers(Math.max(1, adults - 1), kids)} className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-saffron hover:bg-orange-100 transition-all">−</button>
-                    <span className="text-xs font-black text-[#1A1A2E]"><span className="text-saffron">{adults}</span> {t('selection_studio_adults')}</span>
+                    <span className="text-xs font-black text-[#000080]"><span className="text-saffron">{adults}</span> {t('selection_studio_adults')}</span>
                     <button onClick={() => useTripStore.getState().setTravelers(adults + 1, kids)} className="w-8 h-8 rounded-lg bg-saffron/10 flex items-center justify-center text-saffron hover:bg-saffron/20 transition-all">+</button>
                  </div>
               </div>
            </div>
-           <button onClick={() => onUpdateParams ? onUpdateParams() : onBack()} className="w-full py-2.5 bg-gradient-to-r from-saffron via-white to-green border border-orange-100 rounded-xl text-[10px] font-black text-[#1A1A2E] uppercase tracking-widest transition-all shadow-md">
+           <button onClick={() => onUpdateParams ? onUpdateParams() : onBack()} className="w-full py-2.5 bg-gradient-to-r from-saffron via-white to-green border border-orange-100 rounded-xl text-[10px] font-black text-[#000080] uppercase tracking-widest transition-all shadow-md">
               {t('selection_studio_update_plan')}
            </button>
         </div>
@@ -158,7 +158,7 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
                           className={`group cursor-pointer transition-all ${isSelected ? 'bg-saffron/10' : 'hover:bg-orange-50/30'}`}
                           >
                             <td className="py-2.5 pl-3 rounded-l-xl border-y border-l border-orange-100 group-hover:border-saffron/30">
-                              <span className={`text-[11px] font-bold uppercase transition-colors ${isSelected ? 'text-saffron' : 'text-[#1A1A2E]'}`}>{f.name || f.airline}</span>
+                              <span className={`text-[11px] font-bold uppercase transition-colors ${isSelected ? 'text-saffron' : 'text-[#000080]'}`}>{f.name || f.airline}</span>
                             </td>
                             <td className="py-2.5 border-y border-orange-100 group-hover:border-saffron/30">
                               <span className="text-[9px] text-slate-400 font-bold uppercase">{f.departure} → {f.arrival}</span>
@@ -213,7 +213,7 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
                             className={`group cursor-pointer transition-all ${isSelected ? 'bg-saffron/10' : 'hover:bg-orange-50/30'}`}
                           >
                             <td className="py-2.5 pl-3 rounded-l-xl border-y border-l border-orange-100 group-hover:border-saffron/30">
-                              <span className={`text-[11px] font-bold uppercase transition-colors ${isSelected ? 'text-saffron' : 'text-[#1A1A2E]'}`}>{t.name || t.train_name}</span>
+                              <span className={`text-[11px] font-bold uppercase transition-colors ${isSelected ? 'text-saffron' : 'text-[#000080]'}`}>{t.name || t.train_name}</span>
                             </td>
                             <td className="py-2.5 border-y border-orange-100 group-hover:border-saffron/30">
                               <span className="text-[9px] text-slate-400 font-bold uppercase">{t.class}</span>
@@ -269,7 +269,7 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
                             className={`group cursor-pointer transition-all ${isSelected ? 'bg-orange-500/10' : 'hover:bg-orange-50/30'}`}
                           >
                             <td className="py-2.5 pl-3 rounded-l-xl border-y border-l border-orange-100 group-hover:border-orange-500/30">
-                              <span className={`text-[11px] font-bold uppercase transition-colors ${isSelected ? 'text-orange-500' : 'text-[#1A1A2E]'}`}>{ferry.name}</span>
+                              <span className={`text-[11px] font-bold uppercase transition-colors ${isSelected ? 'text-orange-500' : 'text-[#000080]'}`}>{ferry.name}</span>
                             </td>
                             <td className="py-2.5 border-y border-orange-100 group-hover:border-orange-500/30">
                               <span className="text-[9px] text-slate-400 font-bold uppercase">{scheduleBits || '—'}</span>
@@ -321,7 +321,7 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
                             className={`group cursor-pointer transition-all ${isSelected ? 'bg-saffron/10' : 'hover:bg-orange-50/30'}`}
                           >
                             <td className="py-2.5 pl-3 rounded-l-xl border-y border-l border-orange-100 group-hover:border-saffron/30">
-                              <span className={`text-[11px] font-bold uppercase transition-colors ${isSelected ? 'text-saffron' : 'text-[#1A1A2E]'}`}>{h.name}</span>
+                              <span className={`text-[11px] font-bold uppercase transition-colors ${isSelected ? 'text-saffron' : 'text-[#000080]'}`}>{h.name}</span>
                             </td>
                             <td className="py-2.5 border-y border-orange-100 group-hover:border-saffron/30">
                               <span className="text-[9px] text-slate-400 font-bold uppercase">{h.location || h.area}</span>
@@ -367,7 +367,7 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
                       className={`w-full text-left p-3 rounded-xl border transition-all ${isSelected ? 'bg-saffron/10 border-saffron/30 ring-1 ring-saffron/20' : 'bg-orange-50/40 border-orange-100 hover:border-saffron/20'} flex justify-between items-center group`}
                     >
                       <div className="space-y-1">
-                        <p className={`text-xs font-bold uppercase transition-colors ${isSelected ? 'text-saffron' : 'text-[#1A1A2E]'}`}>{x.name}</p>
+                        <p className={`text-xs font-bold uppercase transition-colors ${isSelected ? 'text-saffron' : 'text-[#000080]'}`}>{x.name}</p>
                         <p className="text-[10px] text-slate-400 font-bold uppercase">{x.type} · {x.detail}</p>
                       </div>
                       <div className="text-right">
@@ -392,7 +392,7 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
         </button>
         <button
           onClick={onBack}
-          className="w-full py-4 text-[#046A38] hover:text-green-800 font-black text-[10px] uppercase tracking-[0.2em] transition-all"
+          className="w-full py-4 text-[#138808] hover:text-green-800 font-black text-[10px] uppercase tracking-[0.2em] transition-all"
         >
           ← {t('selection_studio_adjust_itinerary')}
         </button>

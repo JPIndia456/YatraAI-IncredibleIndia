@@ -365,17 +365,17 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
       >
         {/* Tricolour Accent Strip */}
         <div className="absolute left-0 top-0 bottom-0 w-1.5 flex flex-col">
-          <div className="flex-1 bg-[#FF671F]" />
+          <div className="flex-1 bg-[#FF9933]" />
           <div className="flex-1 bg-white" />
-          <div className="flex-1 bg-[#046A38]" />
+          <div className="flex-1 bg-[#138808]" />
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#FF671F] via-[#FF671F] to-[#046A38] flex items-center justify-center shadow-lg shadow-saffron/20">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#FF9933] via-[#FF9933] to-[#138808] flex items-center justify-center shadow-lg shadow-saffron/20">
               <Send className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-xs font-black text-[#FF671F] uppercase tracking-[0.2em]">{t('booking_ready_for_booking')}</p>
+              <p className="text-xs font-black text-[#FF9933] uppercase tracking-[0.2em]">{t('booking_ready_for_booking')}</p>
               <h3 className="text-base font-black text-[#003366] tracking-tight">{t('booking_connect_telegram')}</h3>
             </div>
           </div>
@@ -498,7 +498,7 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
                 setLinkingTelegram(false);
               }
             }}
-            className={`px-6 py-3 ${telegramId ? 'bg-[#FF671F] text-white hover:bg-orange-600' : 'bg-sky-600 text-white hover:bg-sky-700'} rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 shrink-0 disabled:opacity-60`}
+            className={`px-6 py-3 ${telegramId ? 'bg-[#FF9933] text-white hover:bg-orange-600' : 'bg-sky-600 text-white hover:bg-sky-700'} rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 shrink-0 disabled:opacity-60`}
           >
             {linkingTelegram ? '…' : telegramId ? t('booking_disconnect') : t('booking_connect')}
           </button>
@@ -532,11 +532,11 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
                 toast.error('Connection error');
               }
             }}
-            className="w-full py-3 bg-white border-t-2 border-t-[#FF671F] border-b-2 border-b-[#046A38] border-x border-x-slate-200 rounded-xl text-[11px] font-black text-[#003366] uppercase tracking-widest mt-2 hover:bg-slate-50 transition-all shadow-md flex items-center justify-center gap-2"
+            className="w-full py-3 bg-white border-t-2 border-t-[#FF9933] border-b-2 border-b-[#138808] border-x border-x-slate-200 rounded-xl text-[11px] font-black text-[#003366] uppercase tracking-widest mt-2 hover:bg-slate-50 transition-all shadow-md flex items-center justify-center gap-2"
           >
-            <Send className="w-3 h-3 text-[#FF671F]" />
+            <Send className="w-3 h-3 text-[#FF9933]" />
             {t('booking_test_message')}
-            <Sparkles className="w-3 h-3 text-[#046A38]" />
+            <Sparkles className="w-3 h-3 text-[#138808]" />
           </button>
         )}
       </motion.div>
@@ -558,7 +558,7 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
           <button
             type="button"
             onClick={() => onBookAndPay(null)}
-            className="w-full py-5 bg-[#FF671F] text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-orange-600 transition-all shadow-xl shadow-saffron/20 flex items-center justify-center gap-3 active:scale-95"
+            className="w-full py-5 bg-[#FF9933] text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-orange-600 transition-all shadow-xl shadow-saffron/20 flex items-center justify-center gap-3 active:scale-95"
           >
             <Sparkles className="w-5 h-5 animate-pulse" />
             {t('booking_confirm_finalize')} - ₹{grandTotal.toLocaleString()}
@@ -576,7 +576,7 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
 
         <button
           onClick={onBack}
-          className="w-full py-5 mt-4 bg-[#046A38] rounded-[2rem] text-white font-black text-xs uppercase shadow-xl shadow-green/20 transition-all active:scale-[0.98] hover:bg-green-800"
+          className="w-full py-5 mt-4 bg-[#138808] rounded-[2rem] text-white font-black text-xs uppercase shadow-xl shadow-green/20 transition-all active:scale-[0.98] hover:bg-green-800"
         >
           ← {t('back_to_marketplace')}
         </button>

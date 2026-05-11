@@ -18,10 +18,9 @@ export async function resilientGenerateContent(prompt: string, options: {
   useGrounding?: boolean,
   systemPrompt?: string,
   image?: string, // Base64
-  context?: any,
   jsonMode?: boolean
 } = {}) {
-  const { useGrounding = false, systemPrompt = "", image, context, jsonMode = false } = options;
+  const { useGrounding = false, systemPrompt = "", image, jsonMode = false } = options;
   const fullPrompt = systemPrompt ? `${systemPrompt}\n\nUser Input: ${prompt}` : prompt;
 
   // --- VISION MODE (image present → Gemini only) ---

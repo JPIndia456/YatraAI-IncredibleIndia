@@ -1121,7 +1121,7 @@ export default function YatraStudio() {
 
             {stage === 'results' && plan && (
               <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                <div className="shell-panel p-10 bg-white border border-orange-100 text-[#1A1A2E] space-y-8 rounded-[3rem] shadow-3xl relative overflow-hidden">
+                <div className="shell-panel p-10 bg-white border border-orange-100 text-[#000080] space-y-8 rounded-[3rem] shadow-3xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-saffron/5 blur-[100px] pointer-events-none" />
                   
                   <div className="flex justify-between items-start relative z-10">
@@ -1131,7 +1131,7 @@ export default function YatraStudio() {
                         <span className="text-[10px] font-black text-saffron uppercase tracking-widest">Itinerary Drafted</span>
                       </div>
                       <div className="flex items-center gap-4">
-                        <h3 className="text-2xl font-black italic uppercase leading-none tracking-tighter text-[#1A1A2E]">{plan.destination}</h3>
+                        <h3 className="text-2xl font-black italic uppercase leading-none tracking-tighter text-[#000080]">{plan.destination}</h3>
                       </div>
                       <div className="space-y-1.5">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] leading-none">{plan.duration}</p>
@@ -1269,7 +1269,7 @@ export default function YatraStudio() {
                       }
                       setStage('selection');
                     }} 
-                    className="w-full py-6 bg-gradient-to-r from-saffron via-white to-green text-[#1A1A2E] rounded-[2rem] font-black text-xs uppercase shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all relative z-10 border border-orange-100"
+                    className="w-full py-6 bg-gradient-to-r from-saffron via-white to-green text-[#000080] rounded-[2rem] font-black text-xs uppercase shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all relative z-10 border border-orange-100"
                   >
                     Configure Selection Studio →
                   </button>

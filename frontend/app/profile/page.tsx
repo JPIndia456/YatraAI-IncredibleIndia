@@ -188,9 +188,9 @@ export default function ProfilePage() {
         className="bg-white border border-orange-100 rounded-3xl p-8 shadow-sm relative overflow-hidden"
       >
         <div className="absolute top-0 left-0 w-full h-[4px] flex">
-          <div className="flex-1 bg-[#FF671F]" />
+          <div className="flex-1 bg-[#FF9933]" />
           <div className="flex-1 bg-white" />
-          <div className="flex-1 bg-[#046A38]" />
+          <div className="flex-1 bg-[#138808]" />
         </div>
         
         <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
@@ -228,17 +228,17 @@ export default function ProfilePage() {
             </h1>
             <div className="flex flex-wrap justify-center md:justify-start gap-4">
               <span className="flex items-center gap-1.5 text-sm text-[#000080]/60 font-bold">
-                <Mail className="w-4 h-4 text-[#FF671F]" /> {user?.email}
+                <Mail className="w-4 h-4 text-[#FF9933]" /> {user?.email}
               </span>
               <span className="flex items-center gap-1.5 text-sm text-[#000080]/60 font-bold">
-                <Phone className="w-4 h-4 text-[#FF671F]" /> +91 {form.phone || 'Not set'}
+                <Phone className="w-4 h-4 text-[#FF9933]" /> +91 {form.phone || 'Not set'}
               </span>
             </div>
             <div className="pt-4 flex flex-wrap justify-center md:justify-start gap-2">
-              <span className="px-4 py-1.5 bg-orange-50 text-[#FF671F] rounded-full text-[10px] font-black uppercase tracking-widest border border-orange-100">
+              <span className="px-4 py-1.5 bg-orange-50 text-[#FF9933] rounded-full text-[10px] font-black uppercase tracking-widest border border-orange-100">
                 {form.user_persona}
               </span>
-              <span className="px-4 py-1.5 bg-emerald-50 text-[#046A38] rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
+              <span className="px-4 py-1.5 bg-emerald-50 text-[#138808] rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
                 {tripCount} Trips Planned
               </span>
             </div>
@@ -255,14 +255,14 @@ export default function ProfilePage() {
         >
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 bg-orange-50 rounded-xl">
-              <User className="w-5 h-5 text-[#FF671F]" />
+              <User className="w-5 h-5 text-[#FF9933]" />
             </div>
             <h2 className="font-black text-lg text-[#000080] italic uppercase">Account Details</h2>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="text-[10px] text-[#FF671F] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5">
+              <label className="text-[10px] text-[#FF9933] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5">
                 <Mail className="w-3 h-3" /> Email Address
               </label>
               <input
@@ -275,7 +275,7 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label className="text-[10px] text-[#FF671F] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5">
+              <label className="text-[10px] text-[#FF9933] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5">
                 <Fingerprint className="w-3 h-3" /> Full Name
               </label>
               <input
@@ -288,7 +288,7 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label className="text-[10px] text-[#FF671F] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5">
+              <label className="text-[10px] text-[#FF9933] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5">
                 <UserCircle className="w-3 h-3" /> Display Name
               </label>
               <input
@@ -302,7 +302,7 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="relative" ref={sexRef}>
-                <label className="text-[10px] text-[#FF671F] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5 mb-1.5">
+                <label className="text-[10px] text-[#FF9933] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5 mb-1.5">
                   <User className="w-3 h-3" /> Sex
                 </label>
                 <button
@@ -337,7 +337,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="relative" ref={languageRef}>
-                <label className="text-[10px] text-[#FF671F] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5 mb-1.5">
+                <label className="text-[10px] text-[#FF9933] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5 mb-1.5">
                   <Languages className="w-3 h-3" /> Language
                 </label>
                 <button
@@ -381,7 +381,7 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label className="text-[10px] text-[#FF671F] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5">
+              <label className="text-[10px] text-[#FF9933] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5">
                 <Phone className="w-3 h-3" /> Phone Number
               </label>
               <div className="relative mt-1">
@@ -406,14 +406,14 @@ export default function ProfilePage() {
         >
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 bg-emerald-50 rounded-xl">
-              <Compass className="w-5 h-5 text-[#046A38]" />
+              <Compass className="w-5 h-5 text-[#138808]" />
             </div>
             <h2 className="font-black text-lg text-[#000080] italic uppercase">Odyssey Planning</h2>
           </div>
 
           <div className="space-y-6">
             <div className="relative" ref={personaRef}>
-              <label className="text-[10px] text-[#046A38] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5 mb-1.5">
+              <label className="text-[10px] text-[#138808] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5 mb-1.5">
                 <Users className="w-3 h-3" /> User Persona
               </label>
               
@@ -425,7 +425,7 @@ export default function ProfilePage() {
                   {(() => {
                     const selected = personaOptions.find(p => p.label === form.user_persona);
                     const Icon = selected?.icon || Users;
-                    return <Icon className={`w-3.5 h-3.5 ${selected?.color || 'text-[#046A38]'}`} />;
+                    return <Icon className={`w-3.5 h-3.5 ${selected?.color || 'text-[#138808]'}`} />;
                   })()}
                   {form.user_persona}
                 </div>
@@ -463,7 +463,7 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label className="text-[10px] text-[#046A38] uppercase font-black tracking-widest ml-1 mb-2 flex items-center gap-1.5">
+              <label className="text-[10px] text-[#138808] uppercase font-black tracking-widest ml-1 mb-2 flex items-center gap-1.5">
                 <Map className="w-3 h-3" /> Places you like to visit
               </label>
               <div className="flex flex-wrap gap-2">
@@ -486,11 +486,11 @@ export default function ProfilePage() {
                       onClick={() => toggleDestination(cat)}
                       className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${
                         isSelected 
-                          ? 'bg-[#046A38] text-white border-[#046A38] shadow-lg shadow-emerald-500/20 scale-105' 
-                          : 'bg-white text-slate-400 border-slate-100 hover:border-emerald-300 hover:text-[#046A38]'
+                          ? 'bg-[#138808] text-white border-[#138808] shadow-lg shadow-emerald-500/20 scale-105' 
+                          : 'bg-white text-slate-400 border-slate-100 hover:border-emerald-300 hover:text-[#138808]'
                       }`}
                     >
-                      <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : 'text-[#046A38]'}`} />
+                      <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : 'text-[#138808]'}`} />
                       {cat}
                     </button>
                   );
@@ -515,7 +515,7 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-orange-50 rounded-xl">
-                <Sparkles className="w-5 h-5 text-[#FF671F]" />
+                <Sparkles className="w-5 h-5 text-[#FF9933]" />
               </div>
               <h2 className="font-black text-xl text-[#000080] italic uppercase tracking-tight">Interests & Filters</h2>
             </div>
@@ -524,8 +524,8 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
-                <Heart className="w-4 h-4 text-[#FF671F] fill-[#FF671F]/10" />
-                <label className="text-[10px] text-[#FF671F] uppercase font-black tracking-widest">Things You Love (Likes)</label>
+                <Heart className="w-4 h-4 text-[#FF9933] fill-[#FF9933]/10" />
+                <label className="text-[10px] text-[#FF9933] uppercase font-black tracking-widest">Things You Love (Likes)</label>
               </div>
               <textarea
                 value={form.likes}
@@ -537,14 +537,14 @@ export default function ProfilePage() {
 
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
-                <Ban className="w-4 h-4 text-[#FF671F]" />
-                <label className="text-[10px] text-[#FF671F] uppercase font-black tracking-widest">Things You Avoid (Dislikes)</label>
+                <Ban className="w-4 h-4 text-[#FF9933]" />
+                <label className="text-[10px] text-[#FF9933] uppercase font-black tracking-widest">Things You Avoid (Dislikes)</label>
               </div>
               <textarea
                 value={form.dislikes}
                 onChange={(e) => setForm({ ...form, dislikes: e.target.value })}
                 placeholder="e.g. Crowded Buses, Spicy Food, Early Mornings"
-                className="w-full bg-slate-50 border border-orange-50 rounded-2xl px-5 py-4 text-sm text-[#000080] font-medium focus:border-[#FF671F] focus:bg-white focus:outline-none transition-all min-h-[100px] resize-none shadow-inner"
+                className="w-full bg-slate-50 border border-orange-50 rounded-2xl px-5 py-4 text-sm text-[#000080] font-medium focus:border-[#FF9933] focus:bg-white focus:outline-none transition-all min-h-[100px] resize-none shadow-inner"
               />
             </div>
           </div>
@@ -556,7 +556,7 @@ export default function ProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex-1 py-5 bg-gradient-to-r from-[#FF671F] to-[#046A38] text-white rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-orange-500/20 disabled:opacity-60 flex items-center justify-center gap-2 uppercase tracking-[0.2em]"
+          className="flex-1 py-5 bg-gradient-to-r from-[#FF9933] to-[#138808] text-white rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-orange-500/20 disabled:opacity-60 flex items-center justify-center gap-2 uppercase tracking-[0.2em]"
         >
           {saving ? (
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
