@@ -83,7 +83,7 @@ export function parseAdults(text: string): number {
   }
 
   if (t.trim() === '1') return 1;
-  return isNaN(explicitNum) ? 2 : Math.max(1, Math.min(20, explicitNum));
+  return isNaN(explicitNum) ? 1 : Math.max(1, Math.min(20, explicitNum));
 }
 
 /** Generate chips for departure date: this weekend, next week, etc. */

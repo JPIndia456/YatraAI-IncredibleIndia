@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useTripStore, useAIBrainStore } from '@/lib/store';
+import { useTripStore, useAIBrainStore, useTripPlannerStore } from '@/lib/store';
 
 
 export default function LandingPage() {
@@ -88,9 +88,9 @@ export default function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-4xl w-full text-center"
         >
-          <h1 className="text-7xl sm:text-9xl md:text-[10rem] font-black mb-12 tracking-[-0.06em] leading-[0.75] flex flex-col items-center">
+          <h1 className="text-5xl sm:text-7xl md:text-[7rem] font-black mb-12 tracking-[-0.06em] leading-[0.75] flex flex-col items-center">
             <span className="text-[#FF9933] drop-shadow-2xl uppercase">Discover</span>
-            <span className="text-[#000080]/90 text-4xl sm:text-7xl md:text-8xl uppercase tracking-[-0.04em] my-4">Incredible</span>
+            <span className="text-[#000080]/90 text-2xl sm:text-5xl md:text-6xl uppercase tracking-[-0.04em] my-4">Incredible</span>
             <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#138808] to-[#024a27] uppercase drop-shadow-2xl">India</span>
           </h1>
           
@@ -180,7 +180,15 @@ export default function LandingPage() {
           <div className="flex gap-8 text-[10px] font-black uppercase tracking-widest text-[#000080]/40">
             <a href="/legal" className="hover:text-[#FF9933] transition-colors">{t('legal')}</a>
             <a href="/legal" className="hover:text-[#FF9933] transition-colors">{t('privacy')}</a>
-            <a href="/profile" className="hover:text-[#FF9933] transition-colors">{t('account')}</a>
+            <button 
+              onClick={() => {
+                useTripPlannerStore.getState().setIsProfileOpen(true);
+                router.push('/planner');
+              }}
+              className="hover:text-[#FF9933] transition-colors"
+            >
+              {t('account')}
+            </button>
           </div>
           <div className="text-[10px] font-bold tracking-tight text-orange-200">{t('landing_copyright')}</div>
         </div>

@@ -118,53 +118,47 @@ const DiscoveryCard = memo(function DiscoveryCard({ data }: { data: Record<strin
                type === 'stay' || type === 'hotel' ? Hotel : Car;
 
   const title = data.destination || data.title || data.name || 'Elite Suggestion';
-  const budget = data.budget || data.price || 'Check App';
-  const duration = data.duration || 'Flexible';
+  const budget = data.budget || data.price || 'Syncing...';
+  const duration = data.duration || 'Syncing...';
 
   // Dynamic image based on title/type
-  const query = encodeURIComponent(`${title} ${type} india`);
-  const imageUrl = `https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=600`; // Fallback Taj Mahal
+  const query = encodeURIComponent(`${title} india travel`.replace(/\s+/g, ','));
+  const fallbackUrl = `https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=600`; // Taj Mahal
 
   return (
     <div className="bg-white rounded-[2rem] p-0 overflow-hidden shadow-2xl border border-slate-50 hover:border-[#FF9933]/20 transition-all group mt-4">
       <div className="relative h-32 overflow-hidden">
         <img 
-          src={`https://source.unsplash.com/featured/?${query}`} 
+          src={`https://loremflickr.com/600/400/${query}`} 
           alt={title}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s]"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = imageUrl;
+            (e.target as HTMLImageElement).src = fallbackUrl;
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/10 to-transparent" />
-        <div className="absolute top-4 left-4">
-          <div className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-full border border-orange-100 flex items-center gap-2 shadow-lg">
-            <Sparkles className="w-3 h-3 text-saffron" />
-            <span className="text-[10px] font-black text-[#000080] uppercase tracking-widest italic">AI Discovery</span>
-          </div>
-        </div>
       </div>
       
-      <div className="p-6 pt-2 space-y-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#FF9933]/5 flex items-center justify-center border border-[#FF9933]/10">
-            <Icon className="w-6 h-6 text-[#FF9933]" />
+      <div className="p-5 pt-1 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-[#FF9933]/5 flex items-center justify-center border border-[#FF9933]/10">
+            <Icon className="w-5 h-5 text-[#FF9933]" />
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Elite Discovery</p>
-            <h4 className="text-xl font-black text-[#000080] uppercase tracking-tighter leading-none">{title}</h4>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Elite Discovery</p>
+            <h4 className="text-lg font-black text-[#000080] uppercase tracking-tighter leading-none">{title}</h4>
           </div>
         </div>
         
-        <div className="flex items-center gap-6 py-4 border-y border-slate-100">
+        <div className="flex items-center gap-4 py-3 border-y border-slate-100">
           <div className="flex-1">
-             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Investment</p>
-             <p className="text-lg font-black text-[#138808] uppercase tracking-tighter">{budget}</p>
+             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Estimated Total</p>
+             <p className="text-base font-black text-[#138808] uppercase tracking-tighter">{budget}</p>
           </div>
-          <div className="w-px h-8 bg-slate-100" />
+          <div className="w-px h-6 bg-slate-100" />
           <div className="flex-1 text-right">
-             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Duration</p>
-             <p className="text-lg font-black text-[#000080] uppercase tracking-tighter">{duration}</p>
+             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Route / Status</p>
+             <p className="text-base font-black text-[#000080] uppercase tracking-tighter truncate">{duration}</p>
           </div>
         </div>
       </div>
@@ -196,7 +190,7 @@ const AIBrainSelectionCard = memo(function AIBrainSelectionCard({ type, index }:
   if (isSelected && (isSelected.name === data.name || isSelected.operator === data.operator)) return null;
 
   const name = data.name || data.operator || data.airline || 'Suggested Option';
-  const price = data.price ? (data.price.startsWith('₹') ? data.price : `₹${data.price}`) : 'Check Price';
+  const price = data.price ? (data.price.startsWith('₹') ? data.price : `₹${data.price}`) : 'Syncing...';
   const detail = data.features || data.detail || data.arrival ? `${data.departure} → ${data.arrival}` : 'Elite Choice';
   const isUnavailable = data.disabled || data.status === 'unavailable';
 
@@ -281,7 +275,7 @@ const MessageBubble = memo(function MessageBubble({
       {/* Avatar */}
       {!isUser && (
         <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 mt-1 shadow-md border border-saffron/30 bg-white">
-          <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-[center_15%] scale-[2.8]" />
+          <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-center scale-[1.1]" />
         </div>
       )}
       <div className={`max-w-[86%] ${ !isUser ? 'w-full' : '' }`}>
@@ -329,6 +323,19 @@ const MessageBubble = memo(function MessageBubble({
           {!isUser && !msg.isStreaming && (() => {
             const discoveryMatches = [...msg.content.matchAll(/\[DISCOVERY:\s*(.*?)\]/g)];
             if (discoveryMatches.length === 0) return null;
+            
+            const { budget: userBudget, party_size, departure_date, return_date } = useTourGuideStore.getState();
+            const maxBudget = Number(userBudget) || 0;
+            const party = (party_size?.adults || 1) + (party_size?.kids || 0);
+            
+            // Calculate nights
+            let nights = 1;
+            if (departure_date && return_date) {
+              const start = new Date(departure_date);
+              const end = new Date(return_date);
+              nights = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+            }
+
             return (
               <div className="space-y-3 mt-2">
                 {discoveryMatches.map((m, idx) => {
@@ -337,7 +344,27 @@ const MessageBubble = memo(function MessageBubble({
                     const [k, v] = pair.split('=');
                     if (k && v) params[k] = v.replace(/_/g, ' ');
                   });
-                  return <DiscoveryCard key={`discovery-${idx}`} data={params} />;
+                  
+                  // Extraction and dynamic calculation if AI fails to give total
+                  const rawPriceStr = params.budget || params.price || '0';
+                  let priceNum = parseInt(rawPriceStr.replace(/[₹,]/g, ''), 10) || 0;
+                  
+                  // Heuristic: If price is too low for a total (e.g. < 5000 for a stay), 
+                  // it might be per-person or per-night.
+                  const type = params.type?.toLowerCase() || 'stay';
+                  const isPerPerson = rawPriceStr.toLowerCase().includes('/p') || rawPriceStr.toLowerCase().includes('person');
+                  const isPerNight = rawPriceStr.toLowerCase().includes('/n') || rawPriceStr.toLowerCase().includes('night');
+
+                  if (isPerPerson) priceNum *= party;
+                  if (isPerNight) priceNum *= nights;
+                  
+                  // Strict budget check: MUST be <= budget
+                  if (maxBudget > 0 && priceNum > maxBudget) {
+                    console.log(`[Discovery] Filtered out ${params.name}: ₹${priceNum} exceeds ₹${maxBudget}`);
+                    return null;
+                  }
+                  
+                  return <DiscoveryCard key={`discovery-${idx}`} data={{ ...params, budget: `₹${priceNum.toLocaleString()}` }} />;
                 })}
               </div>
             );
@@ -391,7 +418,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
       <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 space-y-3 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl overflow-hidden border border-saffron/30 shadow-lg shrink-0 bg-white">
-            <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-[center_15%] scale-[2.8]" />
+            <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-center scale-[1.1]" />
           </div>
           <div className="text-left">
             <p className="text-micro font-black text-saffron uppercase tracking-widest">Active Safety</p>
@@ -426,7 +453,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
             "Want to increase or decrease your travel budget? Just tell me, and I'll re-optimize your entire plan."
           </p>
           <div className="grid grid-cols-2 gap-2">
-             <button onClick={() => sendMessage("I want to increase my budget. What are the premium options?")} className="py-2 bg-white border border-orange-100 rounded-xl text-[8px] font-black text-saffron uppercase tracking-widest hover:bg-orange-50">Increase Budget</button>
+             <button onClick={() => sendMessage("I want to increase my budget. Show me more high-value options.")} className="py-2 bg-white border border-orange-100 rounded-xl text-[8px] font-black text-saffron uppercase tracking-widest hover:bg-orange-50">Increase Budget</button>
              <button onClick={() => sendMessage("I want to reduce my budget. Show me more economical choices.")} className="py-2 bg-white border border-orange-100 rounded-xl text-[8px] font-black text-saffron uppercase tracking-widest hover:bg-orange-50">Reduce Budget</button>
           </div>
         </div>
@@ -1472,8 +1499,8 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
     if (isOpen && messages.length === 0) {
       const dest = destination || tourGuide.destination;
       const greeting = dest 
-        ? t('ai_greeting_context', `Namaste! I see you're planning a trip to **${dest}**. I'm your AI travel architect, ready to help with everything from ${origin ? `travel from ${origin}` : 'flights'} to local street food hacks. What's on your mind?`)
-        : t('ai_greeting', "Namaste! I'm your AI travel architect. I'm here to help you plan your perfect trip across India. Where would you like to explore today?");
+        ? t('ai_greeting_context', `Namaste! I see you're planning a trip to **${dest}**. I'm your Travel Guide, ready to help with everything from ${origin ? `travel from ${origin}` : 'flights'} to local street food hacks. What's on your mind?`)
+        : t('ai_greeting', "Namaste! I'm your Travel Guide. I'm here to help you plan your perfect trip across India. Where would you like to explore today?");
       
       addMessage({ role: 'assistant', content: greeting });
       lastAcknowledgedDest.current = dest || null;
@@ -2299,14 +2326,14 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => setOpen(true)}
-              className="relative w-16 h-16 rounded-full flex items-center justify-center text-[#000080] shadow-[0_12px_40px_rgba(255,191,0,0.4)] border border-slate-300 group overflow-hidden bg-black"
+              className="relative w-16 h-16 rounded-full flex items-center justify-center text-[#000080] shadow-[0_12px_40px_rgba(255,191,0,0.4)] border border-slate-200 group overflow-hidden bg-white"
             >
               {/* Siri Orb Gradient Mesh */}
               <div className="absolute inset-0 z-0 bg-gradient-to-br from-accent-amber via-orange-500 to-amber-600 opacity-80 group-hover:opacity-100 transition-opacity" />
               <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.4)_0%,transparent_50%)]" />
               <div className="absolute inset-0 z-0 animate-pulse bg-[radial-gradient(circle_at_80%_80%,rgba(0,0,0,0.3)_0%,transparent_50%)]" />
               
-              <Sparkles className="w-7 h-7 relative z-10 text-black" />
+              <Sparkles className="w-7 h-7 relative z-10 text-[#000080]" />
               
               {/* Pulse rings */}
               <div className="absolute inset-0 border-2 border-accent-amber/40 rounded-full animate-ping pointer-events-none" />

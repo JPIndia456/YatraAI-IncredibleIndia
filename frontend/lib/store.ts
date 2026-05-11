@@ -251,7 +251,15 @@ export const useAIBrainStore = create<AIBrainState>((set) => ({
       const msgs = [...state.messages];
       if (msgs.length === 0) return state;
       const last = msgs[msgs.length - 1];
-      msgs[msgs.length - 1] = { ...last, content: last.content + chunk, isStreaming: true };
+      
+      // Real-time terminology scrubbing (Gold Standard Branding)
+      const scrubbedChunk = chunk
+        .replace(/Premium/g, 'High-value')
+        .replace(/premium/g, 'high-value')
+        .replace(/Elite/g, 'Top-tier')
+        .replace(/elite/g, 'top-tier');
+        
+      msgs[msgs.length - 1] = { ...last, content: last.content + scrubbedChunk, isStreaming: true };
       return { messages: msgs };
     }),
 
@@ -358,6 +366,7 @@ interface TripPlannerState {
   mixPicks: { transport: any; returnTransport: any; hotel: any; local: any };
   weather: any | null;
   activeBookingId: string | null;
+  isProfileOpen: boolean;
   setTiers: (tiers: TierSummary[]) => void;
   setActiveItinerary: (itinerary: ActiveItinerary | null) => void;
   setSearchData: (data: Partial<TripPlannerState['searchData']>) => void;
@@ -368,6 +377,7 @@ interface TripPlannerState {
   setPlannerStage: (stage: TripPlannerState['plannerStage']) => void;
   setWeather: (weather: any | null) => void;
   setActiveBookingId: (id: string | null) => void;
+  setIsProfileOpen: (isOpen: boolean) => void;
   clearPlan: () => void;
 }
 
@@ -401,6 +411,7 @@ export const useTripPlannerStore = create<TripPlannerState>()(
       searchData: { trains: [], flights: [], hotels: [], buses: [], taxis: [], ferries: [] },
       weather: null,
       activeBookingId: null,
+      isProfileOpen: false,
 
       setTiers: (tiers) => set({ tiers }),
       setActiveItinerary: (activeItinerary) => set({ activeItinerary }),
@@ -413,6 +424,7 @@ export const useTripPlannerStore = create<TripPlannerState>()(
       setPlannerStage: (plannerStage) => set({ plannerStage }),
       setWeather: (weather) => set({ weather }),
       setActiveBookingId: (activeBookingId) => set({ activeBookingId }),
+      setIsProfileOpen: (isProfileOpen) => set({ isProfileOpen }),
       clearPlan: () =>
         set({ 
           tiers: [], 
@@ -424,7 +436,8 @@ export const useTripPlannerStore = create<TripPlannerState>()(
           mixPicks: { transport: null, returnTransport: null, hotel: null, local: null },
           searchData: { trains: [], flights: [], hotels: [], buses: [], taxis: [], ferries: [] },
           weather: null,
-          activeBookingId: null
+          activeBookingId: null,
+          isProfileOpen: false
         }),
     }),
     {

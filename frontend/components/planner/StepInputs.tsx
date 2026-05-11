@@ -295,7 +295,7 @@ export default function StepInputs({
                 type="button"
                 aria-label="Pick departure date"
                 onClick={() => openPicker(startPickerRef)}
-                className="shrink-0 flex items-center justify-center w-10 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-saffron/40 transition-all"
+                className="shrink-0 flex items-center justify-center w-10 rounded-xl border border-orange-100 bg-white hover:border-saffron/40 transition-all"
               >
                 <Calendar className="w-4 h-4 text-saffron" />
               </button>
@@ -349,7 +349,7 @@ export default function StepInputs({
                 aria-label="Pick return date"
                 disabled={inputs.tripType === 'single'}
                 onClick={() => openPicker(endPickerRef)}
-                className="shrink-0 flex items-center justify-center w-10 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-saffron/40 transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                className="shrink-0 flex items-center justify-center w-10 rounded-xl border border-orange-100 bg-white hover:border-saffron/40 transition-all disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Calendar className="w-4 h-4 text-saffron" />
               </button>

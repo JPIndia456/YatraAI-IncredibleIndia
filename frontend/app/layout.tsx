@@ -26,7 +26,7 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: "Yatra | Premium Travel Intelligence",
-  description: "Your AI-powered personal travel architect. Discover trains, flights, hotels and elite experiences across the globe.",
+  description: "Your professional personal Travel Guide. Discover trains, flights, hotels and elite experiences across India.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

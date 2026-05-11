@@ -19,6 +19,7 @@ BEGIN
     WHERE enumtypid = 'public.channel_type'::regtype 
     AND enumlabel = 'email'
   ) THEN
+  
     ALTER TYPE public.channel_type ADD VALUE 'email';
   END IF;
 END $$;

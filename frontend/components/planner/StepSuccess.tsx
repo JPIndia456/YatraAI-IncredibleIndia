@@ -11,6 +11,10 @@ import { useTripPlannerStore, useTourGuideStore, useAIBrainStore } from '@/lib/s
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import { isoDateToDdMmYyyy } from '@/lib/dateFormat';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase/client';
+import { toast } from 'sonner';
+import { Loader2, CloudUpload } from 'lucide-react';
 
 interface StepSuccessProps {
   onReset: () => void;
@@ -24,7 +28,10 @@ export default function StepSuccess({
   const { activeItinerary, weather } = useTripPlannerStore();
   const { telegramId, from_city, destination, departure_date, return_date } = useTourGuideStore();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'insights'>('overview');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
 
   const confirmationSuffix = useMemo(() => 
@@ -119,13 +126,48 @@ export default function StepSuccess({
     return Object.values(list).slice(0, 4).map((f: any) => typeof f === 'string' ? f : f.name);
   }, [activeItinerary]);
 
+  const handleSaveToMyTrips = async () => {
+    if (!user) {
+      toast.error("Authentication Required", { description: "Please sign in to save this trip to your profile." });
+      return;
+    }
+    if (!activeItinerary) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase.from('yatra_bookings').upsert({
+        ...(bookingId ? { id: bookingId } : {}),
+        user_id: user.id,
+        origin: activeItinerary.from || from_city,
+        destination: activeItinerary.to || destination,
+        trip_details: activeItinerary,
+        total_price: activeItinerary.totalNum || 0,
+        status: 'confirmed',
+        booking_type: 'TRIP',
+        confirmed_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id, destination, origin'
+      });
+
+      if (error) throw error;
+      
+      toast.success("Trip Saved!", { description: "Your itinerary is now available in 'My Trips'." });
+      setIsSaved(true);
+    } catch (err: any) {
+      console.error("Save Error:", err);
+      toast.error("Save Failed", { description: err.message });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (!activeItinerary) return null;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-4xl mx-auto space-y-12 py-12 px-4"
+      className="max-w-4xl mx-auto space-y-6 py-6 px-4"
     >
       {/* ── Status Hero ── */}
       <div className="text-center space-y-4">
@@ -139,11 +181,11 @@ export default function StepSuccess({
             <CheckCircle2 className="w-7 h-7 text-[#138808]" />
           </div>
         </div>
-        <div className="space-y-2">
-          <h1 className="text-6xl font-black text-[#FF9933] uppercase tracking-tighter leading-none">
+        <div className="space-y-1">
+          <h1 className="text-5xl font-extrabold text-[#FF9933] uppercase tracking-tight leading-none">
             Odyssey Confirmed
           </h1>
-          <p className="text-sm font-black text-slate-400 uppercase tracking-[0.3em]">Booking ID: {confirmationSuffix}</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em]">Booking ID: {confirmationSuffix}</p>
         </div>
       </div>
 
@@ -174,15 +216,15 @@ export default function StepSuccess({
             {activeTab === 'overview' && (
               <motion.div key="overview" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div className="space-y-10">
-                  <div className="space-y-3">
-                    <p className="text-[14px] font-black text-[#FF9933] uppercase tracking-[0.25em]">Route Intelligence</p>
-                    <h3 className="text-6xl font-black text-[#000080] uppercase leading-[0.9] tracking-tighter">
+                  <div className="space-y-2">
+                    <p className="text-[12px] font-black text-[#FF9933] uppercase tracking-[0.2em]">Route Intelligence</p>
+                    <h3 className="text-4xl font-extrabold text-[#000080] uppercase leading-tight tracking-tighter">
                        <span className="text-[#FF9933]">{activeItinerary?.from || from_city}</span> 
-                       <span className="mx-4 text-slate-200">/</span> 
+                       <span className="mx-3 text-slate-200">/</span> 
                        <span className="text-[#138808]">{activeItinerary?.to || destination}</span>
                     </h3>
                   </div>
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       {[
                         { icon: MapPin, label: 'Origin', val: activeItinerary?.from || from_city, color: 'text-[#FF9933]', bg: 'bg-[#FF9933]/5' },
                         { icon: Calendar, label: 'Dates', val: (activeItinerary?.startDate && activeItinerary?.endDate) 
@@ -192,13 +234,13 @@ export default function StepSuccess({
                         },
                         { icon: CheckCircle2, label: 'Status', val: `Confirmed • PNR: ${confirmationSuffix}`, color: 'text-[#138808]', bg: 'bg-[#138808]/5' }
                       ].map((s, i) => (
-                        <div key={i} className="flex gap-6 items-center group/item">
-                          <div className={`w-16 h-16 rounded-[2rem] ${s.bg} flex items-center justify-center shrink-0 shadow-sm border border-slate-100 group-hover/item:scale-110 transition-transform`}>
-                            <s.icon className={`w-8 h-8 ${s.color}`} />
+                        <div key={i} className="flex gap-4 items-center group/item">
+                          <div className={`w-12 h-12 rounded-2xl ${s.bg} flex items-center justify-center shrink-0 shadow-sm border border-slate-100 group-hover/item:scale-105 transition-transform`}>
+                            <s.icon className={`w-6 h-6 ${s.color}`} />
                           </div>
                           <div>
-                            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{s.label}</p>
-                            <p className={`text-xl font-black ${s.color} uppercase tracking-tighter`}>{s.val || '—'}</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{s.label}</p>
+                            <p className={`text-lg font-black ${s.color} uppercase tracking-tighter`}>{s.val || '—'}</p>
                           </div>
                         </div>
                       ))}
@@ -206,20 +248,20 @@ export default function StepSuccess({
                 </div>
                 <div className="flex flex-col justify-center space-y-8">
                   {weather ? (
-                    <div className="bg-[#138808] p-10 rounded-[3rem] text-white space-y-6 shadow-2xl relative overflow-hidden group border-t-8 border-t-[#FF9933]">
-                      <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 blur-[80px] group-hover:bg-white/10 transition-all" />
+                    <div className="bg-[#138808] p-6 rounded-[2.5rem] text-white space-y-4 shadow-xl relative overflow-hidden group border-t-4 border-t-[#FF9933]">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[60px] group-hover:bg-white/10 transition-all" />
                       <div className="flex items-center justify-between relative z-10">
                         <div>
-                          <p className="text-[14px] font-black text-[#FF9933] uppercase tracking-[0.3em] leading-none mb-3">Climate Pulse</p>
-                          <h4 className="text-7xl font-black text-[#FF9933] tracking-tighter">{Math.round(weather.temp || 24)}°C</h4>
+                          <p className="text-[8px] font-black text-[#FF9933] uppercase tracking-[0.3em] leading-none mb-1">Climate Pulse</p>
+                          <h4 className="text-4xl font-extrabold text-[#FF9933] tracking-tighter">{Math.round(weather.temp || 24)}°C</h4>
                         </div>
                         <div className="text-right">
-                          <CloudSun className="w-16 h-16 text-[#FF9933] mb-2 ml-auto animate-float" />
-                          <p className="text-sm font-black uppercase tracking-widest opacity-80">{weather.condition || 'Clear Sky'}</p>
+                          <CloudSun className="w-10 h-10 text-[#FF9933] mb-1 ml-auto animate-float" />
+                          <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{weather.condition || 'Clear Sky'}</p>
                         </div>
                       </div>
-                      <div className="pt-6 border-t border-white/10 relative z-10">
-                        <p className="text-base font-black text-[#FF9933] uppercase tracking-tight">Perfect for Discovery</p>
+                      <div className="pt-4 border-t border-white/10 relative z-10">
+                        <p className="text-[10px] font-black text-[#FF9933] uppercase tracking-widest">Perfect for Discovery</p>
                       </div>
                     </div>
                   ) : (
@@ -252,46 +294,42 @@ export default function StepSuccess({
                   </div>
                 </div>
 
-                {/* ── Odyssey Gallery ── */}
-                <div className="md:col-span-2 space-y-10 mt-6 pt-12 border-t border-slate-100">
+                {/* ── Discovery Highlights (Refined) ── */}
+                <div className="md:col-span-2 space-y-6 mt-4 pt-8 border-t border-slate-100">
                   <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 rounded-[2rem] bg-[#FF9933]/5 flex items-center justify-center border border-[#FF9933]/10 shadow-sm">
-                          <Camera className="w-8 h-8 text-[#FF9933]" />
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-[#FF9933]/5 flex items-center justify-center border border-[#FF9933]/10 shadow-sm">
+                          <Sparkles className="w-6 h-6 text-[#FF9933]" />
                         </div>
                         <div>
-                          <h4 className="text-4xl font-black uppercase text-[#000080] tracking-tighter leading-none">{t('destination_gallery', 'Discovery Highlights')}</h4>
-                          <p className="text-sm font-black text-slate-400 uppercase tracking-[0.3em] mt-1">Monuments, Markets & Landscapes</p>
+                          <h4 className="text-3xl font-extrabold uppercase text-[#000080] tracking-tight leading-none">{t('destination_gallery', 'Discovery Highlights')}</h4>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1.5">Monuments, Markets & Landscapes</p>
                         </div>
                       </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                      { term: 'monument', label: 'Heritage Sites', icon: MapPin, img: '1524492412937-b28074a5d7da' },
-                      { term: 'market', label: 'Local Bazaars', icon: ShoppingBag, img: '1548013146-72479768bbaa' },
-                      { term: 'nature', label: 'Landscapes', icon: Compass, img: '1514222139-b5b273ce537d' },
-                      { term: 'food', label: 'Culinary Pulse', icon: Utensils, img: '1598305072041-3965b508f7f2' }
+                      { label: 'Heritage Sites', icon: MapPin, color: '#FF9933', bg: 'bg-[#FF9933]/5' },
+                      { label: 'Local Bazaars', icon: ShoppingBag, color: '#000080', bg: 'bg-[#000080]/5' },
+                      { label: 'Landscapes', icon: Compass, color: '#138808', bg: 'bg-[#138808]/5' },
+                      { label: 'Culinary Pulse', icon: Utensils, color: '#FF9933', bg: 'bg-[#FF9933]/5' }
                     ].map((item, i) => (
                       <motion.div 
                         key={i}
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 + i * 0.1 }}
-                        className="group relative aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-slate-100 shadow-xl hover:shadow-2xl transition-all duration-700"
+                        transition={{ delay: 0.1 + i * 0.05 }}
+                        className={`group relative py-8 px-6 rounded-[2rem] overflow-hidden ${item.bg} border border-slate-100 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]`}
                       >
-                        <img 
-                          src={`https://images.unsplash.com/photo-${item.img}?auto=format&fit=crop&q=80&w=600`} 
-                          alt={item.label}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.5s] brightness-[0.8] group-hover:brightness-100"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-70 group-hover:opacity-40 transition-opacity" />
-                        <div className="absolute bottom-8 left-8 right-8 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <item.icon className="w-4 h-4 text-saffron" />
-                            <span className="text-[10px] font-black text-saffron uppercase tracking-[0.2em]">{item.label}</span>
+                        <div className="space-y-4 relative z-10 flex flex-col items-center text-center">
+                          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm border border-slate-100">
+                            <item.icon className="w-5 h-5" style={{ color: item.color }} />
                           </div>
-                          <p className="text-sm font-black text-white uppercase tracking-tighter italic leading-none">{activeItinerary?.to || destination}</p>
+                          <div>
+                            <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-1.5" style={{ color: item.color }}>{item.label}</p>
+                            <p className="text-[13px] font-extrabold text-[#000080] uppercase tracking-normal leading-none">{activeItinerary?.to || destination}</p>
+                          </div>
                         </div>
                       </motion.div>
                     ))}
@@ -431,11 +469,25 @@ export default function StepSuccess({
       </div>
 
       {/* ── Odyssey Actions ── */}
-      <div className="flex flex-col sm:flex-row gap-6 justify-center">
-         <Link href="/my-trip" className="px-12 py-7 bg-[#138808] text-white rounded-[2.5rem] font-black text-sm uppercase shadow-[0_20px_50px_rgba(4,106,56,0.3)] hover:bg-[#035a2f] transition-all flex items-center gap-4 hover:-translate-y-1">
-           {t('view_dashboard')} <ArrowRight className="w-5 h-5 text-[#FF9933]" />
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+         <Link href="/my-trip" className="px-10 py-6 bg-[#138808] text-white rounded-[2rem] font-black text-[12px] uppercase shadow-lg hover:bg-[#035a2f] transition-all flex items-center gap-3 hover:-translate-y-1">
+           {t('view_dashboard')} <ArrowRight className="w-4 h-4 text-[#FF9933]" />
          </Link>
-         <button onClick={onReset} className="px-12 py-7 bg-white text-[#FF9933] border-2 border-[#FF9933]/10 rounded-[2.5rem] font-black text-sm uppercase shadow-xl hover:bg-slate-50 transition-all hover:-translate-y-1">
+         
+         <button 
+           onClick={handleSaveToMyTrips}
+           disabled={isSaving || isSaved}
+           className={`px-10 py-6 rounded-[2rem] font-black text-[12px] uppercase transition-all flex items-center gap-3 hover:-translate-y-1 shadow-lg ${
+             isSaved 
+             ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' 
+             : 'bg-[#FF9933] text-white hover:bg-orange-600'
+           }`}
+         >
+           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudUpload className="w-4 h-4" />}
+           {isSaved ? 'Trip Secured' : 'Save to My Trips'}
+         </button>
+
+         <button onClick={onReset} className="px-10 py-6 bg-white text-[#FF9933] border-2 border-[#FF9933]/10 rounded-[2rem] font-black text-[12px] uppercase shadow-md hover:bg-slate-50 transition-all hover:-translate-y-1">
            {t('plan_another')}
          </button>
       </div>

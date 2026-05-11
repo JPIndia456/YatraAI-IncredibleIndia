@@ -22,6 +22,7 @@ import { AmadeusService } from '@/lib/services/travel/amadeus';
 
 interface TierItem {
   label: string;
+  type?: string;
   name: string;
   detail: string;
   price: string;
@@ -269,6 +270,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
         const trainsArray = Array.isArray(data.trains) ? data.trains : (data.trains?.trains || []);
         trainsArray.forEach((r: any) => list.push({
           label: 'Train',
+          type: 'Train',
           name: r.train_name || r.name || 'Express Train',
           detail: `${r.departure || ''} → ${r.arrival || ''}`,
           price: r.price || '₹2,500',
@@ -280,6 +282,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
         const flightsArray = Array.isArray(data.flights) ? data.flights : (data.flights?.flights || []);
         flightsArray.forEach((r: any) => list.push({
           label: 'Flight',
+          type: 'Flight',
           name: r.airline || r.name || 'Domestic Flight',
           detail: `${r.departure || ''} → ${r.arrival || ''}`,
           price: r.price || '₹12,500',
@@ -302,6 +305,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
             if (!list.some(item => item.name === p.name)) {
               list.push({
                 label: p.label,
+                type: p.label,
                 name: p.name,
                 detail: p.detail,
                 price: p.price,
@@ -661,7 +665,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
       <div className="py-8 border-b border-[#000080]/10 flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
         <div className="space-y-1 text-center md:text-left">
            <h2 className="text-3xl font-black text-[#000080] uppercase italic tracking-tighter flex items-center justify-center md:justify-start gap-3">
-              <MapPin className="w-8 h-8 text-saffron" />
+              <MapPin className="w-8 h-8 text-[#FF9933]" />
               {displayDest}
            </h2>
            <div className="mt-2 flex items-center justify-center md:justify-start">
@@ -764,9 +768,20 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                     </button>
                   )}
                 </div>
-                <p className="text-[10px] font-bold text-[#000080]/40 uppercase tracking-widest">
-                  {loading ? 'Sourcing real-time availability...' : `Live transit to ${displayDest}`}
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-[10px] font-bold text-[#000080]/40 uppercase tracking-widest">
+                    {loading ? 'Sourcing real-time availability...' : `Live transit to ${displayDest}`}
+                  </p>
+                  {!loading && (
+                    <button 
+                      onClick={fetchAll}
+                      className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[8px] font-black uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all flex items-center gap-1.5"
+                    >
+                      <RotateCcw className="w-2.5 h-2.5" />
+                      Refresh Air & Rail
+                    </button>
+                  )}
+                </div>
             </div>
 
             <div className="bg-white rounded-[2.5rem] border border-[#000080]/10 shadow-sm overflow-hidden">
@@ -810,7 +825,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                            {mixPicks.transport?.name === item.name ? (
                              <span className="px-3 py-1 bg-blue-600 text-white text-[8px] font-black uppercase rounded-full italic animate-pulse">Selected</span>
                            ) : (
-                             <button className="px-4 py-1.5 bg-slate-100 text-[#000080]/40 group-hover:bg-blue-600 group-hover:text-white text-[9px] font-black uppercase rounded-xl transition-all">Select</button>
+                             null
                            )}
                         </div>
                       </div>
@@ -856,8 +871,8 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                              {mixPicks.returnTransport?.name === item.name ? (
                                <span className="px-3 py-1 bg-indigo-600 text-white text-[8px] font-black uppercase rounded-full italic animate-pulse">Selected</span>
                              ) : (
-                               <button className="px-4 py-1.5 bg-slate-100 text-[#000080]/40 group-hover:bg-indigo-600 group-hover:text-white text-[9px] font-black uppercase rounded-xl transition-all">Select</button>
-                             )}
+                             null
+                           )}
                           </div>
                         </div>
                       ))
@@ -970,7 +985,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                          {mixPicks.local?.name === item.name ? (
                            <span className="px-3 py-1 bg-emerald-600 text-white text-[8px] font-black uppercase rounded-full italic animate-pulse">Selected</span>
                          ) : (
-                           <button className="px-4 py-1.5 bg-slate-100 text-[#000080]/40 group-hover:bg-emerald-600 group-hover:text-white text-[9px] font-black uppercase rounded-xl transition-all">Select</button>
+                             <div className="w-1 h-1 rounded-full bg-slate-200" />
                          )}
                       </div>
                     </div>
@@ -982,20 +997,33 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
 
          {/* --- STICKY SUMMARY SIDEBAR (RIGHT) --- */}
          <aside className="lg:col-span-4 sticky top-8">
-            <div className="bg-[#138808] rounded-[2.5rem] p-6 text-white shadow-2xl space-y-6 border border-white/5 relative overflow-hidden">
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleConfirmPlan}
+              className="bg-[#138808] rounded-[2.5rem] p-6 text-white shadow-2xl space-y-6 border border-white/5 relative overflow-hidden cursor-pointer group"
+            >
                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF9933]/10 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
                
-               <div className="flex items-center gap-3">
-                  <ShoppingCart className="w-5 h-5 text-[#FF9933]" />
-                  <h3 className="text-lg font-black uppercase italic tracking-tight">{t('cart_summary', 'CART SUMMARY')}</h3>
+               <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <ShoppingCart className="w-5 h-5 text-[#FF9933]" />
+                    <h3 className="text-lg font-black uppercase italic tracking-tight">{t('cart_summary', 'CART SUMMARY')}</h3>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-white/40 group-hover:text-[#FF9933] transition-colors" />
                </div>
                <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest italic">{displayDest} Booking</p>
 
                <div className="space-y-3 pt-4 border-t border-white/10">
-                  <div className="flex justify-between items-center text-[10px]">
-                     <p className="font-black text-white/60 uppercase tracking-widest">Travel ({partySize} Pax)</p>
-                     <p className="font-black text-[#FF9933]">₹{((Number(mixPicks.transport?.priceNum) || 0) * partySize).toLocaleString()}</p>
-                  </div>
+                   <div className="flex justify-between items-start text-[10px]">
+                      <div className="flex flex-col">
+                        <p className="font-black text-white/60 uppercase tracking-widest">Travel ({partySize} Pax)</p>
+                        <p className="text-[7px] text-white/40 uppercase font-bold italic tracking-wider">
+                          ₹{(((Number(mixPicks.transport?.priceNum) || 0) + (Number(mixPicks.returnTransport?.priceNum) || 0))).toLocaleString()} / Pax (RT)
+                        </p>
+                      </div>
+                      <p className="font-black text-[#FF9933]">₹{(((Number(mixPicks.transport?.priceNum) || 0) + (Number(mixPicks.returnTransport?.priceNum) || 0)) * partySize).toLocaleString()}</p>
+                   </div>
                   <div className="flex justify-between items-center text-[10px]">
                      <p className="font-black text-white/60 uppercase tracking-widest">Stay ({nights} Nights)</p>
                      <p className="font-black text-[#FF9933]">₹{((Number(mixPicks.hotel?.priceNum) || 0) * nights * calculateRoomsNeeded(partySize)).toLocaleString()}</p>
@@ -1015,28 +1043,11 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                      </div>
                   </div>
 
-                  <button
-                   onClick={handleConfirmPlan}
-                   disabled={isVerifying || !mixPicks.transport || !mixPicks.hotel}
-                   className={`w-full py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-2xl flex flex-col items-center gap-1.5 leading-none ${
-                     !isVerifying && mixPicks.transport && mixPicks.hotel 
-                       ? 'bg-[#FF9933] text-white hover:bg-orange-600 hover:-translate-y-1 active:scale-95 shadow-orange-950/40' 
-                       : 'bg-white/10 text-white/20 cursor-not-allowed grayscale'
-                   }`}
-                 >
-                   {isVerifying ? (
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>VERIFYING...</span>
-                      </div>
-                   ) : (
-                     <span>CONFIRM & CHECKOUT</span>
-                   )}
-                 </button>
+                  {/* Checkout and Refresh buttons removed to maintain minimalist concierge identity. */}
                 
                 <div className="flex flex-col gap-2">
                    <p className="text-center text-[8px] font-bold text-white/30 uppercase tracking-widest leading-relaxed">
-                      Price includes GST & service fees. Free cancellation on most selections.
+                      {isVerifying ? 'Verifying live fares...' : 'Click Total to Finalize Selection'}
                    </p>
                    <div className="flex justify-center gap-3 opacity-30">
                       <ShieldCheck className="w-4 h-4" />
@@ -1044,7 +1055,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                    </div>
                 </div>
               </div>
-           </div>
+            </motion.div>
 
            <div className="mt-6 p-6 bg-slate-50 rounded-3xl border border-slate-100 flex items-center gap-4">
               <ShieldCheck className="w-6 h-6 text-green-600 shrink-0" />

@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sparkles, X, MessageSquare, ShieldCheck, Send,
-  Mic, RotateCcw, Train, Plane, MapPin,
+  Mic, RotateCcw, Train, Plane, MapPin, ArrowRight,
   Thermometer, Wallet, BrainCircuit, PartyPopper, Utensils,
   ShoppingBag, Moon,
   Plus, Globe, Volume2, VolumeX,
-  Calendar, Navigation, CheckCircle2, Hotel, Car, Ship
+  Calendar, Navigation, CheckCircle2, Hotel, Car, Ship,
+  CloudSun, Camera
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -23,6 +24,7 @@ import AIBrain from '@/components/AIBrain';
 import { speakIndianText } from '@/lib/bhashini';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
+import ProfilePanel from '@/components/profile/ProfilePanel';
 
 // Step components
 import StepInputs, { PlannerInputs, Language } from '@/components/planner/StepInputs';
@@ -90,7 +92,7 @@ const INITIAL_PLANNER_INPUTS: PlannerInputs = {
   startDate: '',
   endDate: '',
   dietary: ['veg'],
-  adults: 2,
+  adults: 1,
   kids: 0,
   kidAges: '',
   budget: 'economy',
@@ -117,22 +119,33 @@ export default function YatraStudio() {
     registerInputUpdateHandler, registerWizardSchema, setWizardMode,
     setPendingOutbound,
   } = useAIBrainStore();
-  const { activeItinerary, setActiveItinerary, setActiveStep, searchData, activeBookingId, setActiveBookingId, mixPicks, setMixPicks } = useTripPlannerStore();
+  const {
+    activeItinerary,
+    setActiveItinerary,
+    setActiveStep,
+    searchData,
+    activeBookingId,
+    setActiveBookingId,
+    mixPicks,
+    setMixPicks,
+    plannerStage: stage,
+    setPlannerStage: setStage,
+    isProfileOpen,
+    setIsProfileOpen
+  } = useTripPlannerStore();
+
   const {
     setDestination: setGlobalDestination, setDates: setGlobalDates,
     setOrigin, setTargetBudget, setTravelers, setBudget, setTravelType,
   } = useTripStore();
   const { patchTourGuide, resetTourGuide } = useTourGuideStore();
 
-  const [mounted, setMounted]   = useState(false);
-  const stage = useTripPlannerStore(state => state.plannerStage);
-  const { activeItinerary: activeItineraryStore, plannerStage } = useTripPlannerStore();
+  const [mounted, setMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const setStage = useTripPlannerStore(state => state.setPlannerStage);
 
   // Auto-save effect
   useEffect(() => {
-    if (!activeItineraryStore || (plannerStage !== 'selection' && plannerStage !== 'booking' && plannerStage !== 'success')) return;
+    if (!activeItinerary || (stage !== 'selection' && stage !== 'booking' && stage !== 'success')) return;
     
     const savePlan = async () => {
       setIsSaving(true);
@@ -141,13 +154,13 @@ export default function YatraStudio() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            ...activeItineraryStore,
-            totalPrice: activeItineraryStore.totalNum, // Aligned with API
-            fullPlan: activeItineraryStore.dayPlan,
+            ...activeItinerary,
+            totalPrice: activeItinerary.totalNum, // Aligned with API
+            fullPlan: activeItinerary.dayPlan,
             // Ensure the latest Cart picks (mixPicks) are captured
-            transport: activeItineraryStore.transport,
-            hotel: activeItineraryStore.hotel,
-            local: activeItineraryStore.local
+            transport: activeItinerary.transport,
+            hotel: activeItinerary.hotel,
+            local: activeItinerary.local
           })
         });
       } catch (e) {
@@ -159,7 +172,7 @@ export default function YatraStudio() {
 
     const timer = setTimeout(savePlan, 2000);
     return () => clearTimeout(timer);
-  }, [activeItineraryStore, plannerStage]);
+  }, [activeItinerary, stage]);
 
   // Sync local UI stage with Tour Guide state
   useEffect(() => {
@@ -292,6 +305,18 @@ export default function YatraStudio() {
     
     setHasDeterminedInitialAuth(true);
   }, [mounted, authLoading, user?.id]);
+
+  // Sync Profile Open from URL
+  useEffect(() => {
+    if (mounted && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('profile') === 'true') {
+        setIsProfileOpen(true);
+        // Clear the param to avoid re-opening on every mount/refresh
+        window.history.replaceState({}, '', '/planner');
+      }
+    }
+  }, [mounted, setIsProfileOpen]);
 
   // ── Profile Sync to TripStore ──────────────────────────────────────────
   useEffect(() => {
@@ -454,7 +479,7 @@ export default function YatraStudio() {
       setTimeout(() => { setAIBrainOpen(true); addAIMessage({ role: 'assistant', content: msg }); }, delay);
     };
     if (stage === 'suggestions' && suggestions.length > 0 && !tripConfirmed.current)
-      fire('suggestions', `Found ${suggestions.length} premium options! Which vibe fits you best?`, 1500);
+      fire('suggestions', `Found ${suggestions.length} handpicked options! Which vibe fits you best?`, 1500);
     else if (stage === 'planning')
       fire('planning', `Building your itinerary now…`, 500);
     else if (stage === 'results' && plan) {
@@ -522,11 +547,8 @@ export default function YatraStudio() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.error || 'Discovery Engine failed');
-      const sorted = (data.suggestions || []).sort((a: any, b: any) => {
-        const p = (s: string) => parseInt(s?.replace(/[^0-9]/g, '')) || 0;
-        return (p(a.budget_cost_estimate) || p(a.budget_train_estimate)) - (p(b.budget_cost_estimate) || p(b.budget_train_estimate));
-      });
-      setSuggestions(sorted);
+      const suggestions = data.suggestions || [];
+      setSuggestions(suggestions);
       setFetchedInputs({ adults: inputs.adults, kids: inputs.kids });
       setStage('suggestions');
     } catch (err: any) {
@@ -974,7 +996,7 @@ export default function YatraStudio() {
     label: t(s.id === 'booking' ? 'booking_step' : s.id, s.label) 
   })), [t]);
   const currentStepId  = stage === 'planning' ? 'suggestions' : stage;
-  const doneSteps      = isWizardActive ? [] : (DONE_MAP[stage] || []);
+  const doneSteps      = isWizardActive ? [] : (DONE_MAP[stage as Stage] || []);
 
   const { isInitialized: langInitialized } = useLanguage();
 
@@ -1008,32 +1030,17 @@ export default function YatraStudio() {
           else if (s === 'planning')  setStage('suggestions');
           // 'inputs' = already on first step, do nothing
         }}
-        disabledNext={isWizardActive}
-        onNext={() => {
-          if (isWizardActive) return;
-          // Read stage directly from store to avoid stale closure
-          const s = useTripPlannerStore.getState().plannerStage;
-          if (s === 'inputs') {
-            handleGetSuggestions();
-          } else if (s === 'suggestions') {
-            // selectedSuggestion & suggestions are local React state — still fresh here
-            if (selectedSuggestion !== null && suggestions[selectedSuggestion]) {
-              handleGeneratePlan(suggestions[selectedSuggestion], suggestions[selectedSuggestion].destination);
-            }
-          } else if (s === 'results') {
-            setStage('selection');
-          } else if (s === 'selection') {
-            setStage('booking');
-          } else if (s === 'booking') {
-            handleBookAndPay();
-          }
-        }}
+        onNext={
+          (stage === 'inputs' || stage === 'booking') ? () => {
+            if (isWizardActive) return;
+            const s = useTripPlannerStore.getState().plannerStage;
+            if (s === 'inputs') handleGetSuggestions();
+            else if (s === 'booking') handleBookAndPay();
+          } : undefined
+        }
         nextLabel={
           isWizardActive ? 'Answer AI to proceed' :
           stage === 'inputs' ? t('discover_options') :
-          stage === 'suggestions' ? t('confirm_choice') :
-          stage === 'results' ? 'Choose Your Mix →' :
-          stage === 'selection' ? 'Confirm & Continue →' :
           stage === 'booking' ? '🔒 Confirm & Finalize' :
           t('next')
         }
@@ -1119,12 +1126,79 @@ export default function YatraStudio() {
               />
             )}
 
+            {/* Profile Panel & Avatar Trigger */}
+            <ProfilePanel isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+            
+            {!isProfileOpen && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsProfileOpen(true)}
+                className="fixed top-6 right-6 z-[150] w-12 h-12 rounded-2xl bg-white border border-orange-100 shadow-xl overflow-hidden group no-print"
+              >
+                 <div className="absolute inset-0 bg-gradient-to-br from-saffron/10 to-green/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                 {user?.user_metadata?.avatar_url ? (
+                   <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                 ) : (
+                   <div className="w-full h-full flex items-center justify-center text-saffron font-black text-sm uppercase">
+                     {user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U'}
+                   </div>
+                 )}
+              </motion.button>
+            )}
+
             {stage === 'results' && plan && (
               <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                <div className="shell-panel p-10 bg-white border border-orange-100 text-[#000080] space-y-8 rounded-[3rem] shadow-3xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-saffron/5 blur-[100px] pointer-events-none" />
-                  
-                  <div className="flex justify-between items-start relative z-10">
+                  <motion.div 
+                    whileHover={{ scale: 1.005 }}
+                    onClick={() => {
+                      if (plan) {
+                        const aiHotels = plan.hotels.map((h: any) => ({
+                          ...h,
+                          name: h.name,
+                          location: plan.destination,
+                          area: h.highlights?.split(',')[0] || 'Prime Location',
+                          id: `ai-hotel-${Math.random()}`,
+                          isAI: true
+                        }));
+                        const aiFlights = plan.transport.filter((t: any) => t.mode.toLowerCase().includes('flight')).map((t: any) => ({
+                          ...t,
+                          name: t.mode,
+                          airline: t.mode,
+                          departure: '08:00',
+                          arrival: '10:30',
+                          id: `ai-flight-${Math.random()}`,
+                          isAI: true
+                        }));
+                        const aiTrains = plan.transport.filter((t: any) => t.mode.toLowerCase().includes('train')).map((t: any) => ({
+                          ...t,
+                          name: t.mode,
+                          train_name: t.mode,
+                          class: t.detail?.split(' ')[0] || '2A',
+                          id: `ai-train-${Math.random()}`,
+                          isAI: true
+                        }));
+
+                        useTripPlannerStore.getState().setSearchData({
+                          hotels: aiHotels,
+                          flights: aiFlights,
+                          trains: aiTrains
+                        });
+
+                        setMixPicks({
+                          hotel: aiHotels[0] || null,
+                          transport: aiFlights[0] || aiTrains[0] || null
+                        });
+                      }
+                      setStage('selection');
+                    }}
+                    className="shell-panel p-10 bg-white border border-orange-100 text-[#000080] space-y-8 rounded-[3rem] shadow-3xl relative overflow-hidden cursor-pointer group/panel hover:border-saffron/30 transition-all"
+                  >
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-saffron/5 blur-[100px] pointer-events-none" />
+                    
+                    <div className="flex justify-between items-start relative z-10">
                     <div className="space-y-2">
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron/10 border border-saffron/20">
                         <Sparkles className="w-3.5 h-3.5 text-saffron" />
@@ -1196,25 +1270,28 @@ export default function YatraStudio() {
                          </div>
                       </div>
 
-                      {/* Visual Experience Gallery - Moved Here */}
-                      <div className="space-y-4">
+                      {/* Refined Visual Experience Gallery */}
+                      <div className="space-y-4 mt-2 pt-6 border-t border-slate-100">
                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Visual Experiences</span>
-                            <div className="h-px flex-1 bg-orange-100/50" />
+                            <span className="text-[10px] font-black text-[#FF9933] uppercase tracking-[0.2em]">Regional Essence</span>
+                            <div className="h-px flex-1 bg-orange-100/30" />
                          </div>
-                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             {[
-                              { img: '/assets/experiences/old_goa.png', title: 'Old Goa Heritage', desc: 'UNESCO World Heritage Sites' },
-                              { img: '/assets/experiences/chapora_sunset.png', title: 'Chapora Sunset', desc: 'Epic views from the ramparts' },
-                              { img: '/assets/experiences/goan_thali.png', title: 'Authentic Thali', desc: 'Indulge in Goan flavors' },
-                              { img: '/assets/experiences/fontainhas.png', title: 'Latin Quarter', desc: 'Colors of Fontainhas' }
+                              { icon: MapPin, title: 'Heritage', desc: 'Historic Landmarks', color: '#FF9933', bg: 'bg-[#FF9933]/5' },
+                              { icon: CloudSun, title: 'Ambiance', desc: 'Climate & Views', color: '#000080', bg: 'bg-[#000080]/5' },
+                              { icon: Utensils, title: 'Flavors', desc: 'Culinary Depth', color: '#138808', bg: 'bg-[#138808]/5' },
+                              { icon: Camera, title: 'Moments', desc: 'Scenic Discovery', color: '#FF9933', bg: 'bg-[#FF9933]/5' }
                             ].map((exp, i) => (
-                              <div key={i} className="group relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-orange-100 shadow-sm hover:shadow-xl transition-all duration-500">
-                                 <img src={exp.img} alt={exp.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" />
-                                 <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                                    <p className="text-[10px] font-black uppercase tracking-tight text-orange-400 leading-none mb-1">{exp.title}</p>
-                                    <p className="text-[8px] font-bold text-white/80 uppercase leading-tight line-clamp-2">{exp.desc}</p>
+                              <div key={i} className={`group relative py-6 px-4 rounded-[2rem] overflow-hidden border border-slate-100 ${exp.bg} transition-all duration-300 hover:scale-[1.02]`}>
+                                 <div className="space-y-3 flex flex-col items-center text-center">
+                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                                       <exp.icon className="w-5 h-5" style={{ color: exp.color }} />
+                                    </div>
+                                    <div>
+                                       <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: exp.color }}>{exp.title}</p>
+                                       <p className="text-[11px] font-extrabold text-[#000080] uppercase tracking-tight leading-tight">{exp.desc}</p>
+                                    </div>
                                  </div>
                               </div>
                             ))}
@@ -1224,56 +1301,12 @@ export default function YatraStudio() {
 
                   </div>
 
-                  <button 
-                    onClick={() => {
-                      // Final Safety Sync & Auto-Selection before entering Selection Studio
-                      if (plan) {
-                        const aiHotels = plan.hotels.map((h: any) => ({
-                          ...h,
-                          name: h.name,
-                          location: plan.destination,
-                          area: h.highlights?.split(',')[0] || 'Prime Location',
-                          id: `ai-hotel-${Math.random()}`,
-                          isAI: true
-                        }));
-                        const aiFlights = plan.transport.filter((t: any) => t.mode.toLowerCase().includes('flight')).map((t: any) => ({
-                          ...t,
-                          name: t.mode,
-                          airline: t.mode,
-                          departure: '08:00',
-                          arrival: '10:30',
-                          id: `ai-flight-${Math.random()}`,
-                          isAI: true
-                        }));
-                        const aiTrains = plan.transport.filter((t: any) => t.mode.toLowerCase().includes('train')).map((t: any) => ({
-                          ...t,
-                          name: t.mode,
-                          train_name: t.mode,
-                          class: t.detail?.split(' ')[0] || '2A',
-                          id: `ai-train-${Math.random()}`,
-                          isAI: true
-                        }));
-
-                        // Force search data update
-                        useTripPlannerStore.getState().setSearchData({
-                          hotels: aiHotels,
-                          flights: aiFlights,
-                          trains: aiTrains
-                        });
-
-                        // Auto-select the first options to pre-fill the cart
-                        setMixPicks({
-                          hotel: aiHotels[0] || null,
-                          transport: aiFlights[0] || aiTrains[0] || null
-                        });
-                      }
-                      setStage('selection');
-                    }} 
-                    className="w-full py-6 bg-gradient-to-r from-saffron via-white to-green text-[#000080] rounded-[2rem] font-black text-xs uppercase shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all relative z-10 border border-orange-100"
-                  >
-                    Configure Selection Studio →
-                  </button>
-                </div>
+                  {/* Implicit interaction: clicking the panel proceeds. Removed explicit navigation button. */}
+                  <div className="flex items-center justify-center gap-2 pt-4 opacity-20 group-hover/panel:opacity-60 transition-opacity">
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#000080]">Enter Selection Studio</span>
+                    <ArrowRight className="w-4 h-4 text-saffron" />
+                  </div>
+                </motion.div>
               </motion.div>
             )}
 

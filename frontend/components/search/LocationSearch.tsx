@@ -84,6 +84,7 @@ export default function LocationSearch({ placeholder, value, onChange, onEnter, 
     setQuery(name);
     onChange(name);
     setIsOpen(false);
+    onEnter?.();
   };
 
   return (

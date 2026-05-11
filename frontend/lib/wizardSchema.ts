@@ -7,7 +7,7 @@ import {
 export const getPlannerWizardSchema = (t: (key: string, def?: string) => string): WizardField[] => [
   {
     id: 'language', label: t('wizard_language_label', 'Support Language'), emoji: '🗣️',
-    question: t('wizard_language_question', 'Namaste! I am your AI travel architect. 🇮🇳\n\nTo begin, would you like me to provide travel support in a specific language?'),
+    question: t('wizard_language_question', 'Namaste! I am your Travel Guide. 🇮🇳\n\nTo begin, would you like me to provide travel support in a specific language?'),
     chips: [
       { label: t('language_en', 'English'), value: 'en' },
       { label: t('language_hi', 'Hindi'), value: 'hi' },

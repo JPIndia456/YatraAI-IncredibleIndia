@@ -113,6 +113,22 @@ CREATE TABLE IF NOT EXISTS public.yatra_whatsapp_preferences (
 );
 
 -- ────────────────────────────────────────────────────────────
+-- 7. DESTINATION CACHE — Intelligent report caching
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.yatra_destination_cache (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT UNIQUE NOT NULL,
+    type TEXT DEFAULT 'CITY',
+    tier TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    cached_report JSONB DEFAULT '{}'::jsonb,
+    default_other_transport_type TEXT,
+    default_other_transport_cost TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ────────────────────────────────────────────────────────────
 -- 7. ESSENTIAL FUNCTIONS & TRIGGERS
 -- ────────────────────────────────────────────────────────────
 
@@ -206,6 +222,7 @@ ALTER TABLE yatra_bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE yatra_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE yatra_pnr_status_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE yatra_ai_chat_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE yatra_destination_cache ENABLE ROW LEVEL SECURITY;
 
 -- Profiles Policies
 DROP POLICY IF EXISTS "profiles_select_own" ON yatra_profiles;
@@ -224,6 +241,10 @@ DROP POLICY IF EXISTS "chat_select_own" ON yatra_ai_chat_history;
 CREATE POLICY "chat_select_own" ON yatra_ai_chat_history FOR SELECT USING (auth.uid() = user_id);
 DROP POLICY IF EXISTS "chat_insert_own" ON yatra_ai_chat_history;
 CREATE POLICY "chat_insert_own" ON yatra_ai_chat_history FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Destination Cache Policies
+DROP POLICY IF EXISTS "destination_cache_public_read" ON yatra_destination_cache;
+CREATE POLICY "destination_cache_public_read" ON yatra_destination_cache FOR SELECT USING (true);
 
 -- REALTIME
 DO $$

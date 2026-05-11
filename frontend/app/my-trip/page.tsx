@@ -11,8 +11,8 @@ import {
   ChevronRight, ArrowRight, PlaneTakeoff, Info, Star,
   Compass as CompassIcon, Heart, Shield
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -80,7 +80,17 @@ function deriveJourneyDays(plan: Record<string, unknown> | null | undefined) {
 }
 
 export default function MyTripPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MyTripContent />
+    </Suspense>
+  );
+}
+
+function MyTripContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tripId = searchParams.get('id');
   const { user } = useAuth();
   const { activeItinerary: plan } = useTripPlannerStore();
   const { startDate, endDate, origin, adults, kids } = useTripStore();
@@ -98,19 +108,26 @@ export default function MyTripPage() {
 
   useEffect(() => {
     if (!user?.id) return;
-    if (plan) return;
-
-    const loadLatestTrip = async () => {
+    // If we have a specific tripId, we load it even if there is a plan in store
+    // because the user explicitly clicked on a discovery in their profile.
+    
+    const loadSpecificTrip = async () => {
       setLoadingDbTrip(true);
       try {
-        let { data, error } = await supabase
+        let query = supabase
           .from('yatra_bookings')
-          .select('id, origin, destination, status, pnr, confirmed_at, created_at, total_price, trip_details')
-          .eq('user_id', user.id)
-          .in('status', ['pending_payment', 'paid', 'pending_provider', 'confirmed'])
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .select('id, origin, destination, status, pnr, confirmed_at, created_at, total_price, trip_details');
+          
+        if (tripId) {
+          query = query.eq('id', tripId);
+        } else {
+          query = query.eq('user_id', user.id)
+            .in('status', ['pending_payment', 'paid', 'pending_provider', 'confirmed'])
+            .order('created_at', { ascending: false })
+            .limit(1);
+        }
+
+        let { data, error } = await query.maybeSingle();
 
         if (error) throw error;
 
@@ -150,8 +167,8 @@ export default function MyTripPage() {
       }
     };
 
-    loadLatestTrip();
-  }, [user?.id, plan]);
+    loadSpecificTrip();
+  }, [user?.id, tripId]);
 
   const effectivePlan = plan || dbTrip;
   const journeyDays = deriveJourneyDays(effectivePlan as Record<string, unknown>);
@@ -172,8 +189,11 @@ export default function MyTripPage() {
         trip_details: effectivePlan,
         total_price: typeof effectivePlan.totalNum === 'number' ? effectivePlan.totalNum : 0,
         status: 'confirmed',
+        booking_type: 'TRIP',
         confirmed_at: new Date().toISOString()
-      }, { onConflict: 'user_id, destination' });
+      }, {
+        onConflict: 'user_id, destination, origin'
+      });
 
       if (error) throw error;
       
@@ -257,6 +277,24 @@ export default function MyTripPage() {
                  <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Via {origin || 'Direct Access'}</p>
                </div>
                {getStatusBadge('Confirmed')}
+            </div>
+
+            <div className="flex gap-4">
+               <button
+                 onClick={() => {
+                   if (dbTrip) {
+                     useTripPlannerStore.getState().setActiveItinerary(dbTrip);
+                     toast.success("Odyssey Loaded", { description: "You can now edit this plan in the studio." });
+                     router.push('/planner');
+                   }
+                 }}
+                 className="flex-1 py-3 bg-[#FF9933]/10 text-saffron border border-saffron/20 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-saffron hover:text-white transition-all flex items-center justify-center gap-2"
+               >
+                 <Sparkles className="w-4 h-4" /> Resume Odyssey
+               </button>
+               <button className="flex-1 py-3 bg-slate-50 text-slate-400 border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">
+                 Archive Plan
+               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-y-6 gap-x-8">
@@ -479,7 +517,14 @@ export default function MyTripPage() {
         ].map((item, i) => (
           <button 
             key={i}
-            onClick={() => router.push(item.href)}
+            onClick={() => {
+              if (item.href === '/profile') {
+                useTripPlannerStore.getState().setIsProfileOpen(true);
+                router.push('/planner');
+              } else {
+                router.push(item.href);
+              }
+            }}
             className={`flex flex-col items-center gap-1.5 transition-all ${item.active ? 'text-saffron' : 'text-slate-400 hover:text-saffron'}`}
           >
             <item.icon size={22} className={item.active ? 'drop-shadow-[0_0_8px_rgba(255,103,31,0.3)]' : ''} />

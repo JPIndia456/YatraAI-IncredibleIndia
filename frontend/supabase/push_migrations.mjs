@@ -62,6 +62,8 @@ const MIGRATIONS = [
   '20260502120000_yatra_bookings_trip_columns_update_rls.sql',
   '20260503100000_yatra_profiles_insert_unique.sql',
   '20260505_performance_hardening.sql',
+  '20260508_channel_type_enum_hardening.sql',
+  '20260510193000_fix_missing_columns.sql',
 ];
 
 // ── SQL Executor (Supabase Management REST v1) ────────────────────────────────

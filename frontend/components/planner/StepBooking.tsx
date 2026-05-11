@@ -69,34 +69,34 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
 
   const colorUi: Record<string, { border: string; icon: string; title: string; cta: string }> = {
     blue: {
-      border: 'border-l-blue-500/60',
-      icon: 'text-blue-400',
-      title: 'text-blue-400',
-      cta: 'bg-blue-700 text-[#003366]',
+      border: 'border-l-[#FF9933]/60',
+      icon: 'text-[#FF9933]',
+      title: 'text-[#FF9933]',
+      cta: 'bg-[#FF9933] text-white',
     },
     cyan: {
-      border: 'border-l-blue-600/60',
-      icon: 'text-blue-600',
-      title: 'text-blue-600',
-      cta: 'bg-blue-600 text-zinc-950',
+      border: 'border-l-[#000080]/60',
+      icon: 'text-[#000080]',
+      title: 'text-[#000080]',
+      cta: 'bg-[#000080] text-white',
     },
     emerald: {
-      border: 'border-l-blue-600/60',
-      icon: 'text-blue-600',
-      title: 'text-blue-600',
-      cta: 'bg-emerald-600 text-[#003366]',
+      border: 'border-l-[#138808]/60',
+      icon: 'text-[#138808]',
+      title: 'text-[#138808]',
+      cta: 'bg-[#138808] text-white',
     },
     indigo: {
       border: 'border-l-indigo-500/60',
       icon: 'text-indigo-400',
       title: 'text-indigo-400',
-      cta: 'bg-indigo-600 text-[#003366]',
+      cta: 'bg-indigo-600 text-white',
     },
   };
 
   // Transport Selection
   if (mixPicks.transport) {
-    const isFlight = mixPicks.transport.type === 'Flight';
+    const isFlight = String(mixPicks.transport.label || mixPicks.transport.type || '').toLowerCase().includes('flight');
     options.push({
       icon: isFlight ? Plane : Train,
       title: isFlight ? `${mixPicks.transport.name || mixPicks.transport.airline} ${t('booking_booking_label')}` : t('booking_railways_ticket'),
@@ -155,17 +155,21 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
       className="space-y-6"
     >
       {/* Header */}
-      <div className="text-center space-y-1.5 pt-1">
-        <div className="w-12 h-12 bg-blue-600/10 rounded-xl flex items-center justify-center mx-auto border border-blue-600/20">
-          <Sparkles className="w-6 h-6 text-blue-600" />
+      <div className="text-center space-y-2 py-4 relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-24 bg-gradient-to-r from-[#FF9933]/10 via-transparent to-[#138808]/10 blur-3xl pointer-events-none" />
+        <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center mx-auto border-2 border-slate-100 shadow-xl relative z-10">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#FF9933]/5 to-[#138808]/5 rounded-3xl" />
+          <Sparkles className="w-8 h-8 text-[#000080] relative z-20 animate-pulse" />
         </div>
-        <h2 className="text-xl font-black text-[#003366] uppercase italic tracking-tighter">{t('booking_title')}</h2>
+        <h2 className="text-3xl font-black text-[#000080] uppercase italic tracking-tighter relative z-10">
+          <span className="text-[#FF9933]">ओडिसी</span> <span className="text-[#138808]">चेकआउट</span>
+        </h2>
         <div className="flex items-center justify-center gap-2">
-          <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse" />
+          <span className="w-1.5 h-1.5 bg-[#FF9933] rounded-full animate-pulse" />
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('booking_subtitle')}</p>
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
-            <Zap className="w-2 h-2 text-indigo-400" />
-            <span className="text-[9px] text-indigo-400 font-black uppercase">{t('booking_ai_prefill')}</span>
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#138808]/10 border border-[#138808]/20 rounded-lg">
+            <Zap className="w-2 h-2 text-[#138808]" />
+            <span className="text-[9px] text-[#138808] font-black uppercase">{t('booking_ai_prefill')}</span>
           </span>
         </div>
       </div>
@@ -201,15 +205,11 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
                   <p className="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">{t('booking_estimated_price')}</p>
                   <p className="text-xl font-black text-[#003366] italic">{item.price}</p>
                 </div>
-                <div className="flex gap-1.5">
-                  <button
-                    onClick={() => {
-                      onBookAndPay(item);
-                    }}
-                    className={`px-4 py-2 ${colorUi[item.color]?.cta || colorUi.blue.cta} rounded-lg text-[10px] font-black uppercase hover:scale-[1.02] active:scale-95 transition-all shadow-md`}
-                  >
-                    {t('booking_confirm')}
-                  </button>
+                <div className="flex gap-1.5 items-center">
+                  <div className="flex items-center gap-1 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-lg">
+                    <Check className="w-3 h-3 text-[#138808]" />
+                    <span className="text-[8px] font-black text-[#138808] uppercase tracking-widest">{t('booking_selected')}</span>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -543,26 +543,26 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
 
       <div className="pt-10 border-t border-slate-200 flex flex-col gap-3">
         <div className="flex flex-col gap-4 py-6">
-          <div className="glass-panel p-6 border-saffron/20 bg-saffron/5 rounded-3xl flex items-center justify-between mb-2">
+          <motion.div 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => onBookAndPay(null)}
+            className="glass-panel p-6 border-saffron/20 bg-saffron/5 rounded-3xl flex items-center justify-between mb-2 cursor-pointer group"
+          >
              <div className="space-y-1">
                 <p className="text-[10px] font-black text-saffron uppercase tracking-widest leading-none">{t('booking_grand_total')}</p>
                 <h3 className="text-3xl font-black text-[#003366] italic tracking-tighter">₹{grandTotal.toLocaleString()}</h3>
              </div>
-             <div className="text-right">
+             <div className="text-right flex flex-col items-end">
                 <p className="text-[9px] font-bold text-slate-400 uppercase">{totalCount} {t('booking_travelers_registered')} · {nights} {t('booking_nights')}</p>
-                {tripType === 'round' && <p className="text-[8px] font-black text-saffron uppercase">{t('booking_return_included')}</p>}
-                <p className="text-[8px] font-bold text-green-600 uppercase">{t('booking_taxes_included')}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[10px] font-black text-saffron uppercase tracking-widest">Click to Finalize</span>
+                  <ArrowRight className="w-4 h-4 text-saffron animate-pulse" />
+                </div>
              </div>
-          </div>
+          </motion.div>
 
-          <button
-            type="button"
-            onClick={() => onBookAndPay(null)}
-            className="w-full py-5 bg-[#FF9933] text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-orange-600 transition-all shadow-xl shadow-saffron/20 flex items-center justify-center gap-3 active:scale-95"
-          >
-            <Sparkles className="w-5 h-5 animate-pulse" />
-            {t('booking_confirm_finalize')} - ₹{grandTotal.toLocaleString()}
-          </button>
+          {/* Implicit interaction: Clicking the grand total proceeds to payment. Removed explicit button. */}
 
           <button
             type="button"

@@ -137,7 +137,7 @@ export const TelegramService = {
   },
 
   /**
-   * Send Message via Telegram Bot API
+   * Send Message via Telegram Bot API with Discovery Tag formatting
    */
   async sendMessage(to: string, text: string) {
     const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -145,14 +145,38 @@ export const TelegramService = {
       console.error("[TelegramService] ERROR: TELEGRAM_BOT_TOKEN missing in environment");
       return;
     }
-    console.log(`[TelegramService] sendMessage to ${to}: ${text.slice(0, 30)}...`);
+
+    // 1. Format Discovery Tags into User-Friendly Text
+    let formattedText = text;
+    const discoveryMatches = [...text.matchAll(/\[DISCOVERY:\s*(.*?)\]/g)];
+    
+    if (discoveryMatches.length > 0) {
+      discoveryMatches.forEach(m => {
+        const params: Record<string, string> = {};
+        m[1].split(/\s+/).forEach(pair => {
+          const [k, v] = pair.split('=');
+          if (k && v) params[k] = v.replace(/_/g, ' ');
+        });
+
+        const icon = params.type === 'stay' ? '🏨' : params.type === 'air' ? '✈️' : params.type === 'rail' ? '🚆' : '📍';
+        const stars = params.stars ? ` (${params.stars} ⭐)` : '';
+        const price = params.price ? `\n💰 *Total:* ${params.price}` : '';
+        const features = params.features ? `\n✨ _${params.features}_` : '';
+        const link = params.link ? `\n🔗 [Explore Option](${params.link})` : '';
+
+        const card = `\n\n${icon} *${params.name}*${stars}${price}${features}${link}`;
+        formattedText = formattedText.replace(m[0], card);
+      });
+    }
+
+    console.log(`[TelegramService] sendMessage to ${to}: ${formattedText.slice(0, 30)}...`);
     try {
       const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           chat_id: to, 
-          text: text,
+          text: formattedText,
           parse_mode: 'Markdown'
         })
       });

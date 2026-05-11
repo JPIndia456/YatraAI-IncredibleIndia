@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
-import { useTripStore } from '@/lib/store';
+import { useTripStore, useTripPlannerStore } from '@/lib/store';
 
 import { Layout, Globe, ChevronDown } from 'lucide-react';
 import { useLanguage, SUPPORTED_LANGUAGES } from '@/contexts/LanguageContext';
@@ -131,7 +131,10 @@ export default function ShellToolbar() {
           {/* Avatar / User — desktop with Dropdown */}
           <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-zinc-200 relative group/profile">
             <div
-              onClick={() => router.push('/profile')}
+              onClick={() => {
+                useTripPlannerStore.getState().setIsProfileOpen(true);
+                router.push('/planner');
+              }}
               className="flex items-center gap-2.5 cursor-pointer group"
             >
               {authLoading ? (
@@ -158,7 +161,10 @@ export default function ShellToolbar() {
             {user && (
               <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-zinc-200 rounded-2xl shadow-xl opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible transition-all flex flex-col z-50 p-2 overflow-hidden">
                 <button
-                  onClick={() => router.push('/profile')}
+                  onClick={() => {
+                    useTripPlannerStore.getState().setIsProfileOpen(true);
+                    router.push('/planner');
+                  }}
                   className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-zinc-600 hover:text-[#000080] hover:bg-zinc-50 rounded-xl transition-all"
                 >
                   <User className="w-4 h-4 text-green" />
@@ -210,7 +216,15 @@ export default function ShellToolbar() {
               {pathname !== '/' && navLinks.map(({ label, icon: Icon, href }) => (
                 <button
                   key={href}
-                  onClick={() => { router.push(href); setMobileMenuOpen(false); }}
+                  onClick={() => { 
+                    if (href === '/profile') {
+                      useTripPlannerStore.getState().setIsProfileOpen(true);
+                      router.push('/planner');
+                    } else {
+                      router.push(href);
+                    }
+                    setMobileMenuOpen(false); 
+                  }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-zinc-600 hover:text-[#000080] hover:bg-zinc-50 transition-all text-left"
                 >
                   <Icon className="w-4 h-4" />
@@ -270,7 +284,14 @@ export default function ShellToolbar() {
         return (
           <button
             key={href}
-            onClick={() => router.push(href)}
+            onClick={() => {
+              if (href === '/profile') {
+                useTripPlannerStore.getState().setIsProfileOpen(true);
+                router.push('/planner');
+              } else {
+                router.push(href);
+              }
+            }}
             className={`flex flex-col items-center justify-center gap-1.5 w-16 transition-all relative ${
               isActive ? 'scale-110' : 'opacity-60 grayscale'
             }`}

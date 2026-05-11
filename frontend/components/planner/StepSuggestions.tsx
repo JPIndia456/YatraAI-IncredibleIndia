@@ -4,9 +4,25 @@ import { useState, useEffect, type Dispatch, type SetStateAction } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { 
-  Sparkles, ShieldCheck, MapPin, Search, 
-  ArrowRight, CheckCircle2, ShoppingBag, Utensils,
-  Hotel, Train, Plane, Car, Heart, Leaf, X, Info, Check, Calendar, Zap
+  MapPin, 
+  Calendar, 
+  Users, 
+  ShieldCheck, 
+  Heart, 
+  Leaf, 
+  X, 
+  Sparkles, 
+  ChevronRight, 
+  MessageSquare, 
+  CloudSun, 
+  Zap, 
+  Hotel, 
+  Train, 
+  Plane, 
+  Car, 
+  Info, 
+  Ship,
+  Check 
 } from 'lucide-react';
 import type { PlannerInputs } from './StepInputs';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -57,16 +73,17 @@ const getNum = (str?: string | number | null) => {
 
 /* ── Estimate Tabs ─────────────────────────────────────────────────────── */
 function EstimateTabs({
-  fNum, tNum, hNum, taxiNum, isTaxiGrey, currentPax, nights, currentRooms, fetchedRooms, active, setActive, tripType
+  fNum, tNum, hNum, taxiNum, otherNum, isTaxiGrey, currentPax, nights, currentRooms, fetchedRooms, active, setActive, tripType
 }: any) {
   const isRound = tripType === 'round';
-  const fTotal = fNum * currentPax * (isRound ? 2 : 1);
-  const tTotal = tNum * currentPax * (isRound ? 2 : 1);
+  const fTotal = fNum * currentPax;
+  const tTotal = tNum * currentPax;
+  const oTotal = otherNum * currentPax;
   const hTotal = Math.round(hNum / (fetchedRooms || 1)) * currentRooms * nights;
   const eTaxi = isTaxiGrey ? 0 : taxiNum;
-  const gFlight = fTotal + hTotal + eTaxi;
-  const gTrain = tTotal + hTotal + eTaxi;
-  const gMix = (fTotal / 2) + (tTotal / 2) + hTotal + eTaxi;
+  const gFlight = fTotal + hTotal + eTaxi + oTotal;
+  const gTrain = tTotal + hTotal + eTaxi + oTotal;
+  const gMix = (fTotal / 2) + (tTotal / 2) + hTotal + eTaxi + oTotal;
 
   const inr = (n: number) =>
     `₹${(Number.isFinite(n) ? n : 0).toLocaleString('en-IN')}`;
@@ -81,22 +98,24 @@ function EstimateTabs({
 
   const lineItems = active === 'mix'
     ? [
-      { icon: Plane, label: `Flight ${isRound ? '(Return)' : '(1-way)'}`, val: Math.round(fTotal / (isRound ? 2 : 1)), color: 'text-saffron' },
-      { icon: Train, label: `Train ${isRound ? '(Return)' : '(1-way)'}`, val: Math.round(tTotal / (isRound ? 2 : 1)), color: 'text-amber-800' },
-      { icon: Hotel, label: `Stay (${nights}N)`, val: hTotal, color: 'text-green' },
-      { icon: Car, label: 'Taxi', val: taxiNum, color: 'text-saffron', grey: isTaxiGrey },
+      { icon: Plane, label: `Flight ${isRound ? '(Return)' : '(1-way)'}`, val: Math.round(fTotal / (isRound ? 2 : 1)), color: 'text-saffron', pax: currentPax },
+      { icon: Train, label: `Train ${isRound ? '(Return)' : '(1-way)'}`, val: Math.round(tTotal / (isRound ? 2 : 1)), color: 'text-amber-800', pax: currentPax },
+      { icon: Hotel, label: `Stay (${nights}N)`, val: hTotal, color: 'text-green', pax: currentPax },
+      { icon: Car, label: 'Taxi', val: taxiNum, color: 'text-saffron', grey: isTaxiGrey, pax: currentPax },
     ]
     : [
       { 
         icon: active === 'air' ? Plane : Train, 
         label: active === 'air' 
-          ? `Flight (${currentPax} pax${isRound ? ', Return' : ''})` 
-          : `Train (${currentPax} pax${isRound ? ', Return' : ''})`, 
+          ? `Flight (${currentPax} pax, ${isRound ? 'RT' : 'OW'})` 
+          : `Train (${currentPax} pax, ${isRound ? 'RT' : 'OW'})`, 
         val: active === 'air' ? fTotal : tTotal, 
-        color: active === 'air' ? 'text-saffron' : 'text-amber-800' 
+        color: active === 'air' ? 'text-saffron' : 'text-amber-800',
+        pax: currentPax
       },
-      { icon: Hotel, label: `Stay (${nights}N)`, val: hTotal, color: 'text-green' },
-      { icon: Car, label: 'Taxi', val: taxiNum, color: 'text-saffron', grey: isTaxiGrey },
+      { icon: Ship, label: `Secondary (${currentPax} pax)`, val: oTotal, color: 'text-blue-500', pax: currentPax },
+      { icon: Hotel, label: `Stay (${nights}N, ${currentRooms} rooms)`, val: hTotal, color: 'text-green', pax: currentPax },
+      { icon: Car, label: 'Taxi', val: taxiNum, color: 'text-saffron', grey: isTaxiGrey, pax: 1 },
     ];
 
   return (
@@ -120,9 +139,16 @@ function EstimateTabs({
       <div className="space-y-1 pt-1 border-t border-slate-200/50">
         {lineItems.map((item, idx) => (
           <div key={idx} className={`flex items-center justify-between text-xs ${item.grey ? 'opacity-30 line-through' : ''}`}>
-            <span className={`flex items-center gap-1.5 font-medium ${item.grey ? 'text-[var(--text-muted)]' : 'text-[var(--text-secondary)]'}`}>
-              <item.icon className={`w-3 h-3 ${item.color}`} />
-              {item.label}
+            <span className={`flex flex-col gap-0.5 ${item.grey ? 'text-[var(--text-muted)]' : 'text-[var(--text-secondary)]'}`}>
+              <span className="flex items-center gap-1.5 font-medium">
+                <item.icon className={`w-3 h-3 ${item.color}`} />
+                {item.label}
+              </span>
+              {!item.grey && item.val > 0 && (
+                <span className="text-[7px] opacity-60 ml-4.5 uppercase font-bold tracking-wider">
+                   ₹{(item.val / (item.pax || 1)).toLocaleString()} / Pax
+                </span>
+              )}
             </span>
             <span className="font-semibold text-saffron">{inr(item.val)}</span>
           </div>
@@ -158,14 +184,15 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
   const tNum = getNum(s.train_cost);
   const hNum = getNum(s.hotel_per_night);
   const taxiNum = getNum(s.taxi_cost);
+  const otherNum = getNum(s.other_transport_cost);
   const isTaxiGrey = fNum > 0 && tNum > 0;
 
   const isRound = inputs.tripType === 'round';
 
-  const formatPrice = (str?: string | number | null, pax = 1, isTransit = false) => {
+  const formatPrice = (str?: string | number | null, pax = 1, _isTransit = false) => {
     const n = getNum(str);
     if (!n || str === 'N/A') return '—';
-    const line = n * pax * (isTransit && isRound ? 2 : 1);
+    const line = n * pax;
     if (!Number.isFinite(line)) return '—';
     return `₹${line.toLocaleString('en-IN')}`;
   };
@@ -173,12 +200,18 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
   const transportItems = [
     { id: 'air', icon: Plane, label: `Flight${isRound ? ' (Return)' : ''}`, val: s.flight_cost, pax: currentPax, color: 'saffron', detail: s.flight_name || s.nearest_airport, isTransit: true },
     { id: 'rail', icon: Train, label: `Train${isRound ? ' (Return)' : ''}`, val: s.train_cost, pax: currentPax, color: 'saffron', detail: s.train_name || s.nearest_railway, isTransit: true },
+    { id: 'other', icon: Ship, label: s.other_transport_type || 'Secondary', val: s.other_transport_cost, pax: currentPax, color: 'blue', detail: 'Local connection', isTransit: true },
     { id: 'taxi', icon: Car, label: 'Taxi', val: s.taxi_cost, pax: 1, color: 'green', detail: 'Round-trip est.', isTransit: false },
     { id: 'hotel', icon: Hotel, label: 'Hotel/night', val: s.hotel_per_night, pax: 1, color: 'saffron', detail: s.hotel_name || 'Per night est.', isTransit: false },
   ].filter(item => {
     if (item.label.includes('Flight') && (!s.flight_cost || s.flight_cost === 'N/A') && (!s.train_cost || s.train_cost === 'N/A')) return false;
+    if (item.id === 'other' && (!s.other_transport_cost || s.other_transport_cost === 'N/A' || s.other_transport_type === 'None')) return false;
     return true;
   });
+
+  const currentTotal = activeTab === 'air' 
+    ? (fNum * currentPax + hNum * currentRooms * nights + taxiNum + otherNum * currentPax) 
+    : (tNum * currentPax + hNum * currentRooms * nights + taxiNum + otherNum * currentPax);
 
   return (
     <motion.div
@@ -190,30 +223,12 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
       {/* Hover glow */}
       <div className="absolute -inset-px bg-gradient-to-r from-saffron/15 to-saffron/15 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none" />
 
-      <div className="relative glass-panel overflow-hidden group/card shadow-xl hover:shadow-2xl transition-all duration-500 rounded-[2.5rem]">
-        {/* Cover Image */}
-        <div className="relative h-48 overflow-hidden">
-           <img 
-              src={`https://images.unsplash.com/photo-${[
-                '1524492412937-b28074a5d7da', // Taj Mahal
-                '1548013146-72479768bbaa', // Jaipur
-                '1514222139-b5b273ce537d', // Kerala
-                '1598305072041-3965b508f7f2', // Hampi
-                '1506461883276-594a12b11cf3'  // Varanasi
-              ][i % 5]}?auto=format&fit=crop&q=80&w=800`} 
-              alt={s.title}
-              className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-[2s] brightness-90 group-hover/card:brightness-100"
-           />
-           <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
-           <div className="absolute top-4 left-4">
-              <div className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-full border border-orange-100 flex items-center gap-2 shadow-lg">
-                 <Sparkles className="w-3 h-3 text-saffron" />
-                 <span className="text-[10px] font-black text-[#000080] uppercase tracking-widest italic">AI Recommended</span>
-              </div>
-           </div>
-        </div>
+      <div 
+        onClick={() => onConfirm(s, s.destination)}
+        className="relative glass-panel overflow-hidden group/card shadow-xl hover:shadow-2xl transition-all duration-500 rounded-[2.5rem] cursor-pointer active:scale-[0.98]"
+      >
 
-        <div className="p-4 md:p-6 space-y-4 -mt-10 relative z-10">
+        <div className="p-3 md:p-4 space-y-3 relative z-10 bg-white">
         {/* Header row */}
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -224,14 +239,20 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
                 ))}
               </div>
             )}
-            <h3 className="text-3xl font-black text-[#000080] group-hover:text-[#FF9933] transition-colors leading-[1.1] uppercase tracking-tighter">{s.title}</h3>
-            <div className="flex items-center gap-2 mt-1">
-              <MapPin className="w-4 h-4 text-[#FF9933] shrink-0" />
-              <p className="text-sm font-black text-slate-400 uppercase tracking-widest">{s.destination}</p>
+            <h3 className="text-xl md:text-2xl font-black text-[#000080] group-hover:text-[#FF9933] transition-colors leading-none uppercase tracking-tighter">{s.title}</h3>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 text-[#FF9933] shrink-0" />
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{s.destination}</p>
+              </div>
+              <div className="flex items-center gap-2 bg-blue-50/50 px-2 py-0.5 rounded-full border border-blue-100/50">
+                <CloudSun className="w-3 h-3 text-blue-400 shrink-0" />
+                <p className="text-[10px] font-bold text-blue-600/70 uppercase tracking-wider italic">{s.weather_summary || 'Syncing...'}</p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-sm font-black px-4 py-1.5 rounded-full bg-[#138808]/10 border border-[#138808]/20 text-[#138808] uppercase">Verified</span>
+            <span className="text-[10px] font-black px-3 py-1.5 rounded-full bg-[#138808]/10 border border-[#138808]/20 text-[#138808] uppercase tracking-widest">Verified</span>
           </div>
         </div>
 
@@ -243,26 +264,26 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
         )}
 
         {/* Premium Highlights Bar */}
-        <div className="flex items-center gap-8 py-8 border-y border-slate-100">
+        <div className="flex flex-wrap items-center gap-6 py-4 border-y border-slate-100">
            <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-[#FF9933]/5 flex items-center justify-center border border-[#FF9933]/10">
                 <Calendar className="w-7 h-7 text-[#FF9933]" />
               </div>
               <div>
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Duration</p>
-                <p className="text-2xl font-black text-[#000080] uppercase tracking-tighter leading-none">{s.nights} Nights</p>
+                <p className="text-2xl font-black text-[#000080] uppercase tracking-tighter leading-none">{s.nights || nights} Nights</p>
               </div>
            </div>
 
            <div className="w-px h-12 bg-slate-100" />
 
-           <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-[#138808]/5 flex items-center justify-center border border-[#138808]/10">
                 <Zap className="w-7 h-7 text-[#138808]" />
               </div>
               <div>
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Total Odyssey</p>
-                <p className="text-2xl font-black text-[#138808] uppercase tracking-tighter leading-none">₹{s.totalPrice || '24,500'}</p>
+                <p className="text-2xl font-black text-[#138808] uppercase tracking-tighter leading-none">₹{currentTotal.toLocaleString('en-IN')}</p>
               </div>
            </div>
         </div>
@@ -331,7 +352,7 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
 
         {/* Grand Total Tabs */}
         <EstimateTabs
-          fNum={fNum} tNum={tNum} hNum={hNum} taxiNum={taxiNum}
+          fNum={fNum} tNum={tNum} hNum={hNum} taxiNum={taxiNum} otherNum={otherNum}
           isTaxiGrey={isTaxiGrey} currentPax={currentPax}
           nights={nights} currentRooms={currentRooms} fetchedRooms={fetchedRooms}
           active={activeTab} setActive={setActiveTab}
@@ -346,10 +367,9 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
           </div>
           
           <div className="space-y-3">
-            {transportItems.map((item, idx) => {
+            {transportItems.filter(item => !((activeTab === 'air' && item.id === 'rail') || (activeTab === 'rail' && item.id === 'air'))).map((item, idx) => {
               const isNoData = !getNum(item.val) || item.val === 'N/A';
-              const isExcluded = (activeTab === 'air' && item.id === 'rail') || (activeTab === 'rail' && item.id === 'air');
-              const isGrey = isNoData || isExcluded;
+              const isGrey = isNoData;
 
               return (
                 <div key={idx} className={`flex items-center justify-between p-5 rounded-3xl border border-slate-50 bg-slate-50/30 transition-all ${isGrey ? 'opacity-30 grayscale scale-95' : 'hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 hover:border-[#FF9933]/20 group/row'}`}>
@@ -360,7 +380,7 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
                     <div>
                       <p className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${isGrey ? 'text-slate-400' : 'text-[#FF9933]'}`}>{item.label}</p>
                       <p className={`text-base font-black uppercase tracking-tighter ${isGrey ? 'text-slate-500' : 'text-[#000080]'}`}>
-                        {isNoData ? 'Data Sync Pending' : (isExcluded ? 'Option Excluded' : item.detail)}
+                        {isNoData ? 'Data Sync Pending' : item.detail}
                       </p>
                     </div>
                   </div>
@@ -381,59 +401,23 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
             <ShieldCheck className="w-3.5 h-3.5 text-orange-400 shrink-0" />
             <div className="min-w-0">
               <p className="text-[8px] text-orange-400 font-black uppercase">Safety</p>
-              <p className="text-[10px] font-black text-saffron truncate uppercase italic">{s.safety_score || '9.5/10'}</p>
+              <p className="text-[10px] font-black text-saffron truncate uppercase italic">{s.safety_score || 'Syncing...'}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 bg-saffron/5 px-2 py-2 rounded-lg border border-saffron/10">
             <Heart className="w-3.5 h-3.5 text-saffron shrink-0" />
             <div className="min-w-0">
               <p className="text-[8px] text-saffron font-black uppercase">Tip</p>
-              <p className="text-[10px] font-black text-saffron truncate uppercase italic">{s.caring_tip || 'Carry light layers'}</p>
+              <p className="text-[10px] font-black text-saffron truncate uppercase italic">{s.caring_tip || 'Syncing...'}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 bg-saffron/5 px-2 py-2 rounded-lg border border-saffron/10">
             <Leaf className="w-3.5 h-3.5 text-green shrink-0" />
             <div className="min-w-0">
               <p className="text-[8px] text-green font-black uppercase">Eco</p>
-              <p className="text-[10px] font-black text-saffron truncate uppercase italic">{s.sustainability_hint || 'Train available'}</p>
+              <p className="text-[10px] font-black text-saffron truncate uppercase italic">{s.sustainability_hint || 'Syncing...'}</p>
             </div>
           </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3 pt-1">
-          <button
-            onClick={() => onAskAI(s.destination)}
-            className="btn-ghost p-2.5"
-            title="Ask AI about this destination"
-          >
-            <Info className="w-4 h-4" />
-          </button>
-
-           {pending ? (
-            <div className="flex items-center gap-1.5 ml-auto">
-              <span className="text-[10px] font-black text-saffron uppercase hidden sm:block italic">Build trip?</span>
-              <button
-                onClick={() => { setPending(false); onConfirm(s, s.destination); }}
-                className="flex items-center gap-1 px-4 py-2 rounded-lg bg-green text-white text-[10px] font-black uppercase transition-all shadow-lg shadow-green/20 active:scale-95 italic"
-              >
-                <Check className="w-3 h-3" /> Yes
-              </button>
-              <button
-                onClick={() => setPending(false)}
-                className="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase transition-all active:scale-95 italic"
-              >
-                No
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setPending(true)}
-              className="ml-auto flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-zinc-950 text-white text-[10px] font-black uppercase tracking-[0.1em] transition-all shadow-lg active:scale-95 italic"
-            >
-              {t('confirm_and_plan')} →
-            </button>
-          )}
         </div>
       </div>
     </div>
@@ -454,52 +438,84 @@ export default function StepSuggestions({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
-      className="space-y-6 md:landscape:space-y-4"
+      className="space-y-2 md:landscape:space-y-1"
     >
-      {/* Header */}
-      <div className="text-center space-y-2 pt-2 md:landscape:space-y-1 md:landscape:pt-0">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-saffron/10 border border-saffron/20 mb-1">
-          <Sparkles className="w-3.5 h-3.5 text-saffron" />
-          <span className="text-xs font-semibold text-saffron">AI Discovery</span>
-        </div>
-        <h2 className="text-2xl font-black uppercase italic tracking-tighter">
-          <span className="text-saffron">YOUR</span> <span className="text-slate-400">DISCOVERY</span> <span className="text-green">OPTIONS</span>
-        </h2>
-        <p className="text-caption">From {inputs.origin}</p>
-      </div>
 
-      {/* Live pax adjuster */}
-      <div className="flex flex-wrap items-center justify-center gap-4 py-3 md:landscape:py-2 border-y border-slate-200">
-        <span className="text-caption">Adjust travelers:</span>
-        {(['adults', 'kids'] as const).map(type => (
-          <div key={type} className="flex items-center gap-3 bg-[var(--bg-surface)] rounded-xl px-4 py-2 border border-[var(--border)]">
-            <span className="text-xs text-[var(--text-muted)] capitalize">{type}</span>
-            <button onClick={() => setInputs(p => ({ ...p, [type]: Math.max(type === 'adults' ? 1 : 0, (p as any)[type] - 1) }))} className="text-[var(--text-secondary)] hover:text-saffron">−</button>
-            <span className="text-sm font-semibold text-saffron w-4 text-center">{(inputs as any)[type]}</span>
-            <button onClick={() => setInputs(p => ({ ...p, [type]: (p as any)[type] + 1 }))} className="text-[var(--text-secondary)] hover:text-saffron">+</button>
-          </div>
-        ))}
-      </div>
 
       {/* Cards */}
       <div className="space-y-5">
-        {suggestions.map((s, i) => (
-          <div key={i} className={`relative rounded-2xl transition-all ${selectedIdx === i ? 'ring-2 ring-saffron ring-offset-4 ring-offset-white' : ''}`}>
-            {selectedIdx === i && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-saffron text-white text-[10px] font-black uppercase px-3 py-1 rounded-full z-10 shadow-lg italic">
-                Current Selection
+        {(() => {
+          const visibleSuggestions = suggestions.filter(s => {
+            const budgetNum = Number(inputs.targetBudget) || 0;
+            const priceNum = parseInt(String(s.totalPrice || '0').replace(/[₹,]/g, ''), 10);
+            // Strict check: if no budget set, show all. If budget set, MUST be <= and must have a price.
+            if (!budgetNum) return true;
+            if (!priceNum) return false; // Hide if price is not yet available/syncing
+            return priceNum <= budgetNum;
+          });
+
+          if (visibleSuggestions.length === 0 && suggestions.length > 0) {
+            return (
+              <div className="relative overflow-hidden rounded-[2.5rem] border border-orange-100 bg-gradient-to-br from-white to-orange-50/30 p-8 md:p-12 text-center shadow-2xl">
+                {/* Background decorative elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-saffron/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-green/5 rounded-full -ml-16 -mb-16 blur-3xl" />
+                
+                <div className="relative z-10 space-y-6">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-lg border border-orange-100 flex items-center justify-center mx-auto mb-6">
+                    <ShieldCheck className="w-8 h-8 text-[#FF9933]" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-black text-[#000080] uppercase tracking-tighter italic">
+                      REFINING <span className="text-saffron">ODYSSEY</span>...
+                    </h3>
+                    <p className="text-sm text-slate-500 font-medium max-w-xs mx-auto leading-relaxed">
+                      Our intelligence found matches, but they currently exceed your <span className="text-saffron font-bold">₹{Number(inputs.targetBudget).toLocaleString('en-IN')}</span> limit.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-4">
+                    <button
+                      onClick={onBack}
+                      className="group relative px-8 py-3 bg-[#FF9933] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-saffron/20 active:scale-95"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        Adjust Investment <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </span>
+                    </button>
+                    
+                    <button
+                      onClick={onReset}
+                      className="text-[10px] font-bold text-slate-400 hover:text-saffron uppercase tracking-widest transition-colors flex items-center gap-2"
+                    >
+                      <X className="w-3 h-3" /> or start a new quest
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
-            <SuggestionCard
-              s={s} i={i}
-              inputs={inputs}
-              fetchedInputs={fetchedInputs}
-              setInputs={setInputs}
-              onConfirm={onConfirm}
-              onAskAI={onAskAI}
-            />
-          </div>
-        ))}
+            );
+          }
+
+          return visibleSuggestions.map((s, i) => (
+            <div key={i} className={`relative rounded-2xl transition-all ${selectedIdx === i ? 'ring-2 ring-saffron ring-offset-4 ring-offset-white' : ''}`}>
+              {selectedIdx === i && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-saffron text-white text-[10px] font-black uppercase px-3 py-1 rounded-full z-10 shadow-lg italic">
+                  Current Selection
+                </div>
+              )}
+              <SuggestionCard 
+                s={s} 
+                i={i} 
+                inputs={inputs} 
+                fetchedInputs={fetchedInputs} 
+                setInputs={setInputs} 
+                onConfirm={onConfirm} 
+                onAskAI={onAskAI} 
+              />
+            </div>
+          ));
+        })()}
       </div>
 
       {/* Actions */}
