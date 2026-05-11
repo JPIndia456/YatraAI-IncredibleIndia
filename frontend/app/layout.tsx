@@ -4,6 +4,7 @@ import "./globals.css";
 import ShellToolbar from "@/components/ShellToolbar";
 import PwaRegistry from "@/components/PwaRegistry";
 import AIBrain from "@/components/AIBrain";
+import ProfilePanel from "@/components/profile/ProfilePanel";
 import { Toaster } from "sonner";
 
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -59,6 +60,7 @@ export default function RootLayout({
         <AuthProvider>
         <LanguageProvider>
           <ShellToolbar />
+          <ProfilePanel />
           
           <LayoutTransitions>
             {children}

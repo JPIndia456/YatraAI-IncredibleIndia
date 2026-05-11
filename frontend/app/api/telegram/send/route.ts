@@ -22,6 +22,15 @@ function digitsOnly(s: string): string {
   return String(s || '').replace(/\D/g, '');
 }
 
+/** Escapes characters that have special meaning in Telegram Markdown V1 */
+function escapeMarkdown(text: string): string {
+  return String(text || '')
+    .replace(/_/g, '\\_')
+    .replace(/\*/g, '\\*')
+    .replace(/\[/g, '\\[')
+    .replace(/`/g, '\\`');
+}
+
 /** Allow send when `to` matches saved profile telegram_id or phone (handles @user vs user, spacing, last-10 digits). */
 function isAllowedTelegramRecipient(
   to: string,
@@ -96,7 +105,21 @@ export async function POST(req: Request) {
     // Use the stored telegram_id (Chat ID) if it exists, otherwise fall back to requested 'to'
     const finalTo = profile?.telegram_id || String(to);
 
-    // Security: Only allow sending if 'to' matches saved profile OR it's a 'welcome' test from an auth'd user
+    // Security & Validation:
+    // 1. Check if it's a numeric Chat ID or a @username. 
+    // If it looks like a phone number (10+ digits), it's NOT a valid chat_id for sendMessage.
+    const isPhoneNumber = /^\d{10,15}$/.test(finalTo);
+    if (isPhoneNumber) {
+      return NextResponse.json(
+        {
+          error:
+            'This account is only partially linked with a phone number. Please open the Yatra bot in Telegram, tap "Start", and then "Share Contact" to enable secure outbound messages.',
+        },
+        { status: 403 }
+      );
+    }
+
+    // 2. Only allow sending if 'to' matches saved profile OR it's a 'welcome' test from an auth'd user
     const isOwner = isAllowedTelegramRecipient(String(to), profile?.telegram_id, profile?.phone);
     const isWelcomeTest = type === 'welcome';
     
@@ -116,7 +139,7 @@ export async function POST(req: Request) {
       case 'welcome':
         message =
           `🙏 *Welcome to Yatra!*\n\n` +
-          `Namaste ${payload?.name || 'Traveler'}! Your Telegram is now connected.\n\n` +
+          `Namaste ${escapeMarkdown(payload?.name || 'Traveler')}! Your Telegram is now connected.\n\n` +
           `From now on you'll receive:\n` +
           `• ✅ Booking confirmations\n` +
           `• 🗓️ Itinerary updates\n` +
@@ -132,13 +155,13 @@ export async function POST(req: Request) {
 
         message =
           `🎉 *Booking Confirmed — Yatra*\n\n` +
-          `📋 *PNR:* ${payload?.ref || 'TP-XXXXXX'}\n` +
-          `🗺️ *Route:* ${payload?.origin} → ${payload?.destination}\n` +
-          `🗓️ *Dates:* ${payload?.dates || 'Confirmed in App'}\n` +
-          `🚆 *Transport:* ${payload?.transport}\n` +
-          `🏨 *Hotel:* ${payload?.hotel}\n` +
-          `👥 *Tier:* ${payload?.tier}\n` +
-          `💳 *Amount Paid:* ${displayAmount}\n\n` +
+          `📋 *PNR:* ${escapeMarkdown(payload?.ref || 'TP-XXXXXX')}\n` +
+          `🗺️ *Route:* ${escapeMarkdown(payload?.origin)} → ${escapeMarkdown(payload?.destination)}\n` +
+          `🗓️ *Dates:* ${escapeMarkdown(payload?.dates || 'Confirmed in App')}\n` +
+          `🚆 *Transport:* ${escapeMarkdown(payload?.transport)}\n` +
+          `🏨 *Hotel:* ${escapeMarkdown(payload?.hotel)}\n` +
+          `👥 *Tier:* ${escapeMarkdown(payload?.tier)}\n` +
+          `💳 *Amount Paid:* ${escapeMarkdown(displayAmount)}\n\n` +
           `Your full itinerary is ready in the app 📱\n` +
           `_Travel safely. Yatra is with you._`;
         break;
@@ -160,7 +183,7 @@ export async function POST(req: Request) {
         const up = diff > 0;
         message =
           `${up ? '📈' : '📉'} *Price ${up ? 'Increased' : 'Dropped'} — Yatra Alert*\n\n` +
-          `*${payload?.origin} → ${payload?.destination}*\n` +
+          `*${escapeMarkdown(payload?.origin)} → ${escapeMarkdown(payload?.destination)}*\n` +
           `Old Price: ₹${Number(payload?.oldPrice || 0).toLocaleString('en-IN')}\n` +
           `New Price: ₹${Number(payload?.newPrice || 0).toLocaleString('en-IN')}\n` +
           `Change: ${up ? '+' : ''}₹${Math.abs(diff).toLocaleString('en-IN')} (${payload?.percent}%)\n\n` +

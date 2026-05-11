@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Sparkles, Train, Plane, Zap, Send, Compass, User, Users, ShieldCheck, ChevronDown, Trash2, Plus, Check, ArrowRight, Download } from 'lucide-react';
+import { Sparkles, Train, Plane, Zap, Send, Compass, User, Users, ShieldCheck, ChevronDown, Trash2, Plus, Check, ArrowRight, Download, CheckCircle2, AlertCircle, UserCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useTripPlannerStore, useTourGuideStore, useAIBrainStore } from '@/lib/store';
@@ -30,7 +30,7 @@ function parsePrice(p?: string): number {
 export default function StepBooking({ searchData, setInputs, nights, tripType, onBack, onBookAndPay }: StepBookingProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const { mixPicks, activeItinerary, setActiveItinerary } = useTripPlannerStore();
+  const { mixPicks, activeItinerary, setActiveItinerary, setIsProfileOpen } = useTripPlannerStore();
   const { telegramId, patchTourGuide } = useTourGuideStore();
   const [telegramIdInput, setTelegramIdInput] = useState(() => (telegramId || '').trim());
   const [linkingTelegram, setLinkingTelegram] = useState(false);
@@ -274,7 +274,7 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
 
           <div className="space-y-3">
             {passengers.map((p, idx) => (
-              <div key={idx} className={`grid grid-cols-12 gap-4 items-center bg-white/[0.02] border border-slate-200 rounded-2xl p-3 transition-all ${p.name.length > 2 ? 'border-blue-600/20' : 'hover:border-slate-200'}`}>
+              <div key={idx} className={`grid grid-cols-12 gap-4 items-center bg-white/[0.02] border border-slate-200 rounded-2xl p-3 transition-all ${p.name.length > 1 ? 'border-blue-600/20' : 'hover:border-slate-200'}`}>
                 <div className="col-span-1 flex items-center justify-center">
                   <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black ${p.type === 'adult' ? 'bg-zinc-800 text-zinc-400' : 'bg-blue-600/20 text-blue-600'}`}>
                     {idx + 1}
@@ -287,17 +287,22 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
                       placeholder={p.type === 'adult' ? t('booking_adult_name') : t('booking_kid_name')}
                       value={p.name}
                       onChange={(e) => updatePassenger(idx, { name: e.target.value })}
-                      className="w-full bg-transparent border-none text-[11px] text-[#003366] placeholder:text-zinc-700 focus:ring-0 font-bold uppercase italic"
+                      className={`w-full bg-transparent border-none text-[11px] text-[#003366] placeholder:text-zinc-700 focus:ring-0 font-bold uppercase italic ${
+                        !p.name.trim() ? 'border-b border-dashed border-amber-200' : ''
+                      }`}
                     />
-                    {p.name.length > 2 && <Check className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-blue-600" />}
+                    {p.name.length > 1 && <Check className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-blue-600" />}
                   </div>
                 </div>
                 <div className="col-span-2">
                   <select 
                     value={p.gender}
                     onChange={(e) => updatePassenger(idx, { gender: e.target.value })}
-                    className="bg-transparent border-none text-[9px] text-zinc-500 focus:ring-0 cursor-pointer uppercase font-black"
+                    className={`bg-transparent border-none text-[9px] text-zinc-500 focus:ring-0 cursor-pointer uppercase font-black ${
+                      !p.gender ? 'text-amber-500' : ''
+                    }`}
                   >
+                    <option value="">{t('booking_gender')}</option>
                     <option value="M">{t('booking_male')}</option>
                     <option value="F">{t('booking_female')}</option>
                     <option value="O">{t('booking_other')}</option>
@@ -317,7 +322,8 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
                       updatePassenger(idx, { age: val });
                     }}
                     className={`w-full bg-transparent border-none text-[10px] placeholder:text-zinc-700 focus:ring-0 font-black italic ${
-                      p.age && (p.type === 'adult' ? parseInt(p.age) < 12 : parseInt(p.age) >= 12) 
+                      !p.age ? 'border-b border-dashed border-amber-200' : 
+                      (p.type === 'adult' ? parseInt(p.age) < 12 : parseInt(p.age) >= 12) 
                         ? 'text-red-500 animate-pulse' 
                         : 'text-zinc-500'
                     }`}
@@ -329,12 +335,16 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
                   )}
                 </div>
                 <div className="col-span-3 flex items-center justify-end gap-2 pr-2">
-                   {p.name.length > 2 ? (
-                     <div className="px-1.5 py-0.5 bg-blue-600/10 border border-blue-600/20 rounded">
-                       <span className="text-[7px] font-black text-blue-600 uppercase tracking-tighter">{t('booking_ready')}</span>
+                   {p.name.trim().length > 1 && Number(p.age) > 0 && p.gender ? (
+                     <div className="px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center gap-1">
+                       <CheckCircle2 className="w-2 h-2 text-emerald-500" />
+                       <span className="text-[7px] font-black text-emerald-500 uppercase tracking-tighter">{t('booking_ready')}</span>
                      </div>
                    ) : (
-                     <span className="text-[7px] font-black text-zinc-700 uppercase tracking-tighter">{t('booking_pending')}</span>
+                     <div className="px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-1">
+                       <AlertCircle className="w-2 h-2 text-amber-500" />
+                       <span className="text-[7px] font-black text-amber-500 uppercase tracking-tighter">{t('booking_pending')}</span>
+                     </div>
                    )}
                 </div>
               </div>
@@ -369,140 +379,77 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
           <div className="flex-1 bg-white" />
           <div className="flex-1 bg-[#138808]" />
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#FF9933] via-[#FF9933] to-[#138808] flex items-center justify-center shadow-lg shadow-saffron/20">
-              <Send className="w-5 h-5 text-white" />
+            <div className={`w-8 h-8 rounded-xl ${telegramId ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-400'} flex items-center justify-center transition-colors`}>
+              <Send className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs font-black text-[#FF9933] uppercase tracking-[0.2em]">{t('booking_ready_for_booking')}</p>
-              <h3 className="text-base font-black text-[#003366] tracking-tight">{t('booking_connect_telegram')}</h3>
+              <h3 className="text-xs font-black text-[#003366] uppercase tracking-wider">{t('booking_telegram_title')}</h3>
+              {telegramId ? (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${/^\d{10,15}$/.test(telegramId) ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                  <span className={`text-[9px] font-black uppercase tracking-widest ${/^\d{10,15}$/.test(telegramId) ? 'text-amber-600' : 'text-emerald-600'}`}>
+                    {/^\d{10,15}$/.test(telegramId) ? 'Linked (Step 1/2)' : 'Telegram Ready'}
+                  </span>
+                </div>
+              ) : (
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{t('booking_telegram_subtitle')}</p>
+              )}
             </div>
           </div>
-          <div className="px-2 py-1 bg-sky-500/20 rounded-lg border border-sky-500/20">
-            <span className="text-[8px] font-black text-sky-400 uppercase">{t('booking_recommended')}</span>
-          </div>
+          {telegramId && (
+             <button 
+               type="button"
+               onClick={() => setIsProfileOpen(true)}
+               className="p-2 hover:bg-slate-50 rounded-lg transition-all"
+             >
+               <UserCircle className="w-4 h-4 text-slate-400 hover:text-sky-500" />
+             </button>
+          )}
         </div>
 
         <p className="text-[13px] text-zinc-600 leading-relaxed font-bold">
-          {t('booking_telegram_desc')}
+          {telegramId ? t('booking_telegram_desc') : 'Link your Telegram to receive live PNR updates, boarding alerts, and concierge support.'}
         </p>
 
-        {typeof process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME === 'string' &&
-          process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME.trim().length > 0 && (
-            <p className="text-[12px] text-slate-600 leading-snug font-medium">
-              Bot configured in{' '}
-              <span className="font-mono text-zinc-500 font-bold">.env.local</span>: open{' '}
-              <span className="text-sky-500 font-mono font-bold">
-                @{process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME.trim().replace(/^@/, '')}
-              </span>{' '}
-              in Telegram, tap <strong className="text-slate-700 font-black">Start</strong> and then tap <strong className="text-sky-700 font-black">📲 Share Contact</strong> to securely link your number.
-            </p>
-          )}
-
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-sky-600">+91</span>
-             <input 
-               type="tel" 
-               placeholder={t('booking_mobile_placeholder')}
-               value={telegramIdInput}
-               onChange={(e) => {
-                 const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                 setTelegramIdInput(val);
-               }}
-               disabled={!!telegramId}
-               className={`w-full bg-white/50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-xs text-[#003366] placeholder:text-zinc-600 focus:border-sky-500/50 outline-none transition-all font-mono ${telegramId ? 'opacity-50' : ''}`}
-             />
-          </div>
+        {!telegramId ? (
           <button 
             type="button"
-            disabled={linkingTelegram}
-            onClick={async () => {
-              if (telegramId) {
-                patchTourGuide({ telegramId: '' });
-                setInputs((p) => ({ ...p, telegramId: '' }));
-                setTelegramIdInput('');
-                if (user?.id) {
-                  await supabase
-                    .from('yatra_profiles')
-                    .update({
-                      telegram_id: null,
-                      telegram_enabled: false,
-                      updated_at: new Date().toISOString(),
-                    })
-                    .eq('user_id', user.id)
-                    .then(({ error }) => {
-                      if (error) console.warn('[telegram] profile clear', error);
-                    });
-                }
-                toast.message('Telegram disconnected');
-                return;
-              }
-              let raw = telegramIdInput.trim();
-              if (/^\d{10}$/.test(raw)) {
-                raw = '+91' + raw;
-              }
-              const normalized = normalizeTelegramContact(raw);
-              if (normalized.length < 8) {
-                toast.error(t('booking_invalid_number'), { description: t('booking_invalid_number_desc') });
-                return;
-              }
-              setLinkingTelegram(true);
-              try {
-                patchTourGuide({ telegramId: normalized });
-                setInputs((p) => ({ ...p, telegramId: normalized }));
-                setTelegramIdInput(normalized.startsWith('91') ? normalized.slice(2) : normalized);
-
-                if (user?.id) {
-                  const now = new Date().toISOString();
-                  const meta = user.user_metadata as Record<string, unknown> | undefined;
-                  const fullName =
-                    typeof meta?.full_name === 'string'
-                      ? meta.full_name
-                      : typeof meta?.name === 'string'
-                        ? meta.name
-                        : null;
-                  let syncOk = false;
-                  try {
-                    const res = await fetch('/api/profile/telegram', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ telegram_id: normalized }),
-                    });
-                    const payload = await res.json().catch(() => ({}));
-                    if (res.ok && payload.ok) {
-                      syncOk = true;
-                    } else {
-                      console.warn('[telegram] server profile sync', payload?.error || res.status);
-                    }
-                  } catch (e) {
-                    console.warn('[telegram] server profile sync fetch failed', e);
-                  }
-
-                  if (syncOk) {
-                    toast.success('Telegram connected', {
-                      description: 'You’ll receive booking alerts at this handle when messages are enabled.',
-                    });
-                  } else {
-                    toast.success('Saved for this session', {
-                      description: 'Telegram link updated. Cloud sync will finish in the background.',
-                    });
-                  }
-                } else {
-                  toast.success('Saved for this session', {
-                    description: 'Sign in to sync Telegram to your profile and enable secure outbound messages.',
-                  });
-                }
-              } finally {
-                setLinkingTelegram(false);
-              }
-            }}
-            className={`px-6 py-3 ${telegramId ? 'bg-[#FF9933] text-white hover:bg-orange-600' : 'bg-sky-600 text-white hover:bg-sky-700'} rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 shrink-0 disabled:opacity-60`}
+            onClick={() => setIsProfileOpen(true)}
+            className="w-full py-4 bg-sky-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-sky-700 transition-all shadow-lg flex items-center justify-center gap-2"
           >
-            {linkingTelegram ? '…' : telegramId ? t('booking_disconnect') : t('booking_connect')}
+            <UserCircle className="w-3.5 h-3.5" /> Setup Telegram Identity
           </button>
-        </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-sky-500" />
+                 <span className="text-xs font-mono font-black text-[#003366]">{telegramId.startsWith('+91') ? telegramId : `+91 ${telegramId}`}</span>
+              </div>
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Linked via Profile</span>
+            </div>
+
+            {/^\+?91\d{10}$/.test(telegramId.replace(/\s/g, '')) && (
+               <div className="p-4 bg-sky-50 border border-sky-100 rounded-2xl space-y-3">
+                  <p className="text-[11px] text-sky-700 font-bold leading-relaxed">
+                    <span className="text-sky-900 font-black">Final Step:</span> To receive your PNR and live updates, you must share your contact in Telegram.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'Rujubot';
+                      window.open(`https://t.me/${botName.replace(/^@/, '')}?start=link`, '_blank');
+                    }}
+                    className="w-full py-3 bg-sky-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-sky-700 transition-all flex items-center justify-center gap-2 shadow-md shadow-sky-200"
+                  >
+                    <Send className="w-3 h-3" /> Launch Yatra Bot & Share Contact
+                  </button>
+               </div>
+            )}
+          </div>
+        )}
         
         <p className="text-[11px] text-zinc-700 text-center font-bold">
           {t('booking_security_note')}
@@ -513,12 +460,30 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
             type="button"
             onClick={async () => {
               try {
+                // 1. Proactively refetch profile to check if they've shared contact with the bot
+                let latestId = telegramId;
+                if (user?.id) {
+                  const { data: profile } = await supabase
+                    .from('yatra_profiles')
+                    .select('telegram_id')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+                  
+                  if (profile?.telegram_id) {
+                    latestId = profile.telegram_id;
+                    if (profile.telegram_id !== telegramId) {
+                      patchTourGuide({ telegramId: profile.telegram_id });
+                      setInputs((p) => ({ ...p, telegramId: profile.telegram_id }));
+                    }
+                  }
+                }
+
                 const res = await fetch('/api/telegram/send', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     type: 'welcome',
-                    to: telegramId,
+                    to: latestId,
                     payload: { name: user?.user_metadata?.full_name || 'Traveler' }
                   })
                 });
@@ -526,7 +491,9 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
                 if (res.ok && result.success) {
                   toast.success('Test message sent!', { description: 'Check your Telegram app.' });
                 } else {
-                  toast.error('Send failed', { description: result.error || 'Please start the bot first.' });
+                  toast.error('Send failed', { 
+                    description: result.error || 'Please start the bot and share contact first.' 
+                  });
                 }
               } catch (e) {
                 toast.error('Connection error');

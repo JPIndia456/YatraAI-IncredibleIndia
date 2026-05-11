@@ -146,7 +146,7 @@ export default function StepSuccess({
         booking_type: 'TRIP',
         confirmed_at: new Date().toISOString()
       }, {
-        onConflict: 'user_id, destination, origin'
+        onConflict: 'user_id,destination,origin'
       });
 
       if (error) throw error;

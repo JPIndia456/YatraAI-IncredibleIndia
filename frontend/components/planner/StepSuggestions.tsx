@@ -396,7 +396,7 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
         </div>
 
         {/* Info row */}
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5 mb-4">
           <div className="flex items-center gap-1.5 bg-saffron/5 px-2 py-2 rounded-lg border border-saffron/10">
             <ShieldCheck className="w-3.5 h-3.5 text-orange-400 shrink-0" />
             <div className="min-w-0">
@@ -419,6 +419,16 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
             </div>
           </div>
         </div>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onConfirm(s, s.destination);
+          }}
+          className="w-full py-4 bg-[#FF9933] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-saffron/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+        >
+          Select Odyssey <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
     </motion.div>

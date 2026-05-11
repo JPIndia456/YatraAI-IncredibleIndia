@@ -153,6 +153,7 @@ function MyTripContent() {
 
         setDbTrip({
           ...tripData,
+          id: data.id,
           totalEstimate: tripData.totalEstimate || (data.total_price ? `₹${Number(data.total_price).toLocaleString('en-IN')}` : '₹0'),
           passengers: tripData.passengers || details.passengers || [],
           total_price: details?.total || 0,
@@ -183,6 +184,7 @@ function MyTripContent() {
     setSyncing(true);
     try {
       const { error } = await supabase.from('yatra_bookings').upsert({
+        ...(effectivePlan.id ? { id: effectivePlan.id } : {}),
         user_id: user.id,
         origin: effectivePlan.from,
         destination: effectivePlan.destination,
@@ -192,7 +194,7 @@ function MyTripContent() {
         booking_type: 'TRIP',
         confirmed_at: new Date().toISOString()
       }, {
-        onConflict: 'user_id, destination, origin'
+        onConflict: 'user_id,destination,origin'
       });
 
       if (error) throw error;

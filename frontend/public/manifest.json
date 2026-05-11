@@ -4,7 +4,7 @@
   "description": "Premium AI-powered travel planning for India with Bhashini multilingual support.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
+  "background_color": "#FDFDFB",
   "theme_color": "#FF9933",
   "icons": [
     {

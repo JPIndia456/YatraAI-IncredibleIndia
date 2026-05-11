@@ -699,7 +699,7 @@ export default function YatraStudio() {
       if (user) {
         const { data: bookingRow, error } = await supabase
           .from('yatra_bookings')
-          .insert({
+          .upsert({
             user_id: user.id,
             booking_type: 'TRIP',
             origin: inputs.origin,
@@ -718,6 +718,8 @@ export default function YatraStudio() {
             status: 'pending_payment',
             tier: inputs.budget,
             total_pax: (inputs.adults || 1) + (inputs.kids || 0)
+          }, { 
+            onConflict: 'user_id,destination,origin' 
           })
           .select('id')
           .single();
@@ -784,7 +786,9 @@ export default function YatraStudio() {
           origin: activeItinerary.from || inputs.origin,
           destination: activeItinerary.to || inputs.specificDest,
           trip_details: activeItinerary,
+          trip_data: activeItinerary,
           total_price: totalNum,
+          total_amount: totalNum,
           status: 'pending_payment',
           tier: inputs.budget,
           total_pax: (inputs.adults || 1) + (inputs.kids || 0)
@@ -955,7 +959,7 @@ export default function YatraStudio() {
     const incomplete = passengers.some((p: any) => {
       const ageNum = Number(p?.age);
       const gender = String(p?.gender || p?.sex || '').trim();
-      return !p?.name || p.name.trim().length < 3 || !ageNum || ageNum <= 0 || !gender;
+      return !p?.name || p.name.trim().length < 2 || !ageNum || ageNum <= 0 || !gender;
     });
 
     if (incomplete) {
@@ -1003,7 +1007,28 @@ export default function YatraStudio() {
   if (!mounted || !langInitialized) return null;
 
   return (
-    <div key={language} className="planner-bg relative selection:bg-cyan-500/30">
+    <div key={language} className="planner-bg selection:bg-cyan-500/30">
+      
+      {!isProfileOpen && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setIsProfileOpen(true)}
+          className="fixed top-6 right-6 z-[150] w-12 h-12 rounded-2xl bg-white border border-orange-100 shadow-xl overflow-hidden group no-print"
+        >
+           <div className="absolute inset-0 bg-gradient-to-br from-saffron/10 to-green/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+           {user?.user_metadata?.avatar_url ? (
+             <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+           ) : (
+             <div className="w-full h-full flex items-center justify-center text-[#138808] font-black text-sm uppercase bg-green-50">
+               {user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U'}
+             </div>
+           )}
+        </motion.button>
+      )}
+
       {stage === 'success' ? (
       <NavigationWrapper
         onBack={handleReset}
@@ -1031,23 +1056,39 @@ export default function YatraStudio() {
           // 'inputs' = already on first step, do nothing
         }}
         onNext={
-          (stage === 'inputs' || stage === 'booking') ? () => {
-            if (isWizardActive) return;
-            const s = useTripPlannerStore.getState().plannerStage;
-            if (s === 'inputs') handleGetSuggestions();
-            else if (s === 'booking') handleBookAndPay();
-          } : undefined
+          stage === 'inputs' ? () => handleGetSuggestions() :
+          stage === 'suggestions' ? () => {
+            if (selectedSuggestion !== null) {
+              const s = suggestions[selectedSuggestion];
+              // Use the onConfirm logic from StepSuggestions
+              setInputs(p => ({ ...p, specificDest: s.destination }));
+              setGlobalDestination(s.destination); setOrigin(inputs.origin);
+              handleGeneratePlan(s, s.destination);
+              setAIBrainOpen(true);
+            }
+          } :
+          stage === 'results' ? () => setStage('selection') :
+          stage === 'selection' ? () => setStage('booking') :
+          stage === 'booking' ? () => handleBookAndPay() :
+          undefined
         }
         nextLabel={
           isWizardActive ? 'Answer AI to proceed' :
           stage === 'inputs' ? t('discover_options') :
+          stage === 'suggestions' ? 'Select Destination' :
+          stage === 'results' ? 'Proceed to Selection' :
+          stage === 'selection' ? 'Confirm Itinerary' :
           stage === 'booking' ? '🔒 Confirm & Finalize' :
           t('next')
         }
+        disabledNext={
+          (stage === 'suggestions' && selectedSuggestion === null) ||
+          (stage === 'selection' && !mixPicks.transport && !mixPicks.hotel)
+        }
       >
         <div className="max-w-4xl mx-auto px-4 md:px-5 pt-2 pb-20 md:pb-24 relative z-10">
-
-          {/* ── Page Header ──────────────────────────────────────────────── */}
+ 
+           {/* ── Page Header ──────────────────────────────────────────────── */}
           <motion.header
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1124,29 +1165,6 @@ export default function YatraStudio() {
                 onBack={() => setStage('inputs')}
                 onReset={handleReset}
               />
-            )}
-
-            {/* Profile Panel & Avatar Trigger */}
-            <ProfilePanel isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
-            
-            {!isProfileOpen && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setIsProfileOpen(true)}
-                className="fixed top-6 right-6 z-[150] w-12 h-12 rounded-2xl bg-white border border-orange-100 shadow-xl overflow-hidden group no-print"
-              >
-                 <div className="absolute inset-0 bg-gradient-to-br from-saffron/10 to-green/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                 {user?.user_metadata?.avatar_url ? (
-                   <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                 ) : (
-                   <div className="w-full h-full flex items-center justify-center text-saffron font-black text-sm uppercase">
-                     {user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U'}
-                   </div>
-                 )}
-              </motion.button>
             )}
 
             {stage === 'results' && plan && (
