@@ -88,36 +88,42 @@ export default function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-4xl w-full text-center"
         >
-          <h1 className="text-5xl sm:text-7xl md:text-[7rem] font-black mb-12 tracking-[-0.06em] leading-[0.75] flex flex-col items-center">
-            <span className="text-[#FF9933] drop-shadow-2xl uppercase">Discover</span>
-            <span className="text-[#000080]/90 text-2xl sm:text-5xl md:text-6xl uppercase tracking-[-0.04em] my-4">Incredible</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#138808] to-[#024a27] uppercase drop-shadow-2xl">India</span>
+          <h1 className="text-5xl sm:text-7xl md:text-[9rem] font-black mb-8 flex flex-col items-center pt-8 relative">
+            <span className="text-[#FF9933] text-4xl sm:text-5xl md:text-[3.5rem] uppercase mb-0 tracking-widest opacity-90">Discover</span>
+            <span className="text-[#000080] text-xl sm:text-2xl md:text-2xl uppercase mb-6 tracking-[0.3em] font-black">Incredible</span>
+            
+            <div className="relative inline-flex items-center tracking-[-0.05em] leading-none drop-shadow-[0_15px_25px_rgba(0,0,0,0.08)]">
+              <span className="text-[#FF671F]">IND</span>
+              <span className="text-[#046A38]">IA</span>
+              
+              <div className="absolute inset-0 bg-gradient-to-r from-[#FF671F]/5 to-[#046A38]/5 blur-[100px] -z-10" />
+            </div>
           </h1>
           
-          <p className="text-lg sm:text-2xl text-[#000080]/80 mb-6 font-black tracking-tight uppercase">
+          <p className="text-lg sm:text-2xl text-[#000080]/80 mb-1 font-black tracking-tight uppercase">
             {t('personalized_itineraries')}
           </p>
 
-          <p className="text-sm sm:text-lg text-[#000080]/60 mb-12 max-w-3xl mx-auto font-bold leading-relaxed italic">
+          <p className="text-sm sm:text-lg text-[#000080]/60 mb-2 max-w-3xl mx-auto font-bold leading-relaxed italic">
             {t('plan_perfect_detour')}
           </p>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[75rem] mx-auto mb-16 px-6">
             {[
-              { icon: <Zap className="w-4 h-4 text-[#FF9933]" />, title: t('landing_smart_ai'), desc: t('landing_smart_ai_desc') },
-              { icon: <Globe className="w-4 h-4 text-blue-500" />, title: t('landing_bhashini'), desc: t('landing_bhashini_desc') },
-              { icon: <ShieldCheck className="w-4 h-4 text-[#138808]" />, title: t('landing_live_sync'), desc: t('landing_live_sync_desc') },
-              { icon: <Heart className="w-4 h-4 text-red-500" />, title: t('landing_mission'), desc: t('landing_mission_desc') }
+              { icon: <Zap className="w-6 h-6 text-[#FF9933]" />, title: t('landing_smart_ai'), desc: t('landing_smart_ai_desc') },
+              { icon: <Globe className="w-6 h-6 text-blue-500" />, title: t('landing_bhashini'), desc: t('landing_bhashini_desc') },
+              { icon: <ShieldCheck className="w-6 h-6 text-[#138808]" />, title: t('landing_live_sync'), desc: t('landing_live_sync_desc') },
+              { icon: <Heart className="w-6 h-6 text-red-500" />, title: t('landing_mission'), desc: t('landing_mission_desc') }
             ].map((item, i) => (
               <motion.div 
                 key={i}
-                whileHover={{ y: -2 }}
-                className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-[#FF9933]/10 shadow-sm"
+                whileHover={{ y: -4, scale: 1.02 }}
+                className="flex flex-col items-center text-center p-6 rounded-[2rem] bg-white border border-[#FF9933]/15 shadow-[0_10px_30px_-15px_rgba(255,153,51,0.1)] transition-all min-h-[150px] justify-center"
               >
-                <div className="shrink-0 p-2 bg-[#FF9933]/5 rounded-xl">{item.icon}</div>
-                <div className="text-left overflow-hidden">
-                  <div className="text-[10px] font-black uppercase tracking-wider truncate text-[#000080]">{item.title}</div>
-                  <div className="text-[9px] text-[#000080]/40 truncate font-medium">{item.desc}</div>
+                <div className="shrink-0 p-3 bg-[#FF9933]/5 rounded-2xl mb-3">{item.icon}</div>
+                <div className="space-y-1">
+                  <div className="text-[18px] font-black uppercase tracking-tight text-[#000080] leading-tight">{item.title}</div>
+                  <div className="text-[12px] text-[#000080]/60 font-bold leading-snug max-w-[160px] mx-auto">{item.desc}</div>
                 </div>
               </motion.div>
             ))}

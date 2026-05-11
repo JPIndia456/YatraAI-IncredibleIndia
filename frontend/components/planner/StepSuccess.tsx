@@ -32,6 +32,34 @@ export default function StepSuccess({
   const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'insights'>('overview');
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [discoveryData, setDiscoveryData] = useState<any>(activeItinerary?.discovery || null);
+
+  useEffect(() => {
+    if (!activeItinerary || discoveryData) return;
+    
+    const fetchDiscovery = async () => {
+      try {
+        const dest = activeItinerary.to || destination;
+        const res = await fetch('/api/mcp/suggest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: 'cultural',
+            stateLocation: dest,
+            language: 'en'
+          })
+        });
+        const json = await res.json();
+        if (json.success && json.data) {
+          setDiscoveryData(json.data);
+        }
+      } catch (err) {
+        console.error("Discovery Fetch Error:", err);
+      }
+    };
+    
+    fetchDiscovery();
+  }, [activeItinerary, destination, discoveryData]);
 
 
   const confirmationSuffix = useMemo(() => 
@@ -214,17 +242,20 @@ export default function StepSuccess({
         <div className="p-6 md:p-8 min-h-[300px]">
           <AnimatePresence mode="wait">
             {activeTab === 'overview' && (
-              <motion.div key="overview" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="space-y-10">
-                  <div className="space-y-2">
-                    <p className="text-[12px] font-black text-[#FF9933] uppercase tracking-[0.2em]">Route Intelligence</p>
-                    <h3 className="text-4xl font-extrabold text-[#000080] uppercase leading-tight tracking-tighter">
-                       <span className="text-[#FF9933]">{activeItinerary?.from || from_city}</span> 
-                       <span className="mx-3 text-slate-200">/</span> 
-                       <span className="text-[#138808]">{activeItinerary?.to || destination}</span>
-                    </h3>
-                  </div>
-                    <div className="space-y-4">
+              <motion.div key="overview" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-8">
+                {/* ── Top Row: Route Intelligence ── */}
+                <div className="glass-panel p-8 bg-slate-50/30 border-slate-100">
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-[#FF9933] uppercase tracking-[0.3em]">Route Intelligence</p>
+                      <h3 className="text-3xl md:text-4xl font-black text-[#000080] uppercase leading-none tracking-tight">
+                         <span className="text-[#FF9933]">{activeItinerary?.from || from_city}</span> 
+                         <span className="mx-4 text-slate-200">/</span> 
+                         <span className="text-[#138808]">{activeItinerary?.to || destination}</span>
+                      </h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-200/50">
                       {[
                         { icon: MapPin, label: 'Origin', val: activeItinerary?.from || from_city, color: 'text-[#FF9933]', bg: 'bg-[#FF9933]/5' },
                         { icon: Calendar, label: 'Dates', val: (activeItinerary?.startDate && activeItinerary?.endDate) 
@@ -232,40 +263,44 @@ export default function StepSuccess({
                           : (departure_date ? `${isoDateToDdMmYyyy(departure_date)} – ${isoDateToDdMmYyyy(return_date)}` : '—'),
                           color: 'text-[#003366]', bg: 'bg-[#003366]/5'
                         },
-                        { icon: CheckCircle2, label: 'Status', val: `Confirmed • PNR: ${confirmationSuffix}`, color: 'text-[#138808]', bg: 'bg-[#138808]/5' }
+                        { icon: CheckCircle2, label: 'Status', val: `PNR: ${confirmationSuffix}`, color: 'text-[#138808]', bg: 'bg-[#138808]/5' }
                       ].map((s, i) => (
-                        <div key={i} className="flex gap-4 items-center group/item">
-                          <div className={`w-12 h-12 rounded-2xl ${s.bg} flex items-center justify-center shrink-0 shadow-sm border border-slate-100 group-hover/item:scale-105 transition-transform`}>
-                            <s.icon className={`w-6 h-6 ${s.color}`} />
+                        <div key={i} className="flex gap-3 items-center">
+                          <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center shrink-0 border border-slate-100 shadow-sm`}>
+                            <s.icon className={`w-5 h-5 ${s.color}`} />
                           </div>
                           <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{s.label}</p>
-                            <p className={`text-lg font-black ${s.color} uppercase tracking-tighter`}>{s.val || '—'}</p>
+                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{s.label}</p>
+                            <p className={`text-[11px] font-black ${s.color} uppercase tracking-tight`}>{s.val || '—'}</p>
                           </div>
                         </div>
                       ))}
                     </div>
+                  </div>
                 </div>
-                <div className="flex flex-col justify-center space-y-8">
+
+                {/* ── Second Row: Climate & Logistics ── */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {weather ? (
-                    <div className="bg-[#138808] p-6 rounded-[2.5rem] text-white space-y-4 shadow-xl relative overflow-hidden group border-t-4 border-t-[#FF9933]">
+                    <div className="bg-[#138808] p-8 rounded-[2rem] text-white space-y-6 shadow-xl relative overflow-hidden group border-t-4 border-t-[#FF9933]">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[60px] group-hover:bg-white/10 transition-all" />
                       <div className="flex items-center justify-between relative z-10">
                         <div>
-                          <p className="text-[8px] font-black text-[#FF9933] uppercase tracking-[0.3em] leading-none mb-1">Climate Pulse</p>
-                          <h4 className="text-4xl font-extrabold text-[#FF9933] tracking-tighter">{Math.round(weather.temp || 24)}°C</h4>
+                          <p className="text-[9px] font-black text-[#FF9933] uppercase tracking-[0.3em] leading-none mb-2">Climate Pulse</p>
+                          <h4 className="text-5xl font-black text-[#FF9933] tracking-tighter">{Math.round(weather.temp || 24)}°C</h4>
                         </div>
                         <div className="text-right">
-                          <CloudSun className="w-10 h-10 text-[#FF9933] mb-1 ml-auto animate-float" />
-                          <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{weather.condition || 'Clear Sky'}</p>
+                          <CloudSun className="w-12 h-12 text-[#FF9933] mb-1 ml-auto animate-float" />
+                          <p className="text-[11px] font-black uppercase tracking-widest opacity-80">{weather.condition || 'Clear Sky'}</p>
                         </div>
                       </div>
-                      <div className="pt-4 border-t border-white/10 relative z-10">
-                        <p className="text-[10px] font-black text-[#FF9933] uppercase tracking-widest">Perfect for Discovery</p>
+                      <div className="pt-4 border-t border-white/10 relative z-10 flex items-center justify-between">
+                        <p className="text-[10px] font-black text-[#FF9933] uppercase tracking-widest">Verified Conditions</p>
+                        <span className="px-3 py-1 bg-white/10 rounded-full text-[8px] font-black uppercase tracking-widest">Active</span>
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-[#138808]/10 p-8 rounded-[2.5rem] border border-[#138808]/20 space-y-4 shadow-sm relative overflow-hidden">
+                    <div className="bg-[#138808]/5 p-8 rounded-[2rem] border border-[#138808]/10 space-y-4 shadow-sm relative overflow-hidden">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-[10px] font-black text-[#138808] uppercase tracking-widest leading-none mb-2">Climate Pulse</p>
@@ -279,23 +314,23 @@ export default function StepSuccess({
                     </div>
                   )}
 
-                  <div className="bg-slate-50 border border-slate-100 p-10 rounded-[3rem] space-y-8 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Travel Mode</p>
-                        <p className="text-xl font-black text-[#000080] uppercase tracking-tighter">{activeItinerary?.transport?.name || 'Standard'}</p>
+                  <div className="bg-slate-50 border border-slate-100 p-8 rounded-[2rem] space-y-8 shadow-sm flex flex-col justify-center">
+                    <div className="flex items-center justify-between gap-6">
+                      <div className="flex flex-col gap-1">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Travel Mode</p>
+                        <p className="text-base font-black text-[#000080] uppercase tracking-tight leading-tight">{activeItinerary?.transport?.name || 'Standard Transit'}</p>
                       </div>
-                      <div className="w-px h-10 bg-slate-200" />
-                      <div className="flex flex-col text-right">
-                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Accommodation</p>
-                        <p className="text-xl font-black text-[#000080] uppercase tracking-tighter">{activeItinerary?.hotel?.name || 'Selected Stay'}</p>
+                      <div className="w-px h-10 bg-slate-200 shrink-0" />
+                      <div className="flex flex-col gap-1 text-right">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Accommodation</p>
+                        <p className="text-base font-black text-[#000080] uppercase tracking-tight leading-tight">{activeItinerary?.hotel?.name || 'Selected Stay'}</p>
                       </div>
                     </div>
                   </div>
                 </div>
-
+                
                 {/* ── Discovery Highlights (Refined) ── */}
-                <div className="md:col-span-2 space-y-6 mt-4 pt-8 border-t border-slate-100">
+                <div className="space-y-6 pt-8 border-t border-slate-100">
                   <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-[#FF9933]/5 flex items-center justify-center border border-[#FF9933]/10 shadow-sm">
@@ -310,29 +345,32 @@ export default function StepSuccess({
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                      { label: 'Heritage Sites', icon: MapPin, color: '#FF9933', bg: 'bg-[#FF9933]/5' },
-                      { label: 'Local Bazaars', icon: ShoppingBag, color: '#000080', bg: 'bg-[#000080]/5' },
-                      { label: 'Landscapes', icon: Compass, color: '#138808', bg: 'bg-[#138808]/5' },
-                      { label: 'Culinary Pulse', icon: Utensils, color: '#FF9933', bg: 'bg-[#FF9933]/5' }
-                    ].map((item, i) => (
-                      <motion.div 
-                        key={i}
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 + i * 0.05 }}
-                        className={`group relative py-8 px-6 rounded-[2rem] overflow-hidden ${item.bg} border border-slate-100 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]`}
-                      >
-                        <div className="space-y-4 relative z-10 flex flex-col items-center text-center">
-                          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm border border-slate-100">
-                            <item.icon className="w-5 h-5" style={{ color: item.color }} />
+                      { label: 'Heritage Sites', icon: MapPin, color: '#FF9933', bg: 'bg-[#FF9933]/5', key: 'heritage' },
+                      { label: 'Local Bazaars', icon: ShoppingBag, color: '#000080', bg: 'bg-[#000080]/5', key: 'vibe' },
+                      { label: 'Landscapes', icon: Compass, color: '#138808', bg: 'bg-[#138808]/5', key: 'nature' },
+                      { label: 'Culinary Pulse', icon: Utensils, color: '#FF9933', bg: 'bg-[#FF9933]/5', key: 'culinary' }
+                    ].map((item, i) => {
+                      const specificPlace = discoveryData?.[item.key]?.[0]?.name || (activeItinerary?.to || destination);
+                      return (
+                        <motion.div 
+                          key={i}
+                          initial={{ opacity: 0, y: 15 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.1 + i * 0.05 }}
+                          className={`group relative py-8 px-6 rounded-[2rem] overflow-hidden ${item.bg} border border-slate-100 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]`}
+                        >
+                          <div className="space-y-4 relative z-10 flex flex-col items-center text-center">
+                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm border border-slate-100">
+                              <item.icon className="w-5 h-5" style={{ color: item.color }} />
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-1.5" style={{ color: item.color }}>{item.label}</p>
+                              <p className="text-[13px] font-extrabold text-[#000080] uppercase tracking-normal leading-none line-clamp-2">{specificPlace}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-1.5" style={{ color: item.color }}>{item.label}</p>
-                            <p className="text-[13px] font-extrabold text-[#000080] uppercase tracking-normal leading-none">{activeItinerary?.to || destination}</p>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
               </motion.div>
@@ -443,7 +481,7 @@ export default function StepSuccess({
                   <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF9933]/20 blur-3xl" />
                   <div className="flex items-center gap-4 relative">
                     <div className="w-14 h-14 rounded-2xl overflow-hidden border border-[#FF9933]/40 shadow-2xl shrink-0 bg-white">
-                      <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-[center_15%] scale-[2.8]" />
+                      <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-center" />
                     </div>
                     <div className="space-y-1">
                       <h4 className="text-2xl font-black uppercase text-[#FF9933]">Travel Concierge</h4>

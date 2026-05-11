@@ -30,7 +30,7 @@ export default function EmailAuthPage() {
       >
         <button 
           onClick={() => router.push('/')}
-          className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors mb-8 group"
+          className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors mb-4 group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           <span className="text-xs font-black uppercase tracking-widest" suppressHydrationWarning>
@@ -38,19 +38,19 @@ export default function EmailAuthPage() {
           </span>
         </button>
 
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-orange-500/5 rounded-2xl flex items-center justify-center text-orange-600 mx-auto mb-6 border border-orange-500/10">
-            <Mail className="w-8 h-8" />
+        <div className="text-center mb-4">
+          <div className="w-12 h-12 bg-orange-500/5 rounded-2xl flex items-center justify-center text-orange-600 mx-auto mb-3 border border-orange-500/10">
+            <Mail className="w-6 h-6" />
           </div>
-          <h1 className="text-3xl font-black mb-2 tracking-tight text-zinc-900" suppressHydrationWarning>
+          <h1 className="text-2xl font-black mb-1 tracking-tight text-zinc-900" suppressHydrationWarning>
             {mounted ? t('auth_email_access') : 'Email Access'}
           </h1>
-          <p className="text-zinc-500 text-sm font-medium" suppressHydrationWarning>
+          <p className="text-zinc-500 text-xs font-medium" suppressHydrationWarning>
             {mounted ? t('auth_email_access_desc') : 'Verify your identity via secure magic link or OTP'}
           </p>
         </div>
 
-        <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-8 shadow-xl shadow-zinc-900/5">
+        <div className="bg-white border border-zinc-100 rounded-[2rem] p-6 shadow-xl shadow-zinc-900/5">
           <OTPAuth initialMethod="email" hideToggle={true} />
         </div>
 

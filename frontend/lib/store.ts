@@ -346,6 +346,14 @@ export interface ActiveItinerary {
   foodSpotsList?: Array<{ name: string; cuisine: string; type: string; must: string }>;
   adults: number;
   kids: number;
+  discovery?: {
+    culinary: { name: string; desc: string }[];
+    heritage: { name: string; desc: string }[];
+    vibe: { name: string; desc: string }[];
+    transport: { name: string; desc: string }[];
+    night: { name: string; desc: string }[];
+    nature: { name: string; desc: string }[];
+  };
 }
 
 interface TripPlannerState {
@@ -539,6 +547,7 @@ export interface TourGuideState {
   planner_stage: string;                    // e.g. 'inputs', 'selection', 'booking'
   mix_picks: any;                           // selected flight/train/hotel
   telegramId: string;                            // Telegram ID or phone number
+  telegramEnabled: boolean;
 
   // ── Actions ───────────────────────────────────────────────────────────────
   patchTourGuide: (patch: Partial<Omit<TourGuideState, 'patchTourGuide' | 'resetTourGuide' | 'setDiscoveredTours' | 'selectTour'>>) => void;
@@ -565,6 +574,7 @@ const TOUR_GUIDE_DEFAULTS: Omit<TourGuideState, 'patchTourGuide' | 'resetTourGui
   planner_stage: 'inputs',
   mix_picks: {},
   telegramId: '',
+  telegramEnabled: false,
 };
 
 export const useTourGuideStore = create<TourGuideState>()(

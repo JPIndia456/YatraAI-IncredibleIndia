@@ -25,28 +25,33 @@ export const TelegramService = {
     // 0. Handle Contact Sharing (Linking)
     if (contact) {
       console.log(`[TelegramService] Linking contact for phone: ${contact.phone_number}`);
-      const phone = contact.phone_number.replace(/\D/g, '');
-      const digitsOnly = phone.length > 10 ? phone.slice(-10) : phone; 
+      const phone = contact.phone_number.replace(/\D/g, ''); // e.g. 919876543210
+      const digits10 = phone.slice(-10); // e.g. 9876543210
       
-      const { error } = await supabaseAdmin
+      // Try to find the profile by matching the last 10 digits in either phone or telegram_id
+      // This handles +91, 91, or just 10-digit formats.
+      const { data: updated, error } = await supabaseAdmin
         .from('yatra_profiles')
         .update({ 
           telegram_id: from,
           telegram_enabled: true,
           updated_at: new Date().toISOString()
         })
-        .or(`phone.like.%${digitsOnly},telegram_id.eq.${phone}`);
+        .or(`phone.ilike.%${digits10},telegram_id.ilike.%${digits10}`)
+        .select();
 
-      if (!error) {
+      if (!error && updated && updated.length > 0) {
+        console.log(`[TelegramService] Successfully linked profile for ${digits10}`);
         await this.sendMessage(from, "🙏 *Namaste!*\n\nYour account is now securely linked. I will send your PNRs and live itinerary updates directly to this chat.");
       } else {
-        console.error(`[TelegramService] Profile Link Error:`, error);
+        console.error(`[TelegramService] Profile Link Error or No Match:`, error || 'No matching profile found for ' + digits10);
+        await this.sendMessage(from, "❌ *Linkage Failed*\n\nI couldn't find a profile with the phone number you shared. Please ensure your mobile number is correctly set in the Yatra app profile first.");
       }
       return;
     }
 
-    // 1. Handle Start Command
-    if (text === '/start') {
+    // 1. Handle Start Command (including deep links like /start link)
+    if (text?.startsWith('/start')) {
       console.log(`[TelegramService] Sending contact request to: ${from}`);
       await this.sendContactRequest(from);
       return;

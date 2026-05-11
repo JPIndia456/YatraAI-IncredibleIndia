@@ -107,15 +107,20 @@ export function sanitizeJsonText(json: string): string {
   s = s.replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"');
   s = s.replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");
 
-  // 2. Fix unescaped newlines inside strings
+  // 2. Fix unescaped newlines and problematic backslashes inside strings
   s = s.replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g, (match) => {
-    return match.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+    let inner = match.slice(1, -1);
+    // Escape actual newlines
+    inner = inner.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+    // Fix lone backslashes that aren't followed by a valid escape char
+    // Valid escapes: " \ / b f n r t uXXXX
+    inner = inner.replace(/\\(?!["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '\\\\');
+    return `"${inner}"`;
   });
 
-  // 3. Fix unescaped double quotes inside strings (aggressive)
+  // 3. Fix unescaped double quotes inside strings (more targeted)
   // This looks for "key": "value with "quotes" inside"
   s = s.replace(/:(\s*)"([^"]*)"(\s*[,}\]])/g, (match, p1, p2, p3) => {
-    // If p2 contains unescaped quotes, we escape them
     const fixed = p2.replace(/(?<!\\)"/g, '\\"');
     return `:${p1}"${fixed}"${p3}`;
   });

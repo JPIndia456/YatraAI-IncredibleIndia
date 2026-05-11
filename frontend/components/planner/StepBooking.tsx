@@ -31,7 +31,7 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
   const { t } = useLanguage();
   const { user } = useAuth();
   const { mixPicks, activeItinerary, setActiveItinerary, setIsProfileOpen } = useTripPlannerStore();
-  const { telegramId, patchTourGuide } = useTourGuideStore();
+  const { telegramId, telegramEnabled, patchTourGuide } = useTourGuideStore();
   const [telegramIdInput, setTelegramIdInput] = useState(() => (telegramId || '').trim());
   const [linkingTelegram, setLinkingTelegram] = useState(false);
 
@@ -388,9 +388,9 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
               <h3 className="text-xs font-black text-[#003366] uppercase tracking-wider">{t('booking_telegram_title')}</h3>
               {telegramId ? (
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${/^\d{10,15}$/.test(telegramId) ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-                  <span className={`text-[9px] font-black uppercase tracking-widest ${/^\d{10,15}$/.test(telegramId) ? 'text-amber-600' : 'text-emerald-600'}`}>
-                    {/^\d{10,15}$/.test(telegramId) ? 'Linked (Step 1/2)' : 'Telegram Ready'}
+                  <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${telegramEnabled ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  <span className={`text-[9px] font-black uppercase tracking-widest ${telegramEnabled ? 'text-emerald-600' : 'text-amber-600'}`}>
+                    {telegramEnabled ? 'Telegram Ready' : 'Linked (Step 1/2)'}
                   </span>
                 </div>
               ) : (
@@ -465,14 +465,17 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
                 if (user?.id) {
                   const { data: profile } = await supabase
                     .from('yatra_profiles')
-                    .select('telegram_id')
+                    .select('telegram_id, telegram_enabled')
                     .eq('user_id', user.id)
                     .maybeSingle();
                   
                   if (profile?.telegram_id) {
                     latestId = profile.telegram_id;
-                    if (profile.telegram_id !== telegramId) {
-                      patchTourGuide({ telegramId: profile.telegram_id });
+                    if (profile.telegram_id !== telegramId || profile.telegram_enabled !== telegramEnabled) {
+                      patchTourGuide({ 
+                        telegramId: profile.telegram_id, 
+                        telegramEnabled: !!profile.telegram_enabled 
+                      });
                       setInputs((p) => ({ ...p, telegramId: profile.telegram_id }));
                     }
                   }

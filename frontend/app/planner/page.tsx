@@ -131,7 +131,8 @@ export default function YatraStudio() {
     plannerStage: stage,
     setPlannerStage: setStage,
     isProfileOpen,
-    setIsProfileOpen
+    setIsProfileOpen,
+    setWeather
   } = useTripPlannerStore();
 
   const {
@@ -401,6 +402,10 @@ export default function YatraStudio() {
       if (id === 'hotelTier') {
         useTripPlannerStore.getState().setHotelTier(val as any);
       }
+      if (id === 'destination') {
+        setInputs(prev => ({ ...prev, specificDest: val as string }));
+        setGlobalDestination(val as string);
+      }
       if (id === 'dietary') {
         setInputs(prev => ({ ...prev, dietary: [val as any] }));
       } else {
@@ -638,6 +643,7 @@ export default function YatraStudio() {
       setInputs(prev => ({ ...prev, specificDest: parsed.destination }));
 
       setActiveItinerary(itn);
+      if (itn.weather) setWeather(itn.weather);
       
       // Auto-set mix picks from AI itinerary
       setMixPicks({

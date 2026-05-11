@@ -6,6 +6,7 @@ import * as railway from "@/indian-railways-mcp/src/railwayService";
 import { TripAdvisorService } from "@/lib/services/tripadvisor/tripadvisorService";
 import { AmadeusService } from "@/lib/services/travel/amadeus";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { sanitizeJsonText } from "@/lib/parseAiItineraryJson";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "dummy_key_prevent_crash");
 
@@ -278,15 +279,24 @@ You can help the user decide which plan suits their needs.`;
             const data = await AmadeusService.searchFlights({ origin, destination, date, adults });
             toolOutputs.push({ functionResponse: { name: call.name, response: { data } } });
           } else if (call.name === "getUserProfile") {
-            if (!context.userId) throw new Error("Authentication required to check profile");
+            if (!context.userId) {
+              toolOutputs.push({ functionResponse: { name: call.name, response: { error: "User not linked. Please share your contact in Telegram first." } } });
+              continue;
+            }
             const { data } = await supabaseAdmin.from('yatra_profiles').select('*').eq('user_id', context.userId).single();
             toolOutputs.push({ functionResponse: { name: call.name, response: { profile: data || null } } });
           } else if (call.name === "getUserBookings") {
-            if (!context.userId) throw new Error("Authentication required to check bookings");
+            if (!context.userId) {
+              toolOutputs.push({ functionResponse: { name: call.name, response: { error: "User not linked. No bookings found. Please share contact first." } } });
+              continue;
+            }
             const { data } = await supabaseAdmin.from('yatra_bookings').select('*').eq('user_id', context.userId).order('created_at', { ascending: false });
             toolOutputs.push({ functionResponse: { name: call.name, response: { bookings: data || [] } } });
           } else if (call.name === "getUserNotifications") {
-            if (!context.userId) throw new Error("Authentication required to check notifications");
+            if (!context.userId) {
+              toolOutputs.push({ functionResponse: { name: call.name, response: { error: "User not linked. Notifications unavailable." } } });
+              continue;
+            }
             const { data } = await supabaseAdmin.from('yatra_notifications').select('*').eq('user_id', context.userId).order('created_at', { ascending: false }).limit(5);
             toolOutputs.push({ functionResponse: { name: call.name, response: { notifications: data || [] } } });
           } else if (call.name === "checkPriceTrend") {
@@ -457,7 +467,8 @@ Exactly 3 items per pillar. Only real, verified places in ${location}.`;
       });
 
       const text = result.response.text();
-      const report = JSON.parse(text.replace(/```json/g, '').replace(/```/g, ''));
+      const sanitized = sanitizeJsonText(text.replace(/```json/g, '').replace(/```/g, ''));
+      const report = JSON.parse(sanitized);
       
       // 3. Persist to cache for instant future loads
       if (location && report && typeof report === 'object') {

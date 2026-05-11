@@ -164,7 +164,7 @@ export default function OTPAuth({ initialMethod = 'email', hideToggle = false }:
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4">
       <AnimatePresence mode="wait">
         {step === 'input' ? (
           <motion.div
@@ -172,7 +172,7 @@ export default function OTPAuth({ initialMethod = 'email', hideToggle = false }:
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="space-y-6"
+            className="space-y-4"
           >
             {!hideToggle && (
               <div className="flex p-1 bg-zinc-900/80 rounded-xl border border-zinc-800">
@@ -207,13 +207,13 @@ export default function OTPAuth({ initialMethod = 'email', hideToggle = false }:
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <input
                 type={method === 'email' ? 'email' : 'tel'}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 placeholder={method === 'email' ? 'example@mail.com' : '+91 00000 00000'}
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-4 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/50 transition-all placeholder:text-zinc-400"
+                className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-3 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/50 transition-all placeholder:text-zinc-400"
               />
 
               <button
@@ -242,7 +242,7 @@ export default function OTPAuth({ initialMethod = 'email', hideToggle = false }:
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
+            className="space-y-4"
           >
             <div className="text-center space-y-2">
               <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">

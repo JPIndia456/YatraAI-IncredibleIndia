@@ -275,7 +275,7 @@ const MessageBubble = memo(function MessageBubble({
       {/* Avatar */}
       {!isUser && (
         <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 mt-1 shadow-md border border-saffron/30 bg-white">
-          <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-center scale-[1.1]" />
+          <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-center" />
         </div>
       )}
       <div className={`max-w-[86%] ${ !isUser ? 'w-full' : '' }`}>
@@ -418,7 +418,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
       <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 space-y-3 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl overflow-hidden border border-saffron/30 shadow-lg shrink-0 bg-white">
-            <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-center scale-[1.1]" />
+            <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-center" />
           </div>
           <div className="text-left">
             <p className="text-micro font-black text-saffron uppercase tracking-widest">Active Safety</p>

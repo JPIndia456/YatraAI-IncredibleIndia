@@ -8,6 +8,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useLanguage, SUPPORTED_LANGUAGES } from '@/contexts/LanguageContext';
 import { useTripStore, useTripPlannerStore, useTourGuideStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase/client';
+import { isoDateToDdMmYyyy } from '@/lib/dateFormat';
 
 interface ProfilePanelProps {
   isOpen: boolean;
@@ -43,6 +45,7 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
     telegram_id: '',
     telegram_enabled: false
   });
+  const [trips, setTrips] = useState<any[]>([]);
 
   const personaOptions = [
     { label: 'Cultural Explorer', icon: Landmark, color: 'text-amber-500' },
@@ -80,12 +83,33 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
           telegram_id: p.telegram_id || '',
           telegram_enabled: !!p.telegram_enabled
         });
+        // Sync to TourGuideStore
+        const { patchTourGuide } = useTourGuideStore.getState();
+        patchTourGuide({ 
+          telegramId: p.telegram_id || '', 
+          telegramEnabled: !!p.telegram_enabled 
+        });
       }
       setLoading(false);
       setTimeout(() => { hasChanged.current = true; }, 1000);
     }
     if (isOpen && !authLoading) load();
   }, [user, authLoading, getProfile, isOpen]);
+
+  useEffect(() => {
+    async function loadTrips() {
+      if (!user || !isOpen) return;
+      const { data, error } = await supabase
+        .from('yatra_bookings')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (!error && data) {
+        setTrips(data);
+      }
+    }
+    loadTrips();
+  }, [user, isOpen]);
 
   // Debounced Auto-Save
   useEffect(() => {
@@ -115,7 +139,10 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
       setDislikes(updates.dislikes);
       
       // Keep TourGuideStore in sync for immediate use in other steps
-      patchTourGuide({ telegramId: updates.telegram_id });
+      patchTourGuide({ 
+        telegramId: updates.telegram_id, 
+        telegramEnabled: updates.telegram_enabled 
+      });
       
       setSyncStatus('synced');
     }
@@ -289,10 +316,10 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
                      </div>
                      {form.telegram_id && (
                        <div className="flex items-center gap-1.5">
-                         <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${/^\d{10,15}$/.test(form.telegram_id) ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-                         <span className={`text-[8px] font-black uppercase tracking-widest ${/^\d{10,15}$/.test(form.telegram_id) ? 'text-amber-600' : 'text-emerald-600'}`}>
-                           {/^\d{10,15}$/.test(form.telegram_id) ? 'Step 1/2: Linked' : 'Active & Ready'}
-                         </span>
+                          <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${form.telegram_enabled ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                          <span className={`text-[8px] font-black uppercase tracking-widest ${form.telegram_enabled ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            {form.telegram_enabled ? 'Active & Ready' : 'Step 1/2: Linked'}
+                          </span>
                        </div>
                      )}
                    </div>
@@ -410,6 +437,48 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
                         className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-xs text-[#000080] font-bold focus:border-saffron focus:bg-white outline-none transition-all min-h-[80px] resize-none"
                       />
                     </div>
+                  </div>
+               </div>
+
+               {/* My Trips */}
+               <div className="space-y-6 pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <History className="w-4 h-4 text-[#000080]" />
+                      <h3 className="text-xs font-black text-[#000080] uppercase tracking-[0.2em]">My Odysseys</h3>
+                    </div>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{trips.length} Saved</span>
+                  </div>
+
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto no-scrollbar pr-1">
+                    {trips.length > 0 ? (
+                      trips.map((trip, idx) => {
+                        const details = trip.trip_details || {};
+                        return (
+                          <div key={trip.id || idx} className="group p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:border-saffron/30 hover:bg-white transition-all cursor-default">
+                             <div className="flex justify-between items-start mb-2">
+                                <p className="text-[10px] font-black text-[#000080] uppercase tracking-tight line-clamp-1">{details.to || trip.destination}</p>
+                                <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded-full ${trip.status === 'confirmed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                                  {trip.status}
+                                </span>
+                             </div>
+                             <div className="flex items-center justify-between">
+                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                                  {details.startDate ? isoDateToDdMmYyyy(details.startDate) : 'Plan Pending'}
+                                </p>
+                                <p className="text-[9px] font-black text-[#FF9933]">₹{trip.total_price?.toLocaleString() || '—'}</p>
+                             </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="py-10 text-center space-y-3 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+                        <History className="w-8 h-8 text-slate-200 mx-auto" />
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">
+                          Your Odyssey history is empty.<br/>Start planning to see your trips here.
+                        </p>
+                      </div>
+                    )}
                   </div>
                </div>
 

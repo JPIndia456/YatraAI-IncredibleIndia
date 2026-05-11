@@ -98,7 +98,7 @@ export async function POST(req: Request) {
 
     const { data: profile } = await supabase
       .from('yatra_profiles')
-      .select('telegram_id, phone')
+      .select('telegram_id, phone, telegram_enabled')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -107,9 +107,12 @@ export async function POST(req: Request) {
 
     // Security & Validation:
     // 1. Check if it's a numeric Chat ID or a @username. 
-    // If it looks like a phone number (10+ digits), it's NOT a valid chat_id for sendMessage.
-    const isPhoneNumber = /^\d{10,15}$/.test(finalTo);
-    if (isPhoneNumber) {
+    // If it looks like a phone number (10+ digits) AND we don't have telegram_enabled flag,
+    // then it's NOT a valid chat_id for sendMessage.
+    const isPhoneNumber = /^\+?\d{10,15}$/.test(finalTo);
+    const isFullyLinked = profile?.telegram_enabled === true;
+
+    if (isPhoneNumber && !isFullyLinked) {
       return NextResponse.json(
         {
           error:

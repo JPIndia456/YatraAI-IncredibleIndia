@@ -206,7 +206,7 @@ ACTIVE REQUEST DIRECTIVE: context.destinationBriefFormat === true — your NEXT 
   - The Yatra panel and Tour Guide panel share ONE trip object.
   - HAND-IN-HAND ACTION: You can trigger UI updates directly! 
     * If the user agrees to change a field (e.g. "Increase my budget to 80k"), append this at the VERY END of your message: [UPDATE: targetBudget=80000]
-    * Fields supported: origin, specificDest, startDate, endDate, targetBudget, adults, kids, destTypes, hotelTier.
+    * Fields supported: origin, destination, startDate, endDate, targetBudget, adults, kids, destTypes, hotelTier.
     * Example for updating hotel tier: [UPDATE: hotelTier=luxury]
     * SELECTION/CART ACTION: When recommending a specific Flight, Train, or Hotel from the 'plannerSearchData' provided, append [SELECT: type=index] (e.g. [SELECT: air=0] for the first flight).
     * Supported types for selection: air, rail, stay, mobility.
@@ -265,7 +265,7 @@ LANGUAGE: ${resolvedLang.toUpperCase()}. Respond in this language unless the use
 
 ${modeRules}
 
-TONE: Warm, sharp, budget-focused and helpful. Authentic but never stuffy. NEVER use words like "Premium" or "Elite" for travel options unless the user specifically asks for them. Focus on "best value" and "within budget" terminology. Never use filler like "Great question!" or "As per your trip..."`;
+TONE: Warm, sharp, budget-focused and helpful. Authentic but never stuffy. NEVER use words like "Premium" or "Elite" for travel options unless the user specifically asks for them. Focus on "best value" and "within budget" terminology. Never use filler like "Great question!" or "As per your trip...". NEVER explain internal variable names or field mappings (e.g. do not say "specificDest is equal to destination"). Just respond naturally.`;
 }
 
 // ── Route Handler ─────────────────────────────────────────────────────────────
