@@ -4,6 +4,6 @@
  * Override in .env.local: GEMINI_MODEL=gemini-2.0-flash
  */
 export const GEMINI_MODEL =
-  (typeof process !== 'undefined' && process.env.GEMINI_MODEL?.trim()) || 'gemini-1.5-flash';
+  (typeof process !== 'undefined' && process.env.GEMINI_MODEL?.trim()) || 'gemini-2.0-flash';
 
 export const GEMINI_FLASH_CHAIN = [GEMINI_MODEL, "gemini-2.0-flash", "gemini-flash-latest"];

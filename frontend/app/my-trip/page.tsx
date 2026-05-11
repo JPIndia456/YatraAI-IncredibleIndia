@@ -103,7 +103,7 @@ export default function MyTripPage() {
     const loadLatestTrip = async () => {
       setLoadingDbTrip(true);
       try {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from('yatra_bookings')
           .select('id, origin, destination, status, pnr, confirmed_at, created_at, total_price, trip_details')
           .eq('user_id', user.id)
@@ -113,6 +113,22 @@ export default function MyTripPage() {
           .maybeSingle();
 
         if (error) throw error;
+
+        // Fallback: Check saved trip plans if no active booking is found
+        if (!data) {
+          const { data: planData, error: planError } = await supabase
+            .from('yatra_trip_plans')
+            .select('id, origin, destination, status, created_at, total_price, trip_details')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
+          if (!planError && planData) {
+            data = planData as any;
+          }
+        }
+
         if (!data) return;
 
         const tripData = data.trip_details as any;
@@ -214,7 +230,7 @@ export default function MyTripPage() {
           </div>
           <div>
             <h1 className="text-xl font-black tracking-tighter italic leading-none">YA<span className="text-saffron">TRA</span></h1>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Discovery Secured • 2026</p>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Discovery Secured • 2026</p>
           </div>
         </div>
         

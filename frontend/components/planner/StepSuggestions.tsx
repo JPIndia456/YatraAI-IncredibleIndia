@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Sparkles, MapPin, Hotel, Train, Plane, Car,
-  ShieldCheck, Heart, Leaf, Compass, X, Info, Check
+  ShieldCheck, Heart, Leaf, Compass, X, Info, Check, Calendar, Zap
 } from 'lucide-react';
 import type { PlannerInputs } from './StepInputs';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -189,7 +189,30 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
       {/* Hover glow */}
       <div className="absolute -inset-px bg-gradient-to-r from-saffron/15 to-saffron/15 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none" />
 
-      <div className="relative glass-panel p-4 md:p-5 space-y-3 rounded-xl">
+      <div className="relative glass-panel overflow-hidden group/card shadow-xl hover:shadow-2xl transition-all duration-500 rounded-[2.5rem]">
+        {/* Cover Image */}
+        <div className="relative h-48 overflow-hidden">
+           <img 
+              src={`https://images.unsplash.com/photo-${[
+                '1524492412937-b28074a5d7da', // Taj Mahal
+                '1548013146-72479768bbaa', // Jaipur
+                '1514222139-b5b273ce537d', // Kerala
+                '1598305072041-3965b508f7f2', // Hampi
+                '1506461883276-594a12b11cf3'  // Varanasi
+              ][i % 5]}?auto=format&fit=crop&q=80&w=800`} 
+              alt={s.title}
+              className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-[2s] brightness-90 group-hover/card:brightness-100"
+           />
+           <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
+           <div className="absolute top-4 left-4">
+              <div className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-full border border-orange-100 flex items-center gap-2 shadow-lg">
+                 <Sparkles className="w-3 h-3 text-saffron" />
+                 <span className="text-[10px] font-black text-[#1A1A2E] uppercase tracking-widest italic">AI Recommended</span>
+              </div>
+           </div>
+        </div>
+
+        <div className="p-4 md:p-6 space-y-4 -mt-10 relative z-10">
         {/* Header row */}
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -200,23 +223,48 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
                 ))}
               </div>
             )}
-            <h3 className="text-lg font-black text-saffron group-hover:text-orange-600 transition-colors leading-tight uppercase italic tracking-tight">{s.title}</h3>
-            <div className="flex items-center gap-1 mt-0.5">
-              <MapPin className="w-2.5 h-2.5 text-saffron shrink-0" />
-              <p className="text-[10px] font-bold text-slate-500 truncate uppercase tracking-widest">{s.destination}</p>
+            <h3 className="text-3xl font-black text-[#1A1A2E] group-hover:text-[#FF9933] transition-colors leading-[1.1] uppercase tracking-tighter">{s.title}</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <MapPin className="w-4 h-4 text-[#FF9933] shrink-0" />
+              <p className="text-sm font-black text-slate-400 uppercase tracking-widest">{s.destination}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-11 font-semibold px-2.5 py-1 rounded-full bg-green/10 border border-green/20 text-green">Verified</span>
+            <span className="text-sm font-black px-4 py-1.5 rounded-full bg-[#046A38]/10 border border-[#046A38]/20 text-[#046A38] uppercase">Verified</span>
           </div>
         </div>
 
         {/* Quote */}
         {s.why && (
-          <p className="text-sm text-[var(--text-secondary)] leading-relaxed italic border-l-2 border-saffron/30 pl-3">
+          <p className="text-lg text-slate-600 font-bold leading-relaxed italic border-l-4 border-[#FF9933]/30 pl-6 py-1">
             "{s.why}"
           </p>
         )}
+
+        {/* Premium Highlights Bar */}
+        <div className="flex items-center gap-8 py-8 border-y border-slate-100">
+           <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#FF9933]/5 flex items-center justify-center border border-[#FF9933]/10">
+                <Calendar className="w-7 h-7 text-[#FF9933]" />
+              </div>
+              <div>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Duration</p>
+                <p className="text-2xl font-black text-[#1A1A2E] uppercase tracking-tighter leading-none">{s.nights} Nights</p>
+              </div>
+           </div>
+
+           <div className="w-px h-12 bg-slate-100" />
+
+           <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#046A38]/5 flex items-center justify-center border border-[#046A38]/10">
+                <Zap className="w-7 h-7 text-[#046A38]" />
+              </div>
+              <div>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Total Odyssey</p>
+                <p className="text-2xl font-black text-[#046A38] uppercase tracking-tighter leading-none">₹{s.totalPrice || '24,500'}</p>
+              </div>
+           </div>
+        </div>
 
         {locationCheckText.length > 0 && (
           <div
@@ -289,44 +337,41 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
           tripType={inputs.tripType}
         />
 
-        {/* Transport breakdown table */}
-        <div className="bg-white/40 rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 bg-white/5">
-                <th className="py-2 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Component</th>
-                <th className="py-2 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Investment</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transportItems.map((item, idx) => {
-                const isNoData = !getNum(item.val) || item.val === 'N/A';
-                const isExcluded = (activeTab === 'air' && item.id === 'rail') || (activeTab === 'rail' && item.id === 'air');
-                const isGrey = isNoData || isExcluded;
+        {/* Investment breakdown */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-2">
+            <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Investment Breakdown</h5>
+            <div className="h-px flex-1 bg-slate-100 mx-6" />
+          </div>
+          
+          <div className="space-y-3">
+            {transportItems.map((item, idx) => {
+              const isNoData = !getNum(item.val) || item.val === 'N/A';
+              const isExcluded = (activeTab === 'air' && item.id === 'rail') || (activeTab === 'rail' && item.id === 'air');
+              const isGrey = isNoData || isExcluded;
 
-                return (
-                  <tr key={idx} className={`border-b last:border-0 border-slate-200 transition-all duration-300 ${isGrey ? 'opacity-25 grayscale' : ''}`}>
-                    <td className="py-2.5 px-3">
-                      <div className="flex items-center gap-2">
-                        <item.icon className={`w-3.5 h-3.5 ${isGrey ? 'text-slate-400' : (item.color === 'green' ? 'text-green' : 'text-saffron')}`} />
-                        <div className="min-w-0">
-                          <p className="text-[10px] font-black text-saffron uppercase tracking-tight leading-none">{item.label}</p>
-                          <p className="text-[8px] text-slate-500 font-bold uppercase truncate mt-0.5">
-                            {isNoData ? 'N/A' : (isExcluded ? 'NOT SELECTED' : item.detail)}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-2.5 px-3 text-right">
-                      <span className={`text-[11px] font-black italic tracking-tighter ${isGrey ? 'text-zinc-600' : 'text-saffron'}`}>
-                        {isNoData ? '—' : formatPrice(item.val, item.pax, (item as any).isTransit)}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+              return (
+                <div key={idx} className={`flex items-center justify-between p-5 rounded-3xl border border-slate-50 bg-slate-50/30 transition-all ${isGrey ? 'opacity-30 grayscale scale-95' : 'hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 hover:border-[#FF9933]/20 group/row'}`}>
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${isGrey ? 'bg-slate-100 text-slate-300' : (item.color === 'green' ? 'bg-[#046A38]/10 text-[#046A38]' : 'bg-[#FF9933]/10 text-[#FF9933]')}`}>
+                      <item.icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${isGrey ? 'text-slate-400' : 'text-[#FF9933]'}`}>{item.label}</p>
+                      <p className={`text-base font-black uppercase tracking-tighter ${isGrey ? 'text-slate-500' : 'text-[#1A1A2E]'}`}>
+                        {isNoData ? 'Data Sync Pending' : (isExcluded ? 'Option Excluded' : item.detail)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-xl font-black italic tracking-tighter ${isGrey ? 'text-slate-300' : 'text-[#1A1A2E]'}`}>
+                      {isNoData ? '—' : formatPrice(item.val, item.pax, (item as any).isTransit)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Info row */}
@@ -390,6 +435,7 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
           )}
         </div>
       </div>
+    </div>
     </motion.div>
   );
 }

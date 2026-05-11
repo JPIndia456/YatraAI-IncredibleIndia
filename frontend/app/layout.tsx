@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Serif, Inter } from "next/font/google";
+import { Noto_Serif, Outfit } from "next/font/google";
 import "./globals.css";
 import ShellToolbar from "@/components/ShellToolbar";
 import PwaRegistry from "@/components/PwaRegistry";
@@ -18,9 +18,9 @@ const notoSerif = Noto_Serif({
   weight: ['400', '700'],
   display: "swap" 
 });
-const inter = Inter({ 
+const outfit = Outfit({ 
   subsets: ["latin"], 
-  variable: "--font-inter", 
+  variable: "--font-outfit", 
   display: "swap" 
 });
 
@@ -54,7 +54,7 @@ export default function RootLayout({
     <html lang="en-IN">
       <head>
       </head>
-      <body className={`${notoSerif.variable} ${inter.variable} font-sans`} suppressHydrationWarning>
+      <body className={`${notoSerif.variable} ${outfit.variable} font-sans`} suppressHydrationWarning>
         <PwaRegistry />
         <AuthProvider>
         <LanguageProvider>

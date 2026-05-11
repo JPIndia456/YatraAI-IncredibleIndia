@@ -814,7 +814,7 @@ export default function YatraStudio() {
     const generatedPNR = 'YA-' + Math.random().toString(36).substring(2, 8).toUpperCase();
     const passengerSummary = passengers.map((p: any) => `${p.name} (${p.type === 'adult' ? 'A' : 'K'})`).join(', ');
 
-    const travelStatus = 'CONFIRMED';
+    const travelStatus = 'confirmed';
     setStage('success');
 
     const statusHeadline = 'Booking Confirmed';

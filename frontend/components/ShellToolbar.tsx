@@ -40,7 +40,6 @@ export default function ShellToolbar() {
   const navLinks = [
     { label: t('profile'), icon: User, href: '/profile', color: 'from-green to-emerald-900' },
     { label: t('planner_label'), icon: Map, href: '/planner', color: 'from-saffron to-yellow-500' },
-    { label: t('my_trips'), icon: ClipboardList, href: '/my-trip', color: 'from-saffron to-yellow-600' },
   ];
 
   const showMobileBottomDock = pathname !== '/' && !pathname.startsWith('/planner');
@@ -66,9 +65,9 @@ export default function ShellToolbar() {
           </div>
           <div className="hidden sm:block">
             <div className="text-xl font-semibold tracking-tight text-zinc-900 group-hover:text-saffron transition-colors leading-none">
-              YA<span className="text-saffron font-bold">TRA 🇮🇳</span>
+              YA<span className="text-saffron font-bold">TRA</span>
             </div>
-            <div className="text-[10px] text-saffron opacity-70 group-hover:opacity-100 transition-opacity mt-1 uppercase tracking-wide font-medium">
+            <div className="text-[11px] text-saffron opacity-90 group-hover:opacity-100 transition-opacity mt-1 uppercase tracking-wider font-bold">
               Intelligence • Odyssey
             </div>
           </div>
@@ -83,7 +82,7 @@ export default function ShellToolbar() {
                <button
                  key={href}
                  onClick={() => router.push(href)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all relative group overflow-hidden ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all relative group overflow-hidden ${
                     isActive ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-800'
                   }`}
                >
@@ -129,49 +128,62 @@ export default function ShellToolbar() {
             </div>
           </div>
 
-          {/* Avatar / User — desktop */}
-          <div
-            onClick={() => {
-              if (user) {
-                router.push('/profile');
-              } else if (pathname === '/') {
-                document.getElementById('auth')?.scrollIntoView({ behavior: 'smooth' });
-              } else {
-                router.push('/');
-              }
-            }}
-            className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-zinc-200 cursor-pointer group"
-          >
-            {authLoading ? (
-              <div className="w-9 h-9 bg-zinc-100 rounded-2xl animate-pulse" />
-            ) : (
-              <div className="w-9 h-9 bg-gradient-to-br from-saffron to-yellow-500 rounded-2xl flex items-center justify-center text-xs font-bold text-white group-hover:scale-110 transition-transform overflow-hidden">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt={userName} className="w-full h-full object-cover" />
-                ) : (
-                  initials || '?'
-                )}
+          {/* Avatar / User — desktop with Dropdown */}
+          <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-zinc-200 relative group/profile">
+            <div
+              onClick={() => router.push('/profile')}
+              className="flex items-center gap-2.5 cursor-pointer group"
+            >
+              {authLoading ? (
+                <div className="w-9 h-9 bg-zinc-100 rounded-2xl animate-pulse" />
+              ) : (
+                <div className="w-9 h-9 bg-gradient-to-br from-saffron to-yellow-500 rounded-2xl flex items-center justify-center text-xs font-bold text-white group-hover:scale-110 transition-transform overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={userName} className="w-full h-full object-cover" />
+                  ) : (
+                    initials || '?'
+                  )}
+                </div>
+              )}
+              <div className="hidden lg:block">
+                <div className="text-xs text-zinc-400 uppercase font-bold tracking-wide">
+                  {user ? t('account') : t('sign_in')}
+                </div>
+                <div className="text-xs font-medium text-zinc-700 max-w-[100px] truncate">{userName}</div>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 text-zinc-400 group-hover/profile:rotate-180 transition-transform" />
+            </div>
+
+            {/* Profile Dropdown */}
+            {user && (
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-zinc-200 rounded-2xl shadow-xl opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible transition-all flex flex-col z-50 p-2 overflow-hidden">
+                <button
+                  onClick={() => router.push('/profile')}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 rounded-xl transition-all"
+                >
+                  <User className="w-4 h-4 text-green" />
+                  {t('profile')}
+                </button>
+                <button
+                  onClick={() => router.push('/my-trip')}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 rounded-xl transition-all"
+                >
+                  <ClipboardList className="w-4 h-4 text-saffron" />
+                  {t('my_trips')}
+                </button>
+                <div className="h-px bg-zinc-100 my-1 mx-2" />
+                <button
+                  onClick={async () => { await signOut(); router.push('/'); }}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {t('sign_out')}
+                </button>
               </div>
             )}
-            <div className="hidden lg:block">
-              <div className="text-[10px] text-zinc-400 uppercase font-semibold tracking-wide">
-                {user ? t('account') : t('sign_in')}
-              </div>
-              <div className="text-xs font-medium text-zinc-700 max-w-[100px] truncate">{userName}</div>
-            </div>
           </div>
 
-          {user && (
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={async () => { await signOut(); router.push('/'); }}
-              className="hidden sm:flex p-2.5 rounded-2xl hover:bg-red-500/5 border border-transparent hover:border-red-500/10 text-zinc-400 hover:text-red-500 transition-all"
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4" />
-            </motion.button>
-          )}
+
 
           <motion.button
             whileHover={{ scale: 1.1 }}

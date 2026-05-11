@@ -711,7 +711,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Sparkles className="w-5 h-5 text-saffron" />
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('select_intelligence_tier', 'Select Your Travel Style')}</h4>
+              <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('select_intelligence_tier', 'Select Your Travel Style')}</h4>
             </div>
             <div className="grid grid-cols-3 gap-4">
               {[

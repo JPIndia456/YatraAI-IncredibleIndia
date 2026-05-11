@@ -43,6 +43,12 @@ function buildTourGuideSystemPrompt(context: Record<string, any>): string {
     dislikes = [],
   } = context ?? {};
 
+  // Safety: Ensure array fields are actually arrays
+  const safePrefs = Array.isArray(preferences) ? preferences : [];
+  const safeLikes = Array.isArray(likes) ? likes : [];
+  const safeDislikes = Array.isArray(dislikes) ? dislikes : [];
+  const safeFeatures = Array.isArray(features) ? features : [];
+
   const name = userName && !["Traveler", "traveler"].includes(userName)
     ? userName.split(" ")[0]
     : null;
@@ -66,13 +72,13 @@ function buildTourGuideSystemPrompt(context: Record<string, any>): string {
     resolvedReturn     ? `Return: ${resolvedReturn}`          : null,
     `Budget: ${inr(resolvedBudget)}`,
     `Party Size: ${resolvedParty} traveller${resolvedParty > 1 ? "s" : ""}`,
-    preferences.length ? `Preferences: ${preferences.join(", ")}` : null,
-    features.length    ? `Features: ${features.join(", ")}`   : null,
-    trip_style         ? `Trip Style: ${trip_style}`          : null,
-    constraints        ? `Constraints: ${constraints}`        : null,
-    user_persona       ? `User Persona: ${user_persona}`       : null,
-    likes.length       ? `Likes: ${likes.join(", ")}`         : null,
-    dislikes.length    ? `Dislikes: ${dislikes.join(", ")}`      : null,
+    safePrefs.length    ? `Preferences: ${safePrefs.join(", ")}` : null,
+    safeFeatures.length ? `Features: ${safeFeatures.join(", ")}`  : null,
+    trip_style          ? `Trip Style: ${trip_style}`            : null,
+    constraints         ? `Constraints: ${constraints}`          : null,
+    user_persona        ? `User Persona: ${user_persona}`        : null,
+    safeLikes.length    ? `Likes: ${safeLikes.join(", ")}`       : null,
+    safeDislikes.length ? `Dislikes: ${safeDislikes.join(", ")}`    : null,
     conversation_summary ? `Prior Context: ${conversation_summary}` : null,
   ].filter(Boolean).join("\n  ");
 
@@ -134,8 +140,8 @@ function buildTourGuideSystemPrompt(context: Record<string, any>): string {
 
   AVAILABILITY RULE:
   - For Flights and Trains: Only recommend options that are active/available in the 'plannerSearchData'. If an option is marked as disabled or unavailable, do NOT show it.
-  - For Hotels: You MAY suggest new hotels via Google Search grounding. If a hotel is explicitly listed in 'plannerSearchData' as disabled, do NOT recommend it.
   - If a requested option is unavailable, politely inform the user.
+  - **BUDGET GUARDIAN RULE (STRICT)**: When suggesting new hotels or services via [DISCOVERY] tags, you MUST ensure the price does NOT exceed ${inr(resolvedBudget)} by more than ₹2,000. Never suggest something wildly expensive. Prioritize options BELOW the budget.
   - Do NOT actually book or charge; only recommend and prepare details.`;
 
   const destinationSnapshotRules =
@@ -174,6 +180,7 @@ When the user asks about nearby places (restaurants, clubs, sightseeing, markets
     ? `VOICE MODE — STRICT RULES:
   - Answer in MAX 1-2 short natural sentences. Zero lists, zero markdown.
   - Never restate destination, dates, or budget — the user already knows.
+  - NEVER end a sentence with the destination name (e.g., don't say "...in Jaipur") unless specifically asked.
   - Sound like a knowledgeable friend on a quick phone call.`
     : `TEXT MODE RULES:
   - Use Markdown (bold, bullets) to make responses scannable.
@@ -183,7 +190,7 @@ When the user asks about nearby places (restaurants, clubs, sightseeing, markets
   const destinationBriefDirective =
     destinationBriefFormat === true
       ? `
-ACTIVE REQUEST FLAG: context.destinationBriefFormat === true — your NEXT reply MUST follow DESTINATION SNAPSHOT (six headers, ≤20 words each section after colon, search grounding).`
+ACTIVE REQUEST DIRECTIVE: context.destinationBriefFormat === true — your NEXT reply MUST follow DESTINATION SNAPSHOT (six headers, ≤20 words each section after colon, search grounding).`
       : "";
 
   // ── Tour Card generation rules ───────────────────────────────────────────────
@@ -224,7 +231,7 @@ CORE IDENTITY:
     * "My budget" -> ${inr(resolvedBudget)}
     * "My dates" -> ${resolvedDeparture} to ${resolvedReturn}
     * "My party" -> ${resolvedParty} people
-    * "My preferences" -> ${preferences.join(", ")}
+    * "My preferences" -> ${safePrefs.join(", ")}
   - **No Redundancy**: If a field is in the shared state, NEVER ask for it again.
   - **Respect Constraints**: If a user has specified "Vegetarian" or "Wheelchair access" in the constraints/preferences, only suggest options that fit.
   - Use the current state to generate relevant, personalised Indian travel suggestions.
@@ -247,7 +254,11 @@ INTERACTION RULES:
   - If the user provides preferences (family, romantic, adventure, luxury, spiritual, food, nature, nightlife, shopping), adapt tour cards and suggestions.
   - If the user provides features (hotel included, flights included, guided tours, private car, meals, visa help, sightseeing passes), reflect them in tour discovery.
   - If no good match exists, explain what is missing and ask for the next most useful field.
-  - Budget Guardian: only flag budget concerns when a user's specific request CLEARLY exceeds ${inr(resolvedBudget)}.
+  - **Budget Guardian (CRITICAL)**: You are strictly responsible for the traveller's financial safety. 
+    - **HARD BUDGET LIMIT**: Do NOT suggest ANY item or Discovery Card that exceeds ${inr(resolvedBudget)} by more than ₹2,000. 
+    - **DAILY CALCULATION**: If dates are known, divide the budget by the number of nights. If budget is ₹20,000 for 5 nights, you only have ~₹4,000 per night. Suggesting a ₹10,000/night hotel is a FAILURE.
+    - **NO EXCEPTIONS**: If you cannot find a 5-star hotel within this budget, do NOT suggest one; suggest a high-rated 3-star instead.
+    - **WARNING**: If a user request is impossible within ${inr(resolvedBudget)}, you MUST explicitly say: "I cannot find options for that specific luxury tier within your ₹X budget. Here are the best value alternatives instead."
 
 SPECIALIST AREAS: Street food, nightlife, local hacks, trains, flights, hotels, safety, culture, Indian pilgrimages, heritage sites.
 LANGUAGE: ${resolvedLang.toUpperCase()}. Respond in this language unless the user explicitly switches.

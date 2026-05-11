@@ -111,183 +111,143 @@ const QuickReplyChips = memo(function QuickReplyChips({ chips, onSelect, disable
 
 // ── Discovery Card (for AI-grounded suggestions not in searchData) ────────
 const DiscoveryCard = memo(function DiscoveryCard({ data }: { data: Record<string, string> }) {
-  const { setMixPicks } = useTripPlannerStore();
   const type = data.type?.toLowerCase() || 'stay';
   
   const Icon = type === 'air' || type === 'flight' ? Plane : 
                type === 'rail' || type === 'train' ? Train : 
                type === 'stay' || type === 'hotel' ? Hotel : Car;
-               
-  const colorClass = (type === 'air' || type === 'flight') ? 'text-green bg-green/10 border-green/20' : 
-                     (type === 'rail' || type === 'train') ? 'text-green bg-green/10 border-green/20' :
-                     (type === 'stay' || type === 'hotel') ? 'text-saffron bg-saffron/10 border-saffron/20' :
-                     'text-saffron bg-saffron/10 border-saffron/20';
 
-  const name = data.name || 'Suggested Option';
-  const price = data.price ? (data.price.startsWith('₹') ? data.price : `₹${data.price}`) : 'Check Price';
-  const stars = data.stars ? '★'.repeat(parseInt(data.stars)) : '';
-  const detail = [stars, data.features || data.detail].filter(Boolean).join(' · ');
+  const title = data.destination || data.title || data.name || 'Elite Suggestion';
+  const budget = data.budget || data.price || 'Check App';
+  const duration = data.duration || 'Flexible';
+
+  // Dynamic image based on title/type
+  const query = encodeURIComponent(`${title} ${type} india`);
+  const imageUrl = `https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=600`; // Fallback Taj Mahal
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }} 
-      animate={{ opacity: 1, scale: 1 }}
-      className="bg-white border border-slate-200 rounded-2xl p-4 mt-3 space-y-3 shadow-2xl group relative overflow-hidden"
-    >
-      <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
-        <Sparkles className="w-12 h-12 text-[#1A1A2E]" />
-      </div>
-      
-      <div className="flex justify-between items-start gap-3 relative z-10">
-        <div className="flex gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${colorClass}`}>
-            <Icon size={18} />
+    <div className="bg-white rounded-[2rem] p-0 overflow-hidden shadow-2xl border border-slate-50 hover:border-[#FF9933]/20 transition-all group mt-4">
+      <div className="relative h-32 overflow-hidden">
+        <img 
+          src={`https://source.unsplash.com/featured/?${query}`} 
+          alt={title}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s]"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = imageUrl;
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/10 to-transparent" />
+        <div className="absolute top-4 left-4">
+          <div className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-full border border-orange-100 flex items-center gap-2 shadow-lg">
+            <Sparkles className="w-3 h-3 text-saffron" />
+            <span className="text-[10px] font-black text-[#1A1A2E] uppercase tracking-widest italic">AI Discovery</span>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-black text-[#1A1A2E] uppercase tracking-tight truncate">{name}</p>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider truncate mt-0.5">{detail}</p>
-          </div>
-        </div>
-        <div className="text-right shrink-0">
-          <div className="text-sm font-black text-[#1A1A2E] italic">{price}</div>
-          {(type === 'stay' || type === 'hotel') && <p className="text-[7px] text-slate-400 font-bold uppercase mt-0.5">(Per night before taxes)</p>}
         </div>
       </div>
       
-      <button
-        onClick={() => {
-          const tierItem = {
-            label: (type === 'air' || type === 'flight') ? 'Flight' : (type === 'rail' || type === 'train') ? 'Train' : (type === 'stay' || type === 'hotel') ? 'Hotel' : 'Taxi',
-            name: name,
-            detail: detail,
-            price: price,
-            priceNum: parseInt(price.replace(/[₹,]/g, '')) || 0,
-            icon: Icon,
-            raw: data
-          };
-
-          if (type === 'air' || type === 'flight' || type === 'rail' || type === 'train') setMixPicks({ transport: { ...tierItem, source: data.source } });
-          else if (type === 'stay' || type === 'hotel') setMixPicks({ hotel: { ...tierItem, source: data.source } });
-          else if (type === 'mobility') setMixPicks({ local: { ...tierItem, source: data.source } });
-          
-          toast.success(`Added ${name} to your Odyssey plan!`);
-        }}
-        className="w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all bg-white text-[#1A1A2E] hover:bg-saffron hover:text-white shadow-xl shadow-black/5 active:scale-95 border border-orange-100"
-      >
-        Select & Add to Plan →
-      </button>
-
-      {data.link && (
-        <a 
-          href={data.link} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 text-[8px] font-black text-slate-500 hover:text-[#1A1A2E] uppercase tracking-widest transition-all mt-1"
-        >
-          <Globe className="w-2.5 h-2.5" /> View Website
-        </a>
-      )}
-    </motion.div>
+      <div className="p-6 pt-2 space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-[#FF9933]/5 flex items-center justify-center border border-[#FF9933]/10">
+            <Icon className="w-6 h-6 text-[#FF9933]" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Elite Discovery</p>
+            <h4 className="text-xl font-black text-[#1A1A2E] uppercase tracking-tighter leading-none">{title}</h4>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-6 py-4 border-y border-slate-100">
+          <div className="flex-1">
+             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Investment</p>
+             <p className="text-lg font-black text-[#046A38] uppercase tracking-tighter">{budget}</p>
+          </div>
+          <div className="w-px h-8 bg-slate-100" />
+          <div className="flex-1 text-right">
+             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Duration</p>
+             <p className="text-lg font-black text-[#1A1A2E] uppercase tracking-tighter">{duration}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 });
 
+
+
 // ── Selection Card (for e-cart options in chat) ───────────────────────────
-const SelectionCard = memo(function SelectionCard({ type, index }: { type: string; index: number }) {
+
+
+const AIBrainSelectionCard = memo(function AIBrainSelectionCard({ type, index }: { type: string; index: number }) {
   const { searchData, setMixPicks, mixPicks } = useTripPlannerStore();
   
-  // Map internal type to searchData keys
-  const categoryMap: Record<string, keyof typeof searchData> = {
-    air: 'flights',
-    rail: 'trains',
-    stay: 'hotels',
-    mobility: 'taxis'
-  };
+  const Icon = type === 'air' || type === 'flight' ? Plane : 
+               type === 'rail' || type === 'train' ? Train : 
+               type === 'stay' || type === 'hotel' ? Hotel : Car;
 
-  const category = categoryMap[type];
-  const item = category ? searchData[category]?.[index] : null;
+  const data = (type === 'air' || type === 'flight') ? searchData?.flights?.[index] :
+               (type === 'rail' || type === 'train') ? searchData?.trains?.[index] :
+               (type === 'stay' || type === 'hotel') ? searchData?.hotels?.[index] :
+               searchData?.taxis?.[index];
 
-  // If already selected something for this category, don't show the choice anymore
-  const currentPick = type === 'stay' ? mixPicks.hotel : 
-                     (type === 'air' || type === 'rail') ? mixPicks.transport : 
-                     mixPicks.local;
-                     
-  if (currentPick) return null;
+  if (!data) return null;
 
-  if (!item) return <div className="text-[9px] text-black/30 italic px-3 py-1">Option no longer available</div>;
+  // Logic: Hide if already selected for this category
+  const isSelected = (type === 'stay' || type === 'hotel') ? mixPicks.hotel : mixPicks.transport;
+  if (isSelected && (isSelected.name === data.name || isSelected.operator === data.operator)) return null;
 
-  // Handle "grey" (disabled) options
-  if (item.disabled || item.status === 'unavailable') {
-    return (
-      <div className="bg-slate-50/50 border border-black/5 rounded-xl p-3 mt-2 opacity-60 grayscale">
-        <div className="flex justify-between items-start gap-3">
-          <div className="flex-1">
-            <p className="text-[10px] font-black text-black/50 uppercase tracking-tight">{item.name || item.label}</p>
-            <p className="text-[9px] text-black/30 font-bold uppercase mt-0.5">Not Available Currently</p>
-          </div>
-          <X className="w-3 h-3 text-black/30" />
-        </div>
-      </div>
-    );
-  }
-
-  const Icon = type === 'air' ? Plane : type === 'rail' ? Train : type === 'stay' ? Hotel : Car;
-  const colorClass = type === 'air' ? 'text-green bg-green/10 border-green/20' : 
-                     type === 'rail' ? 'text-green bg-green/10 border-green/20' :
-                     type === 'stay' ? 'text-saffron bg-saffron/10 border-saffron/20' :
-                     'text-saffron bg-saffron/10 border-saffron/20';
-
-  // Normalize display data
-  const displayName = type === 'air' ? `${item.airline} ${item.flight}` : 
-                      (item.name || item.label || item.operator || 'Option');
-  const displayDetail = (type === 'air' || type === 'rail') ? `${item.departure} → ${item.arrival}` :
-                        (item.area || item.detail || item.mode || 'Standard Option');
+  const name = data.name || data.operator || data.airline || 'Suggested Option';
+  const price = data.price ? (data.price.startsWith('₹') ? data.price : `₹${data.price}`) : 'Check Price';
+  const detail = data.features || data.detail || data.arrival ? `${data.departure} → ${data.arrival}` : 'Elite Choice';
+  const isUnavailable = data.disabled || data.status === 'unavailable';
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }} 
-      animate={{ opacity: 1, scale: 1 }}
-      className="bg-white border border-black/5 rounded-xl p-3 mt-2 space-y-2.5 shadow-xl group"
-    >
-      <div className="flex justify-between items-start gap-3">
-        <div className="flex gap-2.5">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${colorClass}`}>
-            <Icon size={16} />
+    <div className={`bg-white rounded-[2rem] p-6 space-y-4 shadow-xl border border-slate-50 hover:border-[#FF9933]/20 transition-all group mt-4 ${isUnavailable ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-[#FF9933]/5 flex items-center justify-center border border-[#FF9933]/10">
+            <Icon className="w-6 h-6 text-[#FF9933]" />
           </div>
-          <div className="min-w-0">
-            <p className="text-[11px] font-black text-[#1A1A2E] uppercase tracking-tight truncate">{displayName}</p>
-            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider truncate">{displayDetail}</p>
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{isUnavailable ? 'Sold Out' : `Elite ${type}`}</p>
+            <h4 className="text-xl font-black text-[#1A1A2E] uppercase tracking-tighter leading-none truncate max-w-[180px]">{name}</h4>
           </div>
         </div>
-        <div className="text-right shrink-0">
-          <div className="text-xs font-black text-[#1A1A2E] italic">{item.price}</div>
-          {type === 'stay' && <p className="text-[7px] text-slate-400 font-bold uppercase mt-0.5">(Per night before taxes)</p>}
-        </div>
+        {!isUnavailable && (
+          <div className="text-right">
+             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Investment</p>
+             <p className="text-xl font-black text-[#046A38] uppercase tracking-tighter">{price}</p>
+          </div>
+        )}
       </div>
-      
-      <button
-        onClick={() => {
-          // Convert raw item to TierItem format
-          const tierItem = {
-            label: type === 'air' ? 'Flight' : type === 'rail' ? 'Train' : type === 'stay' ? 'Hotel' : 'Taxi',
-            name: displayName,
-            detail: displayDetail,
-            price: item.price,
-            priceNum: parseInt(item.price?.replace(/[₹,]/g, '')) || 0,
-            icon: Icon,
-            raw: item
-          };
-
-          if (type === 'air' || type === 'rail') setMixPicks({ transport: { ...tierItem, source: item.source } });
-          else if (type === 'stay') setMixPicks({ hotel: { ...tierItem, source: item.source } });
-          else if (type === 'mobility') setMixPicks({ local: { ...tierItem, source: item.source } });
-          // Do not advance planner stage here — user must confirm on Step Selection ("Confirm all choices")
-          // or use the stage navigator / primary CTAs. Jumping to booking caused the Select Options screen to flash away.
-        }}
-        className="w-full py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all border border-orange-100 bg-white text-[#1A1A2E] hover:bg-saffron hover:text-white shadow-lg active:scale-95"
-      >
-        Select & Add to Plan
-      </button>
-    </motion.div>
+      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-tight line-clamp-1 border-t border-slate-50 pt-4">
+        {detail}
+      </p>
+      {!isUnavailable && (
+        <button
+          onClick={() => {
+             const tierItem = {
+               label: type.charAt(0).toUpperCase() + type.slice(1),
+               name,
+               detail,
+               price,
+               priceNum: parseInt(price.replace(/[₹,]/g, '')) || 0,
+               icon: Icon,
+               raw: data
+             };
+             const pick: any = {};
+             if (type === 'air' || type === 'flight' || type === 'rail' || type === 'train') pick.transport = tierItem;
+             else if (type === 'stay' || type === 'hotel') pick.hotel = tierItem;
+             else pick.local = tierItem; 
+             
+             setMixPicks(pick);
+             toast.success(`Selected ${name}`);
+          }}
+          className="w-full py-4 bg-[#FF9933] text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg active:scale-95"
+        >
+          Select & Proceed
+        </button>
+      )}
+    </div>
   );
 });
 
@@ -320,16 +280,16 @@ const MessageBubble = memo(function MessageBubble({
     >
       {/* Avatar */}
       {!isUser && (
-        <div className="w-6 h-6 rounded-xl bg-gradient-to-br from-saffron to-orange-600 flex items-center justify-center shrink-0 mt-1 shadow-lg shadow-saffron/20">
-          <Sparkles className="w-3 h-3 text-white" />
+        <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 mt-1 shadow-md border border-saffron/30 bg-white">
+          <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-[center_15%] scale-[2.8]" />
         </div>
       )}
       <div className={`max-w-[86%] ${ !isUser ? 'w-full' : '' }`}>
         <div
-          className={`px-3 py-2 rounded-xl text-[12px] leading-relaxed font-medium
+          className={`px-5 py-4 rounded-3xl text-sm leading-relaxed font-bold shadow-sm
             ${isUser
-              ? 'bg-[#FF671F] text-white rounded-tr-sm shadow-md'
-              : 'bg-black/5 border border-black/10 text-black/90 rounded-tl-sm'
+              ? 'bg-[#FF9933] text-white rounded-tr-sm shadow-orange-200'
+              : 'bg-white border border-slate-100 text-[#1A1A2E] rounded-tl-sm'
             }`}
         >
           {/* Render content using ReactMarkdown, but hide [SELECT:...] and [UPDATE:...] tags from the UI */}
@@ -390,7 +350,7 @@ const MessageBubble = memo(function MessageBubble({
             return (
               <div className="space-y-2 mt-2">
                 {selectMatches.map((m, idx) => (
-                  <SelectionCard key={idx} type={m[1].trim()} index={parseInt(m[2].trim())} />
+                  <AIBrainSelectionCard key={idx} type={m[1].trim()} index={parseInt(m[2].trim())} />
                 ))}
               </div>
             );
@@ -430,8 +390,8 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
     {plannerStage === 'booking' && (
       <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 space-y-3 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-saffron/10 flex items-center justify-center border border-saffron/20">
-            <Send className="w-5 h-5 text-saffron" />
+          <div className="w-12 h-12 rounded-2xl overflow-hidden border border-saffron/30 shadow-lg shrink-0 bg-white">
+            <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-[center_15%] scale-[2.8]" />
           </div>
           <div className="text-left">
             <p className="text-micro font-black text-saffron uppercase tracking-widest">Active Safety</p>
@@ -1160,7 +1120,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
 
   useEffect(() => { runServerVoiceToggleRef.current = runServerVoiceToggle; }, [runServerVoiceToggle]);
 
-  const handleVoiceInput = useCallback(() => {
+  const handleVoiceInput = useCallback((action?: 'start' | 'stop') => {
     // ── BARGE-IN LOGIC (Interruptibility) ──
     if (audioRef.current) {
       audioRef.current.pause();
@@ -1199,14 +1159,23 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
       return;
     }
 
-    if (isListening) {
+    const currentlyListening = isListening || !!recognitionRef.current;
+    const shouldStop = action === 'stop' || (action === undefined && currentlyListening);
+
+    if (shouldStop) {
       setIsListening(false);
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // ignore
+        }
         recognitionRef.current = null;
       }
       return;
     }
+
+    if (action === 'start' && currentlyListening) return;
 
     setIsListening(true);
     const recognition = new Recognition();
@@ -1230,12 +1199,15 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
     };
 
     recognition.onerror = (event: any) => {
-      if (event.error === 'no-speech') {
+      if (event.error === 'no-speech' || event.error === 'aborted') {
         setIsListening(false);
+        recognitionRef.current = null;
         return;
       }
       console.error('Speech Error:', event.error);
       setIsListening(false);
+      recognitionRef.current = null;
+
       if (event.error === 'network') {
         speechNetworkBlockedRef.current = true;
         setServerVoiceFallbackUi(true);
@@ -1243,9 +1215,19 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
       }
     };
 
-    recognition.onend = () => setIsListening(false);
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
     recognitionRef.current = recognition;
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (e) {
+      console.warn('Speech start error:', e);
+      setIsListening(false);
+      recognitionRef.current = null;
+    }
   }, [language, isListening, handleStop, setUseVoiceMode, setInputValue, runServerVoiceToggle]);
 
   useEffect(() => { handleVoiceInputRef.current = handleVoiceInput; }, [handleVoiceInput]);
@@ -1255,12 +1237,26 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
     const onDone = () => {
       setIsSpeaking(false);
       if (useVoiceModeRef.current && useAIBrainStore.getState().isOpen && !speechNetworkBlockedRef.current) {
-        setTimeout(() => handleVoiceInputRef.current?.(), 500);
+        setTimeout(() => handleVoiceInputRef.current?.('start'), 500);
       }
     };
 
+    // ── Clean technical tags and markdown before speaking ──
+    const cleanText = text
+      .replace(/\[UPDATE:.*?\]/g, '')
+      .replace(/\[SELECT:.*?\]/g, '')
+      .replace(/\[DISCOVERY:.*?\]/g, '')
+      .replace(/\*\*(.*?):\*\*/g, '$1') // Remove bold markers from headers
+      .replace(/[#*_~`]/g, '')           // Remove remaining markdown characters
+      .trim();
+
+    if (!cleanText) {
+      onDone();
+      return;
+    }
+
     try {
-      const audioBase64 = await generateIndianVoice(text, language);
+      const audioBase64 = await generateIndianVoice(cleanText, language);
       if (audioBase64) {
         if (audioRef.current) audioRef.current.pause();
         audioRef.current = new Audio(`data:audio/wav;base64,${audioBase64}`);
@@ -2098,7 +2094,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
               {useVoiceMode ? (
                 <div className="flex flex-col items-center gap-2 py-2">
                   <button
-                    onClick={handleVoiceInput}
+                    onClick={() => handleVoiceInput()}
                     className={`relative w-14 h-14 rounded-full transition-all flex items-center justify-center
                       ${isListening || isServerVoiceRecording
                         ? 'bg-saffron shadow-[0_0_28px_rgba(255,103,31,0.65)] scale-110 animate-pulse'

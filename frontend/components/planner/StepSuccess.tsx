@@ -3,7 +3,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CheckCircle2, Calendar, MapPin, Share2, ArrowRight, Send, Zap, AlertCircle, 
-  Sparkles, ShieldCheck, Utensils, Info, ChevronRight, Download, CloudSun
+  Sparkles, ShieldCheck, Utensils, Info, ChevronRight, Download, CloudSun,
+  Camera, ShoppingBag, Compass
 } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { useTripPlannerStore, useTourGuideStore, useAIBrainStore } from '@/lib/store';
@@ -26,11 +27,13 @@ export default function StepSuccess({
   const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'insights'>('overview');
 
 
-
-  const confirmationSuffix = bookingId && bookingId.length >= 8 ? bookingId.slice(0, 8).toUpperCase() : 'PENDING';
+  const confirmationSuffix = useMemo(() => 
+    bookingId && bookingId.length >= 8 ? bookingId.slice(0, 8).toUpperCase() : 'PENDING'
+  , [bookingId]);
 
   // ── Helpers ──
   const renderableDayPlan = useMemo(() => {
+    if (!activeItinerary) return [];
     const city = (activeItinerary?.to || destination || 'Selected City').toLowerCase();
     const dp = activeItinerary?.dayPlan || [];
     
@@ -116,6 +119,8 @@ export default function StepSuccess({
     return Object.values(list).slice(0, 4).map((f: any) => typeof f === 'string' ? f : f.name);
   }, [activeItinerary]);
 
+  if (!activeItinerary) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -134,16 +139,16 @@ export default function StepSuccess({
             <CheckCircle2 className="w-7 h-7 text-[#046A38]" />
           </div>
         </div>
-        <div className="space-y-1">
-          <h1 className="text-3xl font-black text-[#FF9933] italic uppercase tracking-tighter">
+        <div className="space-y-2">
+          <h1 className="text-6xl font-black text-[#FF9933] uppercase tracking-tighter leading-none">
             Odyssey Confirmed
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Booking ID: {confirmationSuffix}</p>
+          <p className="text-sm font-black text-slate-400 uppercase tracking-[0.3em]">Booking ID: {confirmationSuffix}</p>
         </div>
       </div>
 
       {/* ── Master Plan Tabs ── */}
-      <div className="shell-panel overflow-hidden border-slate-200 bg-white shadow-3xl">
+      <div className="glass-panel overflow-hidden border-slate-200/50 bg-white shadow-[0_32px_64px_-15px_rgba(0,0,0,0.1)]">
         {/* Tab Headers */}
         <div className="flex border-b bg-slate-50/50">
           {[
@@ -168,27 +173,32 @@ export default function StepSuccess({
           <AnimatePresence mode="wait">
             {activeTab === 'overview' && (
               <motion.div key="overview" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="space-y-8">
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-black text-[#FF9933] uppercase tracking-widest">Route Intelligence</p>
-                    <h3 className="text-3xl font-black text-[#FF9933] italic uppercase leading-none">{activeItinerary?.from || from_city} → {activeItinerary?.to || destination}</h3>
+                <div className="space-y-10">
+                  <div className="space-y-3">
+                    <p className="text-[14px] font-black text-[#FF9933] uppercase tracking-[0.25em]">Route Intelligence</p>
+                    <h3 className="text-6xl font-black text-[#1A1A2E] uppercase leading-[0.9] tracking-tighter">
+                       <span className="text-[#FF9933]">{activeItinerary?.from || from_city}</span> 
+                       <span className="mx-4 text-slate-200">/</span> 
+                       <span className="text-[#046A38]">{activeItinerary?.to || destination}</span>
+                    </h3>
                   </div>
                     <div className="space-y-6">
                       {[
-                        { icon: MapPin, label: 'Origin', val: activeItinerary?.from || from_city },
+                        { icon: MapPin, label: 'Origin', val: activeItinerary?.from || from_city, color: 'text-[#FF9933]', bg: 'bg-[#FF9933]/5' },
                         { icon: Calendar, label: 'Dates', val: (activeItinerary?.startDate && activeItinerary?.endDate) 
                           ? `${isoDateToDdMmYyyy(activeItinerary.startDate)} – ${isoDateToDdMmYyyy(activeItinerary.endDate)}` 
-                          : (departure_date ? `${isoDateToDdMmYyyy(departure_date)} – ${isoDateToDdMmYyyy(return_date)}` : '—') 
+                          : (departure_date ? `${isoDateToDdMmYyyy(departure_date)} – ${isoDateToDdMmYyyy(return_date)}` : '—'),
+                          color: 'text-[#003366]', bg: 'bg-[#003366]/5'
                         },
-                        { icon: CheckCircle2, label: 'Status', val: `Confirmed • PNR: ${confirmationSuffix}` }
+                        { icon: CheckCircle2, label: 'Status', val: `Confirmed • PNR: ${confirmationSuffix}`, color: 'text-[#046A38]', bg: 'bg-[#046A38]/5' }
                       ].map((s, i) => (
-                        <div key={i} className="flex gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                            <s.icon className="w-5 h-5 text-slate-400" />
+                        <div key={i} className="flex gap-6 items-center group/item">
+                          <div className={`w-16 h-16 rounded-[2rem] ${s.bg} flex items-center justify-center shrink-0 shadow-sm border border-slate-100 group-hover/item:scale-110 transition-transform`}>
+                            <s.icon className={`w-8 h-8 ${s.color}`} />
                           </div>
                           <div>
-                            <p className="text-[8px] font-black text-slate-400 uppercase">{s.label}</p>
-                            <p className="text-xs font-black text-[#FF9933] uppercase italic">{s.val || '—'}</p>
+                            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{s.label}</p>
+                            <p className={`text-xl font-black ${s.color} uppercase tracking-tighter`}>{s.val || '—'}</p>
                           </div>
                         </div>
                       ))}
@@ -196,20 +206,20 @@ export default function StepSuccess({
                 </div>
                 <div className="flex flex-col justify-center space-y-8">
                   {weather ? (
-                    <div className="bg-[#046A38] p-8 rounded-[2.5rem] text-white space-y-4 shadow-xl relative overflow-hidden group border-t-4 border-t-[#FF671F]">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl group-hover:bg-white/10 transition-all" />
-                      <div className="flex items-center justify-between relative">
+                    <div className="bg-[#046A38] p-10 rounded-[3rem] text-white space-y-6 shadow-2xl relative overflow-hidden group border-t-8 border-t-[#FF9933]">
+                      <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 blur-[80px] group-hover:bg-white/10 transition-all" />
+                      <div className="flex items-center justify-between relative z-10">
                         <div>
-                          <p className="text-[10px] font-black text-[#FF671F] uppercase tracking-widest leading-none mb-2">Climate Pulse</p>
-                          <h4 className="text-4xl font-black italic">{Math.round(weather.temp || 24)}°C</h4>
+                          <p className="text-[14px] font-black text-[#FF9933] uppercase tracking-[0.3em] leading-none mb-3">Climate Pulse</p>
+                          <h4 className="text-7xl font-black text-[#FF9933] tracking-tighter">{Math.round(weather.temp || 24)}°C</h4>
                         </div>
                         <div className="text-right">
-                          <CloudSun className="w-10 h-10 text-[#FF671F] mb-1 ml-auto" />
-                          <p className="text-[10px] font-black uppercase tracking-tighter opacity-80 italic">{weather.condition || 'Clear Sky'}</p>
+                          <CloudSun className="w-16 h-16 text-[#FF9933] mb-2 ml-auto animate-float" />
+                          <p className="text-sm font-black uppercase tracking-widest opacity-80">{weather.condition || 'Clear Sky'}</p>
                         </div>
                       </div>
-                      <div className="pt-4 border-t border-white/10">
-                        <p className="text-[11px] font-bold text-[#FF671F] uppercase italic">Perfect for Discovery</p>
+                      <div className="pt-6 border-t border-white/10 relative z-10">
+                        <p className="text-base font-black text-[#FF9933] uppercase tracking-tight">Perfect for Discovery</p>
                       </div>
                     </div>
                   ) : (
@@ -227,15 +237,64 @@ export default function StepSuccess({
                     </div>
                   )}
 
-                  <div className="bg-slate-50/50 border border-slate-100 p-8 rounded-[2.5rem] space-y-6 shadow-sm">
-                    <div className="grid grid-cols-[1fr_2fr] gap-4 items-start">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Travel Mode</p>
-                      <p className="text-sm font-black text-[#FF9933] uppercase italic leading-tight text-right md:text-left">{activeItinerary?.transport?.name || 'Standard'}</p>
+                  <div className="bg-slate-50 border border-slate-100 p-10 rounded-[3rem] space-y-8 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Travel Mode</p>
+                        <p className="text-xl font-black text-[#1A1A2E] uppercase tracking-tighter">{activeItinerary?.transport?.name || 'Standard'}</p>
+                      </div>
+                      <div className="w-px h-10 bg-slate-200" />
+                      <div className="flex flex-col text-right">
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Accommodation</p>
+                        <p className="text-xl font-black text-[#1A1A2E] uppercase tracking-tighter">{activeItinerary?.hotel?.name || 'Selected Stay'}</p>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-[1fr_2fr] gap-4 items-start pt-4 border-t border-slate-100">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Accommodation</p>
-                      <p className="text-sm font-black text-[#FF9933] uppercase italic leading-tight text-right md:text-left">{activeItinerary?.hotel?.name || 'Selected Stay'}</p>
-                    </div>
+                  </div>
+                </div>
+
+                {/* ── Odyssey Gallery ── */}
+                <div className="md:col-span-2 space-y-10 mt-6 pt-12 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 rounded-[2rem] bg-[#FF9933]/5 flex items-center justify-center border border-[#FF9933]/10 shadow-sm">
+                          <Camera className="w-8 h-8 text-[#FF9933]" />
+                        </div>
+                        <div>
+                          <h4 className="text-4xl font-black uppercase text-[#1A1A2E] tracking-tighter leading-none">{t('destination_gallery', 'Discovery Highlights')}</h4>
+                          <p className="text-sm font-black text-slate-400 uppercase tracking-[0.3em] mt-1">Monuments, Markets & Landscapes</p>
+                        </div>
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    {[
+                      { term: 'monument', label: 'Heritage Sites', icon: MapPin, img: '1524492412937-b28074a5d7da' },
+                      { term: 'market', label: 'Local Bazaars', icon: ShoppingBag, img: '1548013146-72479768bbaa' },
+                      { term: 'nature', label: 'Landscapes', icon: Compass, img: '1514222139-b5b273ce537d' },
+                      { term: 'food', label: 'Culinary Pulse', icon: Utensils, img: '1598305072041-3965b508f7f2' }
+                    ].map((item, i) => (
+                      <motion.div 
+                        key={i}
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 + i * 0.1 }}
+                        className="group relative aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-slate-100 shadow-xl hover:shadow-2xl transition-all duration-700"
+                      >
+                        <img 
+                          src={`https://images.unsplash.com/photo-${item.img}?auto=format&fit=crop&q=80&w=600`} 
+                          alt={item.label}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.5s] brightness-[0.8] group-hover:brightness-100"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-70 group-hover:opacity-40 transition-opacity" />
+                        <div className="absolute bottom-8 left-8 right-8 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <item.icon className="w-4 h-4 text-saffron" />
+                            <span className="text-[10px] font-black text-saffron uppercase tracking-[0.2em]">{item.label}</span>
+                          </div>
+                          <p className="text-sm font-black text-white uppercase tracking-tighter italic leading-none">{activeItinerary?.to || destination}</p>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
                 </div>
               </motion.div>
@@ -256,8 +315,8 @@ export default function StepSuccess({
                     
                     <div className="space-y-4">
                       <div className="space-y-1">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sequence 0{i + 1}</p>
-                        <h5 className="text-base font-black text-[#FF9933] uppercase italic leading-tight">{day.title || `Day ${i + 1}`}</h5>
+                        <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">Sequence 0{i + 1}</p>
+                        <h5 className="text-lg font-black text-[#FF9933] uppercase leading-tight">{day.title || `Day ${i + 1}`}</h5>
                       </div>
                       
                       <div className="grid grid-cols-1 gap-3">
@@ -281,7 +340,7 @@ export default function StepSuccess({
                           ))
                         ) : (
                           <div className="bg-slate-50 p-6 rounded-[1.5rem] border border-dashed border-slate-200">
-                            <p className="text-[11px] font-bold text-slate-400 uppercase text-center italic">Discovery details pending sync...</p>
+                            <p className="text-[12px] font-bold text-slate-500 uppercase text-center">Discovery details pending sync...</p>
                           </div>
                         )}
                       </div>
@@ -294,17 +353,34 @@ export default function StepSuccess({
             {activeTab === 'insights' && (
               <motion.div key="insights" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-8">
+                  <div className="bg-slate-50 border border-slate-100 p-8 rounded-[2.5rem]">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 rounded-2xl bg-saffron/10 flex items-center justify-center">
+                        <Sparkles className="w-6 h-6 text-saffron" />
+                      </div>
+                      <div>
+                        <h4 className="text-2xl font-black uppercase text-[#1A1A2E]">{t('odyssey_summary', 'Odyssey Summary')}</h4>
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none">Curated Discovery Intelligence</p>
+                      </div>
+                    </div>
+                    <p className="text-base text-slate-600 font-bold leading-relaxed italic border-l-4 border-saffron/30 pl-6 py-2">
+                      "{ (activeItinerary as any).summary || 'An incredible journey through the heart of India awaits you.' }"
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
                   <div className="bg-white border p-8 rounded-[2.5rem] space-y-6 shadow-sm hover:shadow-md transition-all">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-[#046A38]/10 flex items-center justify-center">
                         <ShieldCheck className="w-6 h-6 text-[#046A38]" />
                       </div>
                       <div>
-                        <h6 className="text-[10px] font-black text-[#046A38] uppercase tracking-widest">Grounding Score</h6>
-                        <p className="text-lg font-black text-[#FF9933]">9.8 / 10 Integrity</p>
+                        <h6 className="text-[12px] font-black text-[#046A38] uppercase tracking-widest">Grounding Score</h6>
+                        <p className="text-xl font-black text-[#FF9933]">9.8 / 10 Integrity</p>
                       </div>
                     </div>
-                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100">"{safetyTip}"</p>
+                    <p className="text-xs text-slate-600 font-bold leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">"{safetyTip}"</p>
                   </div>
                   
                   <div className="bg-white border p-8 rounded-[2.5rem] space-y-6 shadow-sm hover:shadow-md transition-all">
@@ -327,10 +403,17 @@ export default function StepSuccess({
 
                 <div className="bg-[#046A38] rounded-[2.5rem] p-8 text-white space-y-8 flex flex-col justify-center border border-slate-800 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF9933]/20 blur-3xl" />
-                  <div className="space-y-2 relative">
-                    <h4 className="text-xl font-black italic uppercase text-[#FF9933]">Travel Concierge</h4>
-                    <p className="text-[10px] text-white/90 font-medium leading-relaxed">Your AI travel assistant is synced with your PNR. You will receive real-time updates via Telegram regarding weather changes or delays.</p>
+                  <div className="flex items-center gap-4 relative">
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden border border-[#FF9933]/40 shadow-2xl shrink-0 bg-white">
+                      <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-[center_15%] scale-[2.8]" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="text-2xl font-black uppercase text-[#FF9933]">Travel Concierge</h4>
+                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none">Yatra Sahayak Active</p>
+                    </div>
                   </div>
+                  <p className="text-sm text-white/95 font-bold leading-relaxed relative">Your AI travel assistant is synced with your PNR. You will receive real-time updates via Telegram regarding weather changes or delays.</p>
+                  
                   <div className="grid grid-cols-2 gap-4 relative">
                      <button 
                         onClick={() => window.print()}
@@ -347,12 +430,12 @@ export default function StepSuccess({
         </div>
       </div>
 
-      {/* ── Payment / Actions ── */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-         <Link href="/my-trip" className="px-12 py-6 bg-[#046A38] text-white rounded-[2rem] font-black text-xs uppercase shadow-2xl hover:bg-[#035a2f] transition-all flex items-center gap-3">
-           {t('view_dashboard')} <ArrowRight className="w-4 h-4" />
+      {/* ── Odyssey Actions ── */}
+      <div className="flex flex-col sm:flex-row gap-6 justify-center">
+         <Link href="/my-trip" className="px-12 py-7 bg-[#046A38] text-white rounded-[2.5rem] font-black text-sm uppercase shadow-[0_20px_50px_rgba(4,106,56,0.3)] hover:bg-[#035a2f] transition-all flex items-center gap-4 hover:-translate-y-1">
+           {t('view_dashboard')} <ArrowRight className="w-5 h-5 text-[#FF9933]" />
          </Link>
-         <button onClick={onReset} className="px-12 py-6 bg-white text-[#FF9933] border-2 border-[#FF9933]/10 rounded-[2rem] font-black text-xs uppercase hover:bg-slate-50 transition-all">
+         <button onClick={onReset} className="px-12 py-7 bg-white text-[#FF9933] border-2 border-[#FF9933]/10 rounded-[2.5rem] font-black text-sm uppercase shadow-xl hover:bg-slate-50 transition-all hover:-translate-y-1">
            {t('plan_another')}
          </button>
       </div>

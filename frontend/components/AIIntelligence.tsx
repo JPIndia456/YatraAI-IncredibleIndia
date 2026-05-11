@@ -81,7 +81,7 @@ export default function AIIntelligence({ category, location }: { category: strin
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20">
           <Sparkles className="w-4 h-4 text-blue-400" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Deep AI Intelligence</span>
+          <span className="text-[11px] font-black uppercase tracking-widest text-blue-400">Deep AI Intelligence</span>
         </div>
         <h2 className="text-4xl font-black text-white tracking-tight">
           Curated Suggestions for <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-emerald-400 capitalize">{location}</span>

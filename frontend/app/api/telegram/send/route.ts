@@ -179,9 +179,17 @@ export async function POST(req: Request) {
 
     const result = await sendTelegramMessage(finalTo, message);
 
+    if (!result.ok) {
+      return NextResponse.json({
+        success: false,
+        error: result.description || 'Telegram API error',
+        code: result.error_code
+      }, { status: result.error_code === 403 ? 403 : 400 });
+    }
+
     return NextResponse.json({
       success: true,
-      to,
+      to: finalTo,
       type,
       result
     });

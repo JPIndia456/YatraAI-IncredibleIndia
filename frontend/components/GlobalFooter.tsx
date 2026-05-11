@@ -58,7 +58,7 @@ export default function GlobalFooter() {
         </div>
       </div>
       <div className="mt-10 pt-8 border-t border-orange-50 max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
+        <p className="text-slate-400 text-[11px] font-black uppercase tracking-widest">
           {T('footer_copyright', '© 2026 Yatra Intelligence Platform')}
         </p>
         <p className="text-slate-300 text-[9px] font-bold text-center leading-relaxed max-w-md uppercase tracking-tight italic">

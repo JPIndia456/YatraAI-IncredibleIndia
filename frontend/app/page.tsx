@@ -56,9 +56,8 @@ export default function LandingPage() {
       {/* ── CUSTOM HEADER FOR LANDING ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FDFDFB]/80 backdrop-blur-md border-b border-orange-100 px-6 py-4 pt-[7px]">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xl font-black tracking-[-0.02em] text-[#FF671F]">YATRA</span>
-            <span className="text-xl">🇮🇳</span>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl font-black tracking-[-0.05em] text-[#FF9933] uppercase">Yatra</span>
           </div>
           
           <div className="flex items-center gap-2">
@@ -89,17 +88,17 @@ export default function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-4xl w-full text-center"
         >
-          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black mb-8 tracking-tighter leading-[0.8] flex flex-col items-center">
-            <span className="text-[#FF671F] drop-shadow-sm uppercase tracking-[0.05em]">Discover</span>
-            <span className="text-[#000080]/80 text-3xl sm:text-6xl md:text-7xl uppercase tracking-tighter my-1">INCREDIBLE</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#046A38] to-[#024a27] uppercase drop-shadow-md">INDIA</span>
+          <h1 className="text-7xl sm:text-9xl md:text-[10rem] font-black mb-12 tracking-[-0.06em] leading-[0.75] flex flex-col items-center">
+            <span className="text-[#FF9933] drop-shadow-2xl uppercase">Discover</span>
+            <span className="text-[#000080]/90 text-4xl sm:text-7xl md:text-8xl uppercase tracking-[-0.04em] my-4">Incredible</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#046A38] to-[#024a27] uppercase drop-shadow-2xl">India</span>
           </h1>
           
-          <p className="text-sm sm:text-base md:text-lg text-[#000080]/80 mb-4 font-black tracking-tight">
+          <p className="text-lg sm:text-2xl text-[#000080]/80 mb-6 font-black tracking-tight uppercase">
             {t('personalized_itineraries')}
           </p>
 
-          <p className="text-xs sm:text-sm text-[#000080]/60 mb-8 max-w-2xl mx-auto font-medium leading-relaxed italic">
+          <p className="text-sm sm:text-lg text-[#000080]/60 mb-12 max-w-3xl mx-auto font-bold leading-relaxed italic">
             {t('plan_perfect_detour')}
           </p>
 
@@ -124,13 +123,13 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <div className="flex justify-center w-full">
+          <div className="flex justify-center w-full mt-8">
             <button 
               onClick={() => authRef.current?.scrollIntoView({ behavior: 'smooth' })}
-              className="flex items-center justify-center gap-3 px-8 py-4 bg-[#000080] text-white rounded-full font-black text-xs hover:bg-[#000060] transition-all group shadow-2xl shadow-blue-900/20"
+              className="flex items-center justify-center gap-6 px-16 py-8 bg-[#000080] text-white rounded-[2.5rem] font-black text-sm uppercase hover:bg-[#000060] transition-all group shadow-[0_20px_50px_rgba(0,0,128,0.3)] hover:-translate-y-1"
             >
               {t('start_odyssey')}
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform text-[#FF9933]" />
             </button>
           </div>
         </motion.div>

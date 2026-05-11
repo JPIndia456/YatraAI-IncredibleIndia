@@ -361,16 +361,22 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.4 }}
-        className="bg-sky-600/5 border border-sky-500/10 rounded-2xl p-6 space-y-4 shadow-xl"
+        className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-xl relative overflow-hidden"
       >
+        {/* Tricolour Accent Strip */}
+        <div className="absolute left-0 top-0 bottom-0 w-1.5 flex flex-col">
+          <div className="flex-1 bg-[#FF671F]" />
+          <div className="flex-1 bg-white" />
+          <div className="flex-1 bg-[#046A38]" />
+        </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-sky-500 flex items-center justify-center shadow-lg shadow-sky-500/20">
-              <Send className="w-5 h-5 text-zinc-950" />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#FF671F] via-[#FF671F] to-[#046A38] flex items-center justify-center shadow-lg shadow-saffron/20">
+              <Send className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-sky-400 uppercase tracking-[0.2em]">{t('booking_ready_for_booking')}</p>
-              <h3 className="text-sm font-bold text-[#003366] tracking-tight">{t('booking_connect_telegram')}</h3>
+              <p className="text-xs font-black text-[#FF671F] uppercase tracking-[0.2em]">{t('booking_ready_for_booking')}</p>
+              <h3 className="text-base font-black text-[#003366] tracking-tight">{t('booking_connect_telegram')}</h3>
             </div>
           </div>
           <div className="px-2 py-1 bg-sky-500/20 rounded-lg border border-sky-500/20">
@@ -378,19 +384,19 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
           </div>
         </div>
 
-        <p className="text-[11px] text-zinc-400 leading-relaxed italic">
+        <p className="text-[13px] text-zinc-600 leading-relaxed font-bold">
           {t('booking_telegram_desc')}
         </p>
 
         {typeof process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME === 'string' &&
           process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME.trim().length > 0 && (
-            <p className="text-[10px] text-slate-500 leading-snug">
+            <p className="text-[12px] text-slate-600 leading-snug font-medium">
               Bot configured in{' '}
-              <span className="font-mono text-zinc-400">.env.local</span>: open{' '}
-              <span className="text-sky-400 font-mono font-semibold">
+              <span className="font-mono text-zinc-500 font-bold">.env.local</span>: open{' '}
+              <span className="text-sky-500 font-mono font-bold">
                 @{process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME.trim().replace(/^@/, '')}
               </span>{' '}
-              in Telegram, tap <strong className="text-slate-600">Start</strong> and then tap <strong className="text-sky-600">📲 Share Contact</strong> to securely link your number.
+              in Telegram, tap <strong className="text-slate-700 font-black">Start</strong> and then tap <strong className="text-sky-700 font-black">📲 Share Contact</strong> to securely link your number.
             </p>
           )}
 
@@ -492,13 +498,13 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
                 setLinkingTelegram(false);
               }
             }}
-            className={`px-6 py-3 ${telegramId ? 'bg-zinc-800 text-zinc-400' : 'bg-sky-600 text-[#003366]'} rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 shrink-0 disabled:opacity-60`}
+            className={`px-6 py-3 ${telegramId ? 'bg-[#FF671F] text-white hover:bg-orange-600' : 'bg-sky-600 text-white hover:bg-sky-700'} rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 shrink-0 disabled:opacity-60`}
           >
             {linkingTelegram ? '…' : telegramId ? t('booking_disconnect') : t('booking_connect')}
           </button>
         </div>
         
-        <p className="text-[9px] text-zinc-600 text-center font-medium">
+        <p className="text-[11px] text-zinc-700 text-center font-bold">
           {t('booking_security_note')}
         </p>
 
@@ -526,9 +532,11 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
                 toast.error('Connection error');
               }
             }}
-            className="w-full py-2 bg-sky-600/10 border border-sky-500/20 rounded-xl text-[9px] font-black text-sky-600 uppercase tracking-widest mt-2 hover:bg-sky-600/20 transition-all"
+            className="w-full py-3 bg-white border-t-2 border-t-[#FF671F] border-b-2 border-b-[#046A38] border-x border-x-slate-200 rounded-xl text-[11px] font-black text-[#003366] uppercase tracking-widest mt-2 hover:bg-slate-50 transition-all shadow-md flex items-center justify-center gap-2"
           >
+            <Send className="w-3 h-3 text-[#FF671F]" />
             {t('booking_test_message')}
+            <Sparkles className="w-3 h-3 text-[#046A38]" />
           </button>
         )}
       </motion.div>
