@@ -374,6 +374,7 @@ interface TripPlannerState {
   mixPicks: { transport: any; returnTransport: any; hotel: any; local: any };
   weather: any | null;
   activeBookingId: string | null;
+  activePNR: string | null;
   isProfileOpen: boolean;
   setTiers: (tiers: TierSummary[]) => void;
   setActiveItinerary: (itinerary: ActiveItinerary | null) => void;
@@ -385,6 +386,7 @@ interface TripPlannerState {
   setPlannerStage: (stage: TripPlannerState['plannerStage']) => void;
   setWeather: (weather: any | null) => void;
   setActiveBookingId: (id: string | null) => void;
+  setActivePNR: (pnr: string | null) => void;
   setIsProfileOpen: (isOpen: boolean) => void;
   clearPlan: () => void;
 }
@@ -419,6 +421,7 @@ export const useTripPlannerStore = create<TripPlannerState>()(
       searchData: { trains: [], flights: [], hotels: [], buses: [], taxis: [], ferries: [] },
       weather: null,
       activeBookingId: null,
+      activePNR: null,
       isProfileOpen: false,
 
       setTiers: (tiers) => set({ tiers }),
@@ -432,6 +435,7 @@ export const useTripPlannerStore = create<TripPlannerState>()(
       setPlannerStage: (plannerStage) => set({ plannerStage }),
       setWeather: (weather) => set({ weather }),
       setActiveBookingId: (activeBookingId) => set({ activeBookingId }),
+      setActivePNR: (activePNR) => set({ activePNR }),
       setIsProfileOpen: (isProfileOpen) => set({ isProfileOpen }),
       clearPlan: () =>
         set({ 
@@ -445,6 +449,7 @@ export const useTripPlannerStore = create<TripPlannerState>()(
           searchData: { trains: [], flights: [], hotels: [], buses: [], taxis: [], ferries: [] },
           weather: null,
           activeBookingId: null,
+          activePNR: null,
           isProfileOpen: false
         }),
     }),
@@ -469,6 +474,7 @@ export const useTripPlannerStore = create<TripPlannerState>()(
             mixPicks: { transport: null, returnTransport: null, hotel: null, local: null },
             searchData: { trains: [], flights: [], hotels: [], buses: [], taxis: [], ferries: [] },
             activeBookingId: null,
+            activePNR: null,
           };
         }
 

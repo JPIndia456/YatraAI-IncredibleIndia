@@ -97,6 +97,8 @@
   "account": "खाता",
   "sign_in": "लॉग इन करें",
   "authenticated_as": "के रूप में प्रमाणित",
+  "account_details": "खाता विवरण",
+  "edit_profile": "प्रोफ़ाइल संपादित करें",
   "are_you_okay": "क्या आप उपरोक्त योजना से सहमत हैं?",
   "or_configure": "या आप अपनी पसंद के अनुसार कॉन्फ़िगर करना चाहेंगे?",
   "back_to_tiers": "स्तरों पर वापस जाएं",
@@ -412,5 +414,15 @@
   "booking_return_included": "रिटर्न टिकट शामिल",
   "booking_taxes_included": "कर और शुल्क शामिल",
   "booking_confirm_finalize": "पुष्टि करें और अंतिम रूप दें",
-  "booking_download_details": "यात्रा कार्यक्रम का पूरा विवरण डाउनलोड करें"
+  "booking_download_details": "यात्रा कार्यक्रम का पूरा विवरण डाउनलोड करें",
+  "save_to_my_trips": "मेरी यात्राओं में सहेजें",
+  "trip_secured": "यात्रा सुरक्षित",
+  "discovery_highlights": "खोज के मुख्य अंश",
+  "heritage_sites": "विरासत स्थल",
+  "local_bazaars": "स्थानीय बाजार",
+  "landscapes": "परिदृश्य",
+  "culinary_pulse": "पाक कला",
+  "yatra_sahayak_active": "यात्रा सहायक सक्रिय",
+  "pnr_sync_note": "आपका AI यात्रा सहायक आपके PNR के साथ सिंक किया गया है। आपको मौसम के बदलाव या देरी के बारे में टेलीग्राम के माध्यम से रीयल-टाइम अपडेट प्राप्त होंगे।",
+  "download_full_itinerary": "पूर्ण यात्रा कार्यक्रम डाउनलोड करें"
 }

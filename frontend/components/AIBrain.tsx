@@ -415,25 +415,8 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
   return (
   <div className="space-y-4 pt-2">
     {plannerStage === 'booking' && (
-      <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 space-y-3 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl overflow-hidden border border-saffron/30 shadow-lg shrink-0 bg-white">
-            <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-center" />
-          </div>
-          <div className="text-left">
-            <p className="text-micro font-black text-saffron uppercase tracking-widest">Active Safety</p>
-            <p className="text-[10px] text-[#000080] font-bold tracking-tight">Telegram Connected</p>
-          </div>
-        </div>
-        <p className="text-[9px] text-black/40 leading-relaxed text-left">
-          Connect to <strong className="text-black/70">Telegram</strong> for AI status alerts and voice note support in any language.
-        </p>
-        <button
-          onClick={() => {}}
-          className="w-full py-2 bg-accent-amber/10 hover:bg-accent-amber/20 border border-orange-500/20 text-orange-600 text-[9px] font-black rounded-xl transition-all"
-        >
-          Activate Later
-        </button>
+      <div className="hidden">
+        {/* Telegram prompt removed per user request for zero distractions in-between */}
       </div>
     )}
 
@@ -922,7 +905,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
     destination, startDate, endDate, origin, isOnboarded,
     userPersona: storePersona, likes: storeLikes, dislikes: storeDislikes
   } = useTripStore();
-  const { activeItinerary, tiers, searchData, plannerStage, mixPicks, setPlannerStage, weather } = useTripPlannerStore();
+  const { activeItinerary, tiers, searchData, plannerStage, mixPicks, setPlannerStage, weather, activePNR } = useTripPlannerStore();
   // Tour Guide shared state — read-only here; written by planner page
   const tourGuide = useTourGuideStore();
   const {
@@ -1717,6 +1700,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
               user_persona: storePersona,
               likes: storeLikes,
               dislikes: storeDislikes,
+              activePNR,
             // TripPlanner real-time context
             selectedPlan: activeItinerary ? {
               tierLabel: activeItinerary.tierLabel,

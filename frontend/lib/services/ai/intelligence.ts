@@ -36,6 +36,7 @@ export interface IntelligenceContext {
   likes?: string[];
   dislikes?: string[];
   targetBudget?: number;
+  activePNR?: string | null;
 }
 
 const tools = [
@@ -188,7 +189,8 @@ Core Directives:
    - For **transport/flights/trains**: Total = (Price per person **ROUND-TRIP**) × (Total passengers). 
    - ALWAYS ensure the **TOTAL suggested price** is within a +/- ₹5,000 range of the user's current plan or target budget. Never suggest options that exceed the user's total budget.
 9. **Proximity Prioritization**: Prioritize "Nearest Location First." If the user is in Mumbai, favor Pune, Lonavala, or Alibaug over far-away destinations unless they specifically ask for long-distance travel.
-10. **Discovery Tag Format**: Use this exact format: \`[DISCOVERY: type=stay name=Place_Name price=₹Total_Value stars=Num features=Detail_1_Detail_2 link=URL]\`. The \`price\` MUST be the **calculated total** for the entire trip (including return fares for transport). Use underscores for spaces in attribute values.
+11. **Hand-in-Hand Sync**: If an 'activePNR' exists in the context, reference it in your response as the "Odyssey Reference" to reassure the user that you are tracking their live booking.
+12. **Discovery Tag Format**: Use this exact format: \`[DISCOVERY: type=stay name=Place_Name price=₹Total_Value stars=Num features=Detail_1_Detail_2 link=URL]\`. The \`price\` MUST be the **calculated total** for the entire trip (including return fares for transport). Use underscores for spaces in attribute values.
 
 Operational Flow:
 - When the user message arrives, check the 'ACTIVE TRIP PLAN' or 'TRIP PLAN COMPARISON' in the context first.
@@ -225,7 +227,8 @@ export async function runIntelligence(text: string, context: IntelligenceContext
 - Transport: ${p.transport?.name || 'N/A'} (${p.transport?.price || ''})
 - Hotel: ${p.hotel?.name || 'N/A'} (${p.hotel?.price || ''}/night)
 - Local Transport: ${p.local?.name || 'N/A'} (${p.local?.price || ''})
-If the user asks about their trip, refer to this plan specifically.`;
+${context.activePNR ? `- Booking PNR: ${context.activePNR} (CONFIRMED)` : ''}
+If the user asks about their trip, refer to this plan and PNR specifically.`;
   } else if (context.tripTiers?.length) {
     const tierSummary = context.tripTiers.map(t =>
       `  • ${t.label}: ${t.total} (${t.transport?.name || 'train'} + ${t.hotel?.name || 'hotel'} + ${t.local?.name || 'cab'})`

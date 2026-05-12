@@ -41,6 +41,7 @@ function buildTourGuideSystemPrompt(context: Record<string, any>): string {
     user_persona,
     likes = [],
     dislikes = [],
+    activePNR,
   } = context ?? {};
 
   // Safety: Ensure array fields are actually arrays
@@ -93,7 +94,8 @@ function buildTourGuideSystemPrompt(context: Record<string, any>): string {
   // ── Active Plan Context ─────────────────────────────────────────────────────
   const activePlanBlock = selectedPlan
     ? `Active Plan: ${selectedPlan.tierLabel} · ${selectedPlan.total} · ${selectedPlan.from} → ${selectedPlan.to} · ${selectedPlan.nights}N
-  Selected Hotel: ${selectedPlan.hotel?.name || 'Pending'} (${selectedPlan.hotel?.detail || ''})`
+  Selected Hotel: ${selectedPlan.hotel?.name || 'Pending'} (${selectedPlan.hotel?.detail || ''})
+  ${activePNR ? `Booking PNR: ${activePNR} (CONFIRMED)` : ''}`
     : "";
 
   const stageInstruction = !plannerStage ? "" : `
@@ -210,6 +212,7 @@ ACTIVE REQUEST DIRECTIVE: context.destinationBriefFormat === true — your NEXT 
     * Example for updating hotel tier: [UPDATE: hotelTier=luxury]
     * SELECTION/CART ACTION: When recommending a specific Flight, Train, or Hotel from the 'plannerSearchData' provided, append [SELECT: type=index] (e.g. [SELECT: air=0] for the first flight).
     * Supported types for selection: air, rail, stay, mobility.
+  - If the user has a confirmed booking (activePNR is present), you MUST refer to it as their "Odyssey Reference" or "PNR" to show you are in sync with the dashboard.
   - If the user changes language to Hindi/Tamil/Marathi/Kannada/Bengali, reply in that language.`;
 
   return `You are Tour Guide, the interactive travel-planning assistant for Yatra.

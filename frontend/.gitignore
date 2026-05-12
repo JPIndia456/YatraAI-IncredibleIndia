@@ -37,3 +37,10 @@ Thumbs.db
 # Supabase local dev
 supabase/.branches/
 supabase/.temp/
+
+# Backups and Archives
+*.zip
+*.tar.gz
+*.tar
+backups/
+temp/

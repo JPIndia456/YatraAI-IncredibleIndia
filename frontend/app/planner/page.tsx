@@ -844,6 +844,7 @@ export default function YatraStudio() {
 
     const passengers = finalItn.passengers;
     const generatedPNR = 'YA-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    useTripPlannerStore.getState().setActivePNR(generatedPNR);
     const passengerSummary = passengers.map((p: any) => `${p.name} (${p.type === 'adult' ? 'A' : 'K'})`).join(', ');
 
     const travelStatus = 'confirmed';
@@ -904,9 +905,9 @@ export default function YatraStudio() {
 
       if (bookingIdForFlow) {
         const bookingSnapshot = {
-          ...(activeItinerary || {}),
-          from: activeItinerary?.from || inputs.origin,
-          to: activeItinerary?.to || inputs.specificDest,
+          ...finalItn,
+          from: finalItn.from || inputs.origin,
+          to: finalItn.to || inputs.specificDest,
           origin: inputs.origin,
           destination: inputs.specificDest,
           startDate: inputs.startDate,
@@ -926,6 +927,7 @@ export default function YatraStudio() {
             confirmed_at: new Date().toISOString(),
             trip_details: bookingSnapshot,
             tier: inputs.budget,
+            total_price: finalTotalNum,
             total_pax: (inputs.adults || 1) + (inputs.kids || 0),
             passengers: passengers,
           })

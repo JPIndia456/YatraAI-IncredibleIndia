@@ -383,5 +383,15 @@
   "booking_return_included": "Return ticket included",
   "booking_taxes_included": "Taxes & fees included",
   "booking_confirm_finalize": "Confirm & Finalize",
-  "booking_download_details": "Download Full Trip Details"
+  "booking_download_details": "Download Full Trip Details",
+  "save_to_my_trips": "Save to My Trips",
+  "trip_secured": "Trip Secured",
+  "discovery_highlights": "Discovery Highlights",
+  "heritage_sites": "Heritage Sites",
+  "local_bazaars": "Local Bazaars",
+  "landscapes": "Landscapes",
+  "culinary_pulse": "Culinary Pulse",
+  "yatra_sahayak_active": "Yatra Sahayak Active",
+  "pnr_sync_note": "Your AI travel assistant is synced with your PNR. You will receive real-time updates via Telegram regarding weather changes or delays.",
+  "download_full_itinerary": "Download Full Itinerary"
 }

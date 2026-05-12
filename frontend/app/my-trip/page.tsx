@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
+import { isoToDdMonthYy } from '@/lib/dateFormat';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -48,27 +49,72 @@ function normalizeDayActivities(activities: unknown): Array<{ time: string; acti
 /**
  * Prefer dayPlan; fallback itinerary; pad days missing activities so the UI isn't blank.
  */
-function deriveJourneyDays(plan: Record<string, unknown> | null | undefined) {
+function deriveJourneyDays(plan: Record<string, any> | null | undefined) {
   if (!plan) return [];
+  const city = (plan.destination || plan.to || 'Selected City').toLowerCase();
   const raw = plan.dayPlan ?? plan.itinerary;
-  if (!Array.isArray(raw) || raw.length === 0) return [];
-
-  return raw.map((day: Record<string, unknown>, idx: number) => {
-    let activities = normalizeDayActivities(day?.activities);
-    const title = String(day?.title || '').trim() || `Day ${idx + 1}`;
-    if (activities.length === 0) {
-      activities = [
-        {
-          time: '—',
-          activity:
-            'No timed steps stored for this day. Open Yatra Studio, confirm your trip, and regenerate the itinerary to fill this timeline.',
-        },
+  
+  const getFallbackActivities = (dayIdx: number) => {
+    if (city.includes('goa')) {
+      const goaDays = [
+        [{ time: '09:00 AM', activity: 'Old Goa Heritage Walk • Basilica of Bom Jesus' }, { time: '04:00 PM', activity: 'Sunset at Miramar Beach & Panjim Cruise' }],
+        [{ time: '10:00 AM', activity: 'Aguada Fort & Lighthouse (North Goa Radius)' }, { time: '05:00 PM', activity: 'Baga Beach Shack Dinner & Night Market' }],
+        [{ time: '09:00 AM', activity: 'Dudhsagar Falls Jeep Safari (60km Adventure)' }, { time: '04:00 PM', activity: 'Spice Plantation Tour & Authentic Goan Lunch' }],
+        [{ time: '10:00 AM', activity: 'South Goa Escape • Palolem & Cabo de Rama Fort' }, { time: '06:00 PM', activity: 'Traditional Goan Cultural Show' }]
       ];
+      return goaDays[dayIdx % 4];
     }
+    if (city.includes('manali')) {
+      const manaliDays = [
+        [{ time: '09:00 AM', activity: 'Hadimba Devi Temple & Van Vihar Nature Park' }, { time: '04:00 PM', activity: 'Mall Road Shopping & Local Cafes' }],
+        [{ time: '08:00 AM', activity: 'Solang Valley Adventure Sports (14km Radius)' }, { time: '03:00 PM', activity: 'Vashisht Hot Water Springs' }],
+        [{ time: '09:00 AM', activity: 'Rohtang Pass Snow Experience (51km Climb)' }, { time: '04:00 PM', activity: 'Beas River Rafting & Riverside Relax' }],
+        [{ time: '08:00 AM', activity: 'Naggar Castle & Roerich Art Gallery (20km Radius)' }, { time: '04:00 PM', activity: 'Old Manali Discovery Walk' }]
+      ];
+      return manaliDays[dayIdx % 4];
+    }
+    if (city.includes('mumbai')) {
+      const mumbaiDays = [
+        [{ time: '09:00 AM', activity: 'Gateway of India & Elephanta Caves (Ferry Radius)' }, { time: '05:00 PM', activity: 'Marine Drive Sunset & Chowpatty Street Food' }],
+        [{ time: '08:00 AM', activity: 'Lonavala & Khandala Day Trip (95km Radius)' }, { time: '04:00 PM', activity: 'Bhushi Dam & Tiger Point' }],
+        [{ time: '10:00 AM', activity: 'Sanjay Gandhi National Park & Kanheri Caves' }, { time: '04:00 PM', activity: 'Bandra Bandstand & Sea Link View' }],
+        [{ time: '09:00 AM', activity: 'Colaba Causeway & Kala Ghoda Heritage District' }, { time: '06:00 PM', activity: 'Juhu Beach Walk & High-Tea' }]
+      ];
+      return mumbaiDays[dayIdx % 4];
+    }
+    if (city.includes('delhi')) {
+      const delhiDays = [
+        [{ time: '09:00 AM', activity: 'Red Fort & Chandni Chowk Rickshaw Tour' }, { time: '04:00 PM', activity: 'India Gate & Rajpath Evening Walk' }],
+        [{ time: '08:00 AM', activity: 'Kingdom of Dreams & Gurgaon Discovery (30km Radius)' }, { time: '05:00 PM', activity: 'Cyber Hub Gastronomy Experience' }],
+        [{ time: '09:00 AM', activity: 'Qutub Minar & Lotus Temple Architecture' }, { time: '04:00 PM', activity: 'Hauz Khas Village & Lake View' }],
+        [{ time: '08:00 AM', activity: 'Sultanpur Bird Sanctuary (45km Radius)' }, { time: '06:00 PM', activity: 'Akshardham Temple Water Show' }]
+      ];
+      return delhiDays[dayIdx % 4];
+    }
+    const universalDays = [
+      [{ time: '09:30 AM', activity: 'Heritage Temple District or Ancestral Historic Ruins' }, { time: '04:30 PM', activity: 'Community Nature Reserve & Local Sunset Point' }],
+      [{ time: '10:00 AM', activity: 'Centuries-old Local Architecture & Town Square' }, { time: '05:00 PM', activity: 'Regional Artisans Hub & Traditional Craft Market' }],
+      [{ time: '09:00 AM', activity: 'Hidden Natural Gem • Riverside or Forest Trail' }, { time: '04:00 PM', activity: 'Historic Fort or Colonial-era Landmark in Vicinity' }],
+      [{ time: '10:30 AM', activity: 'Local Landmark Park & Commemorative Garden' }, { time: '06:00 PM', activity: 'Farewell Dinner with Regional Specialties' }]
+    ];
+    return universalDays[dayIdx % 4];
+  };
+
+  const targetDays = Array.isArray(raw) && raw.length > 0 ? raw : Array.from({ length: 4 });
+
+  return targetDays.map((day: any, idx: number) => {
+    let activities = normalizeDayActivities(day?.activities);
+    const title = String(day?.title || '').trim() || city.charAt(0).toUpperCase() + city.slice(1);
+    
+    if (activities.length === 0) {
+      activities = getFallbackActivities(idx);
+    }
+
     const rawDay = day?.day;
-    let dayLabel: string | number = idx + 1;
-    if (typeof rawDay === 'number' && Number.isFinite(rawDay)) dayLabel = rawDay;
-    else if (typeof rawDay === 'string' && rawDay.trim()) dayLabel = rawDay.trim();
+    let dayLabel = '';
+    if (typeof rawDay === 'string' && rawDay.trim() && isNaN(Number(rawDay))) {
+      dayLabel = rawDay.trim();
+    }
 
     return {
       day: dayLabel,
@@ -304,7 +350,9 @@ function MyTripContent() {
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     <Calendar size={10} className="text-saffron" /> Date Range
                   </p>
-                  <p className="text-sm font-black text-[#000080]">{startDate} – {endDate}</p>
+                  <p className="text-sm font-black text-[#000080]">
+                    {isoToDdMonthYy(effectivePlan.startDate || startDate)} – {isoToDdMonthYy(effectivePlan.endDate || endDate)}
+                  </p>
                </div>
                <div className="space-y-1">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -332,7 +380,7 @@ function MyTripContent() {
                 <div className="space-y-1.5">
                   {(effectivePlan.passengers || []).map((p: any, idx: number) => (
                     <div key={idx} className="flex items-center justify-between text-[11px] text-slate-600">
-                      <span className="font-semibold">{p.name || `Traveler ${idx + 1}`}</span>
+                      <span className="font-semibold">{p.name || 'Traveler'}</span>
                       <span className="text-slate-400 uppercase">{p.type || 'adult'}{p.age ? ` · ${p.age}` : ''}</span>
                     </div>
                   ))}
@@ -345,41 +393,45 @@ function MyTripContent() {
         {/* ── 3. CHRONOLOGICAL TIMELINE (LOGISTICS) ───────────────────────── */}
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
-             <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Logistics & Transfers</h3>
+             <h3 className="text-sm font-black uppercase tracking-[0.4em] text-slate-400">Logistics & Transfers</h3>
              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Real-time Data</span>
           </div>
 
           <div className="relative pl-12 space-y-6">
             <div className="absolute left-6 top-4 bottom-4 w-[1px] bg-orange-100" />
 
-            {/* Transports */}
-            {effectivePlan.transportList?.map((t: Record<string, string | undefined>, i: number) => (
-              <div key={i} className="relative group">
+            {/* Selected Transport */}
+            {effectivePlan.transport && (
+              <div className="relative group">
                 <div className="absolute -left-[27px] top-1 w-1.5 h-1.5 rounded-full bg-saffron z-10 border border-[#FDFDFB] group-hover:scale-150 transition-transform" />
                 <div className="p-5 bg-white border border-orange-100 rounded-3xl space-y-4 shadow-sm">
                    <div className="flex justify-between items-start">
                      <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center border border-orange-100">
-                           {(t.mode?.toLowerCase() || '').includes('flight') ? <Plane size={18} className="text-saffron" /> : <Train size={18} className="text-saffron" />}
+                           {(effectivePlan.transport.mode?.toLowerCase() || '').includes('flight') ? <Plane size={18} className="text-saffron" /> : <Train size={18} className="text-saffron" />}
                         </div>
                         <div>
-                           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t.mode}</p>
-                           <p className="text-xs font-bold text-[#000080]">{t.from} → {effectivePlan.destination}</p>
+                           <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">{effectivePlan.transport.mode || 'Transport'}</p>
+                           <p className="text-sm font-black text-[#000080]">{effectivePlan.transport.from || 'Origin'} → {effectivePlan.transport.to || effectivePlan.destination}</p>
                         </div>
                      </div>
-                     <p className="text-xs font-black text-blue-700">{t.price}</p>
+                     <p className="text-xs font-black text-blue-700">
+                       {effectivePlan.transport.price?.replace(/,$/, '').startsWith('₹') 
+                         ? effectivePlan.transport.price.replace(/,$/, '') 
+                         : `₹${effectivePlan.transport.price?.replace(/,$/, '') || '0'}`}
+                     </p>
                    </div>
                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-tighter">
-                      <span>Duration: {t.duration}</span>
-                      <span className="text-saffron">{t.detail || 'Confirmed'}</span>
+                      <span>Duration: {effectivePlan.transport.duration || 'N/A'}</span>
+                      <span className="text-saffron">{effectivePlan.transport.detail || 'Confirmed Selection'}</span>
                    </div>
                 </div>
               </div>
-            ))}
+            )}
 
-            {/* Hotels */}
-            {effectivePlan.hotelsList?.map((h: Record<string, string | undefined>, i: number) => (
-              <div key={i} className="relative group">
+            {/* Selected Hotel */}
+            {effectivePlan.hotel && (
+              <div className="relative group">
                 <div className="absolute -left-[27px] top-1 w-1.5 h-1.5 rounded-full bg-green z-10 border border-[#FDFDFB] group-hover:scale-150 transition-transform" />
                 <div className="p-5 bg-white border border-orange-100 rounded-3xl space-y-4 shadow-sm">
                    <div className="flex justify-between items-start">
@@ -388,27 +440,66 @@ function MyTripContent() {
                            <Hotel size={18} className="text-green" />
                         </div>
                         <div className="min-w-0">
-                           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Accommodation</p>
-                           <p className="text-xs font-bold text-[#000080] truncate">{h.name}</p>
+                           <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Accommodation</p>
+                           <p className="text-sm font-black text-[#000080] truncate">{effectivePlan.hotel.name}</p>
                         </div>
                      </div>
-                     <p className="text-xs font-black text-blue-700">{h.price}</p>
+                     <p className="text-xs font-black text-blue-700">
+                       {effectivePlan.hotel.price?.replace(/,$/, '').startsWith('₹') 
+                         ? effectivePlan.hotel.price.replace(/,$/, '') 
+                         : `₹${effectivePlan.hotel.price?.replace(/,$/, '') || '0'}`}
+                     </p>
                    </div>
                    <div className="flex items-center gap-2">
                       <Star size={10} className="text-saffron fill-saffron" />
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{h.rating} Rating • {h.tier}</span>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        {effectivePlan.hotel.rating} Rating • {effectivePlan.hotel.tier || 'Selected Stay'}
+                      </span>
                    </div>
                 </div>
               </div>
-            ))}
+            )}
+
+            {/* Selected Local Transport */}
+            {effectivePlan.local && (
+              <div className="relative group">
+                <div className="absolute -left-[27px] top-1 w-1.5 h-1.5 rounded-full bg-blue-500 z-10 border border-[#FDFDFB] group-hover:scale-150 transition-transform" />
+                <div className="p-5 bg-white border border-orange-100 rounded-3xl space-y-4 shadow-sm">
+                   <div className="flex justify-between items-start">
+                     <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100">
+                           <Car size={18} className="text-blue-500" />
+                        </div>
+                        <div className="min-w-0">
+                           <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Local Transfers</p>
+                           <p className="text-sm font-black text-[#000080] truncate">{effectivePlan.local.name}</p>
+                        </div>
+                     </div>
+                     <p className="text-xs font-black text-blue-700">
+                       {effectivePlan.local.price?.replace(/,$/, '').startsWith('₹') 
+                         ? effectivePlan.local.price.replace(/,$/, '') 
+                         : `₹${effectivePlan.local.price?.replace(/,$/, '') || '0'}`}
+                     </p>
+                   </div>
+                   <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        {effectivePlan.local.detail || 'In-city Discovery Cab'}
+                      </span>
+                   </div>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
         {/* ── 4. DAY-BY-DAY JOURNEY (DETAILED) ────────────────────────────── */}
         <section className="space-y-6">
            <div className="flex items-center justify-between px-2">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Journey Itinerary</h3>
-              <CompassIcon size={14} className="text-saffron" />
+              <h3 className="text-sm font-black uppercase tracking-[0.4em] text-slate-400">Suggested Journey Itinerary</h3>
+              <div className="flex items-center gap-2">
+                <CompassIcon size={24} className="text-saffron drop-shadow-sm" />
+                <span className="text-xs font-black text-saffron uppercase tracking-widest">Odyssey Guide</span>
+              </div>
            </div>
 
            <div className="space-y-4">
@@ -436,10 +527,16 @@ function MyTripContent() {
                 journeyDays.map((day, idx) => (
                   <motion.div key={idx} className="p-6 bg-white border border-orange-100 rounded-3xl space-y-5 shadow-sm">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-saffron/10 border border-saffron/20 flex items-center justify-center text-[10px] font-black text-saffron">
-                        {day.day}
+                      <div className="text-[14px] font-black text-saffron whitespace-nowrap">
+                        {(() => {
+                          const baseDate = effectivePlan.startDate || startDate;
+                          if (!baseDate) return day.day;
+                          const d = new Date(baseDate);
+                          d.setDate(d.getDate() + idx);
+                          return isoToDdMonthYy(d.toISOString().split('T')[0]);
+                        })()}
                       </div>
-                      <h4 className="text-sm font-black text-[#000080] uppercase tracking-tight italic">{day.title}</h4>
+                      <h4 className="text-base font-black text-[#000080] uppercase tracking-tight italic">{day.title}</h4>
                     </div>
 
                     <div className="space-y-4 border-l border-orange-100 ml-4 pl-6">
@@ -447,8 +544,8 @@ function MyTripContent() {
                         <div key={aIdx} className="relative">
                           <div className="absolute -left-[27px] top-1.5 w-1 h-1 rounded-full bg-orange-200" />
                           <div className="flex justify-between items-start gap-4">
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5 shrink-0">{act.time}</span>
-                            <p className="text-[11px] text-slate-600 font-medium leading-relaxed">{act.activity}</p>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5 shrink-0">{act.time}</span>
+                            <p className="text-[13px] text-slate-600 font-bold leading-relaxed">{act.activity}</p>
                           </div>
                         </div>
                       ))}
@@ -460,26 +557,33 @@ function MyTripContent() {
         </section>
 
         {/* ── 5. REGIONAL DINING ──────────────────────────────────────────── */}
-        <section className="space-y-6">
-           <div className="flex items-center justify-between px-2">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Regional Dining</h3>
-              <Utensils size={14} className="text-saffron" />
-           </div>
+        {effectivePlan.foodSpotsList && effectivePlan.foodSpotsList.length > 0 && effectivePlan.foodSpotsList.some((f: any) => f.name && f.must) && (
+          <section className="space-y-6">
+             <div className="flex items-center justify-between px-2">
+                <h3 className="text-sm font-black uppercase tracking-[0.4em] text-slate-400">Regional Dining</h3>
+                <div className="flex items-center gap-2">
+                 <Utensils size={24} className="text-saffron drop-shadow-sm" />
+                 <span className="text-xs font-black text-saffron uppercase tracking-widest">Local Flavours</span>
+               </div>
+             </div>
 
-           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
-              {effectivePlan.foodSpotsList?.map((f: Record<string, string | undefined>, i: number) => (
-                 <div key={i} className="min-w-[200px] p-5 bg-white border border-orange-100 rounded-3xl space-y-3 shadow-sm">
-                    <div>
-                       <p className="text-[8px] font-black text-saffron uppercase tracking-widest mb-1">{f.type}</p>
-                       <p className="text-xs font-black text-[#000080] uppercase">{f.name}</p>
-                    </div>
-                    <p className="text-[9px] text-slate-500 font-bold leading-relaxed italic border-t border-orange-50 pt-2">
-                       <span className="text-saffron">Try:</span> {f.must}
-                    </p>
-                 </div>
-              ))}
-           </div>
-        </section>
+             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
+                {effectivePlan.foodSpotsList
+                  .filter((f: any) => f.name && f.must && !f.name.includes('_')) // Filter out placeholders like RESTAURANT_TYPE
+                  .map((f: Record<string, string | undefined>, i: number) => (
+                   <div key={i} className="min-w-[200px] p-5 bg-white border border-orange-100 rounded-3xl space-y-3 shadow-sm">
+                      <div>
+                         <p className="text-[8px] font-black text-saffron uppercase tracking-widest mb-1">{f.type?.replace(/_/g, ' ') || 'Specialty'}</p>
+                         <p className="text-xs font-black text-[#000080] uppercase">{f.name}</p>
+                      </div>
+                      <p className="text-[9px] text-slate-500 font-bold leading-relaxed italic border-t border-orange-50 pt-2">
+                         <span className="text-saffron">Try:</span> {f.must}
+                      </p>
+                   </div>
+                ))}
+             </div>
+          </section>
+        )}
 
         {/* ── 6. SAFETY & GUIDANCE ────────────────────────────────────────── */}
         <section className="space-y-4">

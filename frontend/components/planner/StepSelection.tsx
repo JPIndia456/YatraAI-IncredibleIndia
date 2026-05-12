@@ -117,7 +117,7 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
                  </div>
               </div>
            </div>
-           <button onClick={() => onUpdateParams ? onUpdateParams() : onBack()} className="w-full py-2.5 bg-gradient-to-r from-saffron via-white to-green border border-orange-100 rounded-xl text-[10px] font-black text-[#000080] uppercase tracking-widest transition-all shadow-md">
+           <button onClick={() => onUpdateParams ? onUpdateParams() : onBack()} className="w-full py-4 bg-gradient-to-r from-saffron via-white to-green border border-orange-100 rounded-xl text-sm font-black text-[#000080] uppercase tracking-widest transition-all shadow-md">
               {t('selection_studio_update_plan')}
            </button>
         </div>
@@ -386,13 +386,13 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
       <div className="flex flex-col gap-4 pt-10 border-t border-slate-200">
         <button
           onClick={onConfirm}
-          className="w-full py-5 bg-gradient-to-r from-saffron to-orange-600 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest hover:shadow-2xl hover:shadow-saffron/30 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-xl"
+          className="w-full py-6 bg-gradient-to-r from-saffron to-orange-600 text-white rounded-[2rem] font-black text-base uppercase tracking-widest hover:shadow-2xl hover:shadow-saffron/30 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-xl"
         >
           {t('selection_studio_confirm_choices')} <ArrowRight className="w-4 h-4" />
         </button>
         <button
           onClick={onBack}
-          className="w-full py-4 text-[#138808] hover:text-green-800 font-black text-[10px] uppercase tracking-[0.2em] transition-all"
+          className="w-full py-4 text-[#138808] hover:text-green-800 font-black text-xs uppercase tracking-[0.2em] transition-all"
         >
           ← {t('selection_studio_adjust_itinerary')}
         </button>

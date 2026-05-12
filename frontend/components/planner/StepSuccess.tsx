@@ -25,7 +25,7 @@ export default function StepSuccess({
   onReset,
   bookingId,
 }: StepSuccessProps) {
-  const { activeItinerary, weather } = useTripPlannerStore();
+  const { activeItinerary, weather, activePNR } = useTripPlannerStore();
   const { telegramId, from_city, destination, departure_date, return_date } = useTourGuideStore();
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -63,8 +63,8 @@ export default function StepSuccess({
 
 
   const confirmationSuffix = useMemo(() => 
-    bookingId && bookingId.length >= 8 ? bookingId.slice(0, 8).toUpperCase() : 'PENDING'
-  , [bookingId]);
+    activePNR || (bookingId && bookingId.length >= 8 ? bookingId.slice(0, 8).toUpperCase() : 'PENDING')
+  , [bookingId, activePNR]);
 
   // ── Helpers ──
   const renderableDayPlan = useMemo(() => {
@@ -337,18 +337,18 @@ export default function StepSuccess({
                           <Sparkles className="w-6 h-6 text-[#FF9933]" />
                         </div>
                         <div>
-                          <h4 className="text-3xl font-extrabold uppercase text-[#000080] tracking-tight leading-none">{t('destination_gallery', 'Discovery Highlights')}</h4>
-                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1.5">Monuments, Markets & Landscapes</p>
+                          <h4 className="text-3xl font-extrabold uppercase text-[#000080] tracking-tight leading-none">{t('discovery_highlights', 'Discovery Highlights')}</h4>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1.5">{t('monuments_markets_landscapes', 'Monuments, Markets & Landscapes')}</p>
                         </div>
                       </div>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                      { label: 'Heritage Sites', icon: MapPin, color: '#FF9933', bg: 'bg-[#FF9933]/5', key: 'heritage' },
-                      { label: 'Local Bazaars', icon: ShoppingBag, color: '#000080', bg: 'bg-[#000080]/5', key: 'vibe' },
-                      { label: 'Landscapes', icon: Compass, color: '#138808', bg: 'bg-[#138808]/5', key: 'nature' },
-                      { label: 'Culinary Pulse', icon: Utensils, color: '#FF9933', bg: 'bg-[#FF9933]/5', key: 'culinary' }
+                      { label: t('heritage_sites', 'Heritage Sites'), icon: MapPin, color: '#FF9933', bg: 'bg-[#FF9933]/5', key: 'heritage' },
+                      { label: t('local_bazaars', 'Local Bazaars'), icon: ShoppingBag, color: '#000080', bg: 'bg-[#000080]/5', key: 'vibe' },
+                      { label: t('landscapes', 'Landscapes'), icon: Compass, color: '#138808', bg: 'bg-[#138808]/5', key: 'nature' },
+                      { label: t('culinary_pulse', 'Culinary Pulse'), icon: Utensils, color: '#FF9933', bg: 'bg-[#FF9933]/5', key: 'culinary' }
                     ].map((item, i) => {
                       const specificPlace = discoveryData?.[item.key]?.[0]?.name || (activeItinerary?.to || destination);
                       return (
@@ -484,11 +484,11 @@ export default function StepSuccess({
                       <img src="/yatra-guide.png" alt="Yatra AI" className="w-full h-full object-cover object-center" />
                     </div>
                     <div className="space-y-1">
-                      <h4 className="text-2xl font-black uppercase text-[#FF9933]">Travel Guide</h4>
-                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none">Yatra Sahayak Active</p>
+                      <h4 className="text-2xl font-black uppercase text-[#FF9933]">{t('planner_label', 'Travel Guide')}</h4>
+                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none">{t('yatra_sahayak_active', 'Yatra Sahayak Active')}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-white/95 font-bold leading-relaxed relative">Your AI travel assistant is synced with your PNR. You will receive real-time updates via Telegram regarding weather changes or delays.</p>
+                  <p className="text-sm text-white/95 font-bold leading-relaxed relative">{t('pnr_sync_note', 'Your AI travel assistant is synced with your PNR. You will receive real-time updates via Telegram regarding weather changes or delays.')}</p>
                   
                   <div className="grid grid-cols-2 gap-4 relative">
                      <button 
@@ -496,7 +496,7 @@ export default function StepSuccess({
                         className="bg-white/5 p-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-all text-left"
                      >
                         <Download className="w-4 h-4 text-[#FF9933] mb-2" />
-                        <p className="text-[9px] font-black uppercase text-white">Download Full Itinerary</p>
+                        <p className="text-[9px] font-black uppercase text-white">{t('download_full_itinerary', 'Download Full Itinerary')}</p>
                      </button>
                   </div>
                 </div>
@@ -508,24 +508,27 @@ export default function StepSuccess({
 
       {/* ── Odyssey Actions ── */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-         <Link href="/my-trip" className="px-10 py-6 bg-[#138808] text-white rounded-[2rem] font-black text-[12px] uppercase shadow-lg hover:bg-[#035a2f] transition-all flex items-center gap-3 hover:-translate-y-1">
+         <Link 
+           href={bookingId ? `/my-trip?id=${bookingId}` : "/my-trip"} 
+           className="px-10 py-6 bg-[#138808] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-lg hover:bg-[#035a2f] transition-all flex items-center gap-3 hover:-translate-y-1"
+         >
            {t('view_dashboard')} <ArrowRight className="w-4 h-4 text-[#FF9933]" />
          </Link>
          
          <button 
            onClick={handleSaveToMyTrips}
            disabled={isSaving || isSaved}
-           className={`px-10 py-6 rounded-[2rem] font-black text-[12px] uppercase transition-all flex items-center gap-3 hover:-translate-y-1 shadow-lg ${
+           className={`px-10 py-6 rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all flex items-center gap-3 hover:-translate-y-1 shadow-lg ${
              isSaved 
              ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' 
              : 'bg-[#FF9933] text-white hover:bg-orange-600'
            }`}
          >
            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudUpload className="w-4 h-4" />}
-           {isSaved ? 'Trip Secured' : 'Save to My Trips'}
+           {isSaved ? t('trip_secured', 'Trip Secured') : t('save_to_my_trips', 'Save to My Trips')}
          </button>
 
-         <button onClick={onReset} className="px-10 py-6 bg-white text-[#FF9933] border-2 border-[#FF9933]/10 rounded-[2rem] font-black text-[12px] uppercase shadow-md hover:bg-slate-50 transition-all hover:-translate-y-1">
+         <button onClick={onReset} className="px-10 py-6 bg-white text-[#FF9933] border-2 border-[#FF9933]/10 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-md hover:bg-slate-50 transition-all hover:-translate-y-1">
            {t('plan_another')}
          </button>
       </div>

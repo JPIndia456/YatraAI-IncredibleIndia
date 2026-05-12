@@ -747,7 +747,7 @@ export default function StepInputs({
 
       <button
         onClick={onDiscover}
-        className="w-full py-5 bg-gradient-to-r from-saffron via-white to-green text-[#000080] rounded-2xl font-black text-xs uppercase shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all border border-orange-100 mt-4"
+        className="w-full py-6 bg-gradient-to-r from-saffron via-white to-green text-[#000080] rounded-2xl font-black text-base uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all border border-orange-100 mt-4"
       >
         {t('discover_potential', 'Discover Potential Itineraries →')}
       </button>
