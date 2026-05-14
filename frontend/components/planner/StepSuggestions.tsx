@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, type Dispatch, type SetStateAction } from 'react';
+import { useState, useEffect, useMemo, type Dispatch, type SetStateAction } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { 
@@ -171,13 +171,27 @@ function EstimateTabs({
 function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onAskAI }: SuggestionCardProps) {
   const [pending, setPending] = useState(false);
   const [locationCheckAnswer, setLocationCheckAnswer] = useState<'yes' | 'no' | null>(null);
-  const [activeTab, setActiveTab] = useState<'air' | 'rail'>('air');
+  const [activeTab, setActiveTab] = useState<string>('air');
   const { t } = useLanguage();
 
   const locationCheckText = typeof s.location_check === 'string' ? s.location_check.trim() : '';
+  
+  const fNum = getNum(s.flight_cost);
+  const tNum = getNum(s.train_cost);
+  const bNum = getNum(s.bus_cost);
+  const ferryNum = getNum(s.ferry_cost);
+  const hNum = getNum(s.hotel_per_night);
+  const taxiNum = getNum(s.taxi_cost);
+  const otherNum = getNum(s.other_transport_cost);
+  const isTaxiGrey = fNum > 0 && tNum > 0;
+
   useEffect(() => {
     setLocationCheckAnswer(null);
-  }, [locationCheckText]);
+    if (fNum > 0) setActiveTab('air');
+    else if (tNum > 0) setActiveTab('rail');
+    else if (bNum > 0) setActiveTab('bus');
+    else if (ferryNum > 0) setActiveTab('ferry');
+  }, [locationCheckText, fNum, tNum, bNum, ferryNum]);
 
   const startMs = new Date(inputs.startDate).getTime();
   const endMs = new Date(inputs.endDate).getTime();
@@ -189,12 +203,20 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
   const currentRooms = calculateRooms(inputs.adults, inputs.kids);
   const fetchedRooms = calculateRooms(fetchedInputs?.adults || 2, fetchedInputs?.kids || 0);
 
-  const fNum = getNum(s.flight_cost);
-  const tNum = getNum(s.train_cost);
-  const hNum = getNum(s.hotel_per_night);
-  const taxiNum = getNum(s.taxi_cost);
-  const otherNum = getNum(s.other_transport_cost);
-  const isTaxiGrey = fNum > 0 && tNum > 0;
+  const fTotal = fNum * currentPax;
+  const tTotal = tNum * currentPax;
+  const bTotal = bNum * currentPax;
+  const ferryTotal = ferryNum * currentPax;
+  const hTotal = Math.round(hNum / (fetchedRooms || 1)) * currentRooms * nights;
+
+  const currentTotal = useMemo(() => {
+    if (activeTab === 'air') return fTotal + hTotal;
+    if (activeTab === 'rail') return tTotal + hTotal;
+    if (activeTab === 'bus') return bTotal + hTotal;
+    if (activeTab === 'ferry') return ferryTotal + hTotal;
+    if (activeTab === 'mix') return (fTotal / 2) + (tTotal / 2) + hTotal;
+    return fTotal + hTotal;
+  }, [activeTab, fTotal, tTotal, bTotal, ferryTotal, hTotal]);
 
   const isRound = inputs.tripType === 'round';
 
@@ -388,7 +410,11 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
           </div>
           
           <div className="space-y-3">
-            {transportItems.filter(item => !((activeTab === 'air' && item.id === 'rail') || (activeTab === 'rail' && item.id === 'air'))).map((item, idx) => {
+            {transportItems.filter(item => {
+              if (activeTab === 'mix') return true;
+              if (item.id === 'hotel') return true;
+              return item.id === activeTab;
+            }).map((item, idx) => {
               const isNoData = !getNum(item.val) || item.val === 'N/A';
               const isGrey = isNoData;
 
