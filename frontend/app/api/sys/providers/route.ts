@@ -62,7 +62,11 @@ export async function GET(req: Request) {
     },
     mcp: {
       liveHotelsRoutePresent: true,
-      note: 'Planner currently calls /api/live/hotels and /api/live/flights.',
+      rapidApiMcpProxy: {
+        enabled: isConfigured(process.env.BOOKING_RAPIDAPI_KEY),
+        endpoint: '/api/mcp/proxy',
+      },
+      note: 'Planner currently calls /api/live/hotels and /api/live/flights. AI can use /api/mcp/proxy.',
     },
   };
 

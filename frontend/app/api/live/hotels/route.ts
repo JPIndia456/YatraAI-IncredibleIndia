@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from "@google/genai";
 import { getSearchCache, setSearchCache } from '@/lib/services/searchCache';
-import { AmadeusService } from '@/lib/services/travel/amadeus';
 import { normalizeHotelSearchLocation, supplementHotelsForDestination } from '@/lib/hotelDestinationBoost';
 import { GEMINI_MODEL } from '@/lib/geminiModel';
 
@@ -117,37 +116,66 @@ export async function POST(req: Request) {
     let aggregatedHotels: any[] =
       cached && Array.isArray(cached) ? [...cached] : [];
 
-    // 0. Amadeus Hotel List + Hotel Offers (same credentials as flights)
-    const fetchAmadeus = async () => {
+    // 0. Booking.com RapidAPI (Live Stays)
+    const fetchBooking = async () => {
       try {
-        if (!process.env.AMADEUS_CLIENT_ID || !process.env.AMADEUS_CLIENT_SECRET) return [];
-        if (!checkIn || !checkOut) return [];
-        const rows = await AmadeusService.searchHotels({
-          location: resolvedLocation,
-          checkIn,
-          checkOut,
-          guests: Number(guests) || 1,
+        const bookingKey = process.env.BOOKING_RAPIDAPI_KEY;
+        const bookingHost = process.env.BOOKING_RAPIDAPI_HOST || 'booking-com15.p.rapidapi.com';
+        if (!bookingKey || !checkIn || !checkOut) return [];
+
+        // 1. Resolve dest_id
+        const destResp = await fetch(`https://${bookingHost}/api/v1/hotels/searchDestination?query=${encodeURIComponent(resolvedLocation)}`, {
+          headers: { 'x-rapidapi-key': bookingKey, 'x-rapidapi-host': bookingHost },
+          signal: AbortSignal.timeout(6000)
         });
-        return Array.isArray(rows) ? rows : [];
+        const destData = await destResp.json();
+        const destId = destData?.data?.[0]?.dest_id;
+        if (!destId) return [];
+
+        // 2. Search properties
+        const hotelResp = await fetch(`https://${bookingHost}/api/v1/hotels/searchHotels?dest_id=${destId}&search_type=city&arrival_date=${checkIn}&departure_date=${checkOut}&adults_number=${guests}&units=metric&room_number=1&currency_code=INR`, {
+          headers: { 'x-rapidapi-key': bookingKey, 'x-rapidapi-host': bookingHost },
+          signal: AbortSignal.timeout(6000)
+        });
+        const hData = await hotelResp.json();
+        const properties = hData?.data?.hotels || hData?.data || [];
+        
+        return properties.slice(0, HOTELS_PER_OTA_PAGE).map((h: any, idx: number) => ({
+          id: `booking-${h.hotel_id || idx}`,
+          name: h.hotel_name || 'Premium Stay',
+          area: h.address || h.district || resolvedLocation,
+          stars: h.class || 4,
+          rating: h.review_score || 4.0,
+          reviews: h.review_nr || 100,
+          price: h.price_breakdown?.all_inclusive_price ? `₹${Math.round(h.price_breakdown.all_inclusive_price).toLocaleString('en-IN')}` : `₹${(5000 + (idx*800)).toLocaleString()}`,
+          priceNum: h.price_breakdown?.all_inclusive_price || 5000,
+          perNight: true,
+          amenities: ["WiFi", "Service", "Quality"],
+          roomType: "Guest Room",
+          freeCancellation: true,
+          breakfastIncluded: true,
+          location: resolvedLocation,
+          source: 'Booking.com'
+        }));
       } catch (e) {
-        console.warn('[Amadeus Hotels] Failed', e);
+        console.warn('[Booking Hotels] Failed', e);
         return [];
       }
     };
-
-
 
     // 2. TripAdvisor RapidAPI
     const fetchTripAdvisor = async () => {
       try {
         if (!process.env.TRIPADVISOR_RAPIDAPI_KEY) return [];
         const destResp = await fetch(`https://${process.env.TRIPADVISOR_RAPIDAPI_HOST}/locations/search?query=${encodeURIComponent(resolvedLocation)}`, {
-          headers: { 'x-rapidapi-key': process.env.TRIPADVISOR_RAPIDAPI_KEY, 'x-rapidapi-host': process.env.TRIPADVISOR_RAPIDAPI_HOST! }
+          headers: { 'x-rapidapi-key': process.env.TRIPADVISOR_RAPIDAPI_KEY, 'x-rapidapi-host': process.env.TRIPADVISOR_RAPIDAPI_HOST! },
+          signal: AbortSignal.timeout(6000)
         });
         const destData = await destResp.json();
         if (destData?.data?.[0]?.location_id) {
             const hotelResp = await fetch(`https://${process.env.TRIPADVISOR_RAPIDAPI_HOST}/hotels/search?location_id=${destData.data[0].location_id}&checkin=${checkIn}&checkout=${checkOut}&adults=${guests}&currency=INR`, {
-              headers: { 'x-rapidapi-key': process.env.TRIPADVISOR_RAPIDAPI_KEY, 'x-rapidapi-host': process.env.TRIPADVISOR_RAPIDAPI_HOST! }
+              headers: { 'x-rapidapi-key': process.env.TRIPADVISOR_RAPIDAPI_KEY, 'x-rapidapi-host': process.env.TRIPADVISOR_RAPIDAPI_HOST! },
+              signal: AbortSignal.timeout(6000)
             });
             const hotelData = await hotelResp.json();
             return (hotelData?.data || []).slice(0, HOTELS_PER_OTA_PAGE).map((h: any) => ({
@@ -222,7 +250,7 @@ Use approximate current INR per night. Prefer named hotels that actually operate
 
     // Run all concurrently
     const results = await Promise.allSettled([
-      fetchAmadeus(),
+      fetchBooking(),
       fetchTripAdvisor(),
       fetchGemini(),
     ]);

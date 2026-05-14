@@ -22,7 +22,8 @@ import {
   Car, 
   Info, 
   Ship,
-  Check 
+  Check,
+  Bus
 } from 'lucide-react';
 import type { PlannerInputs } from './StepInputs';
 import { useLanguage } from '@/contexts/LanguageContext';

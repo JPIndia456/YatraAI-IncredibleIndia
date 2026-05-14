@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CheckCircle2, Sparkles, MapPin, Calendar, Wallet, Users, 
-  ArrowRight, Plane, Train, Hotel, Car, Info, ChevronDown, ChevronUp, Ship
+  ArrowRight, Plane, Train, Hotel, Car, Info, ChevronDown, ChevronUp, Ship, Bus, Search
 } from 'lucide-react';
 import { useTripStore, useTripPlannerStore, useTourGuideStore } from '@/lib/store';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -397,6 +397,19 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
         </div>
         )}
 
+        {searchData.flights?.length === 0 && searchData.trains?.length === 0 && 
+         searchData.buses?.length === 0 && searchData.ferries?.length === 0 && 
+         searchData.hotels?.length === 0 && (
+          <div className="py-20 text-center space-y-4">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
+              <Search className="w-8 h-8 text-slate-300" />
+            </div>
+            <div>
+              <p className="text-slate-900 font-bold">{t('selection_studio_no_results_title') || 'No options found'}</p>
+              <p className="text-slate-500 text-xs mt-1">{t('selection_studio_no_results_desc') || 'We couldn\'t find live availability for this specific route and date.'}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-4 pt-10 border-t border-slate-200">

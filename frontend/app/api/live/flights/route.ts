@@ -60,7 +60,6 @@ export async function POST(req: Request) {
     
     if (bookingKey && bookingKey !== 'dummy_key') {
       try {
-        console.log(`[Flights] Fetching from Booking.com RapidAPI for ${fromCode} -> ${toCode}...`);
         const bookingUrl = `https://${bookingHost}/api/v1/flights/searchFlights?sourceAirportCode=${fromCode}&destinationAirportCode=${toCode}&date=${date}&itineraryType=ONE_WAY&sortOrder=PRICE&numAdults=${adults}&numSeniors=0&numChildren=0&numInfants=0&cabinClass=${seat.toUpperCase()}&currencyCode=INR`;
         
         const bookingResp = await fetch(bookingUrl, {
