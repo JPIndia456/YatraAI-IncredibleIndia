@@ -242,9 +242,6 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
     return true;
   });
 
-  const currentTotal = activeTab === 'air' 
-    ? (fNum * currentPax + hNum * currentRooms * nights) 
-    : (tNum * currentPax + hNum * currentRooms * nights);
 
   return (
     <motion.div
