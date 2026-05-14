@@ -14,7 +14,7 @@ import { normalizeTelegramContact } from '@/lib/normalizeTelegramContact';
 import type { PlannerInputs } from '@/components/planner/StepInputs';
 
 interface StepBookingProps {
-  searchData: { flights: any[]; trains: any[]; hotels: any[]; buses: any[]; taxis: any[] };
+  searchData: { flights: any[]; trains: any[]; hotels: any[]; buses: any[] };
   setInputs: Dispatch<SetStateAction<PlannerInputs>>;
   nights: number;
   tripType?: 'round' | 'one-way' | 'single';
@@ -123,27 +123,13 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
     });
   }
 
-  // Local Selection
-  if (mixPicks.local) {
-     options.push({
-      icon: Zap,
-      title: t('booking_local_transport'),
-      name: mixPicks.local.name,
-      price: mixPicks.local.price || 'Included',
-      detail: mixPicks.local.detail || 'Private service',
-      color: 'indigo',
-      badge: t('booking_selected'),
-    });
-  }
 
   // Calculate Totals
   const tp = parsePrice(mixPicks.transport?.price);
   const rp = parsePrice(mixPicks.returnTransport?.price);
   const hp = parsePrice(mixPicks.hotel?.price);
-  const lp = parsePrice(mixPicks.local?.price);
-  
   const transportTotal = (tp + rp) * totalCount;
-  const grandTotal = transportTotal + (hp * nights) + lp;
+  const grandTotal = transportTotal + (hp * nights);
 
   return (
     <motion.div

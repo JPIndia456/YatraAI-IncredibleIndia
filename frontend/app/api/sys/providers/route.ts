@@ -24,12 +24,6 @@ export async function GET(req: Request) {
 
   const providers = {
     flights: {
-      amadeus: {
-        enabled:
-          isConfigured(process.env.AMADEUS_CLIENT_ID) &&
-          isConfigured(process.env.AMADEUS_CLIENT_SECRET),
-        keyPreview: keyPreview(process.env.AMADEUS_CLIENT_ID),
-      },
       googleFlightsRapidApi: {
         enabled:
           isConfigured(process.env.GOOGLE_FLIGHTS_RAPIDAPI_KEY) &&
@@ -38,6 +32,12 @@ export async function GET(req: Request) {
       },
       aviationEdge: {
         enabled: isConfigured(process.env.AVIATION_EDGE_API_KEY),
+      },
+      bookingRapidApi: {
+        enabled:
+          isConfigured(process.env.BOOKING_RAPIDAPI_KEY) &&
+          isConfigured(process.env.BOOKING_RAPIDAPI_HOST),
+        host: process.env.BOOKING_RAPIDAPI_HOST || null,
       },
       geminiFallback: {
         enabled: isConfigured(process.env.GEMINI_API_KEY),

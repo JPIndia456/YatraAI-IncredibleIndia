@@ -36,10 +36,6 @@ function normalizeEmailTarget(raw: string) {
   return String(raw).trim().toLowerCase();
 }
 
-function normalizePhoneTarget(raw: string) {
-  const t = String(raw).trim().replace(/\s+/g, '');
-  return t.startsWith('+') ? t : `+91${t}`;
-}
 
 function otpMatches(stored: string, provided: string): boolean {
   const a = Buffer.from(stored.trim(), 'utf8');
@@ -79,7 +75,7 @@ export async function POST(req: NextRequest) {
       otpChannel?: string | null;
     };
 
-    if (!email || !otp) {
+    if (!email || !otp || method !== 'email') {
       return NextResponse.json({ error: 'Missing email or security code' }, { status: 400 });
     }
 
@@ -90,10 +86,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
-    const isPhone = method === 'phone';
-    const target = isPhone ? normalizePhoneTarget(email) : normalizeEmailTarget(email);
+    const target = normalizeEmailTarget(email);
     const now = Date.now();
-    const rateKey = `${clientIp(req)}:${method}:${target}`;
+    const rateKey = `${clientIp(req)}:email:${target}`;
     const persistentLimit = await consumePersistentAuthLimit(
       `verify:${rateKey}`,
       VERIFY_MAX_ATTEMPTS,
@@ -107,20 +102,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Phone: SMS OTP — bind session cookies to the JSON response.
-    if (isPhone) {
-      const res = NextResponse.json({ ok: true });
-      const supabase = createRouteHandlerSupabase(req, res);
-      const { error } = await supabase.auth.verifyOtp({
-        phone: target,
-        token: String(otp).trim(),
-        type: 'sms',
-      });
-      if (error) {
-        return NextResponse.json({ error: 'Invalid or expired security code' }, { status: 401 });
-      }
-      return res;
-    }
 
     const providedOtp = String(otp).trim();
 

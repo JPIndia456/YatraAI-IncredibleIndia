@@ -1,9 +1,7 @@
 import { callGroq } from "./groq";
 import { callAnthropic } from "./anthropic";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { GEMINI_MODEL } from "@/lib/geminiModel";
-
-const GEMINI_FLASH_CHAIN = [GEMINI_MODEL, "gemini-1.5-flash", "gemini-flash-latest"];
+import { GEMINI_MODEL, GEMINI_FLASH_CHAIN } from "@/lib/geminiModel";
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || "";
 const GEMINI_KEY = process.env.GEMINI_API_KEY || "";
@@ -22,6 +20,8 @@ export async function resilientGenerateContent(prompt: string, options: {
 } = {}) {
   const { useGrounding = false, systemPrompt = "", image, jsonMode = false } = options;
   const fullPrompt = systemPrompt ? `${systemPrompt}\n\nUser Input: ${prompt}` : prompt;
+
+  console.log(`🤖 AI Request: Grounding=${useGrounding}, JSON=${jsonMode}, PromptLen=${fullPrompt.length}`);
 
   // --- VISION MODE (image present → Gemini only) ---
   if (image && IS_GEMINI_READY) {
@@ -60,8 +60,7 @@ export async function resilientGenerateContent(prompt: string, options: {
           model: geminiModel,
           generationConfig: { 
             maxOutputTokens: 8192,
-            // JSON mode is incompatible with tool use (googleSearch) in current Gemini versions
-            // responseMimeType: "application/json"
+            temperature: 0.1, // Lower temperature to reduce hallucinations
           }
         });
         const requestPayload = {
@@ -97,6 +96,7 @@ export async function resilientGenerateContent(prompt: string, options: {
           model: geminiModel,
           generationConfig: {
             maxOutputTokens: 8192,
+            temperature: 0.1, // Consistently low for travel data
             ...(jsonMode ? { responseMimeType: "application/json" } : {}),
           },
         });
@@ -122,10 +122,7 @@ export async function resilientGenerateContent(prompt: string, options: {
   }
 
   // All engines failed — give actionable error
-  const ready = [
-    IS_GROQ_READY ? "Groq ✓" : "Groq ✗ (missing key)",
-    IS_GEMINI_READY ? "Gemini ✓" : "Gemini ✗ (invalid key — must start with AIzaSy)",
-    IS_ANTHROPIC_READY ? "Anthropic ✓" : "Anthropic ✗ (missing key)",
-  ].join(" | ");
-  throw new Error(`Travel search failed. Status: ${ready}. Please retry or check your connection.`);
+  const lastErr = "The AI discovery engine is currently overloaded or there is a connection issue.";
+  console.error("❌ ALL AI ENGINES FAILED.");
+  throw new Error(`${lastErr} Please wait a moment and try again.`);
 }

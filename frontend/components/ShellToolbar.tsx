@@ -32,7 +32,6 @@ export default function ShellToolbar() {
 
   const userName = user?.user_metadata?.full_name 
     || (user?.email ? user.email.split('@')[0] : null) 
-    || (user?.phone ? `Traveler (${user.phone.slice(-4)})` : null) 
     || 'Traveler';
   const avatarUrl = user?.user_metadata?.avatar_url;
   const initials = !avatarUrl ? userName.split(/[\s@_.-]+/).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() : '';
@@ -149,7 +148,7 @@ export default function ShellToolbar() {
                 </div>
               )}
               <div className="hidden lg:block">
-                <div className="text-xs text-zinc-400 uppercase font-bold tracking-wide">
+                <div className="text-xs text-zinc-500 uppercase font-bold tracking-wide">
                   {user ? t('account') : t('sign_in')}
                 </div>
                 <div className="text-xs font-medium text-zinc-700 max-w-[100px] truncate">{userName}</div>

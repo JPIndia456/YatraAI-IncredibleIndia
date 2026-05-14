@@ -30,7 +30,7 @@ export default function EmailAuthPage() {
       >
         <button 
           onClick={() => router.push('/')}
-          className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors mb-4 group"
+          className="flex items-center gap-2 text-zinc-600 hover:text-zinc-900 transition-colors mb-4 group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           <span className="text-xs font-black uppercase tracking-widest" suppressHydrationWarning>
@@ -45,7 +45,7 @@ export default function EmailAuthPage() {
           <h1 className="text-2xl font-black mb-1 tracking-tight text-zinc-900" suppressHydrationWarning>
             {mounted ? t('auth_email_access') : 'Email Access'}
           </h1>
-          <p className="text-zinc-500 text-xs font-medium" suppressHydrationWarning>
+          <p className="text-zinc-700 text-xs font-bold" suppressHydrationWarning>
             {mounted ? t('auth_email_access_desc') : 'Verify your identity via secure magic link or OTP'}
           </p>
         </div>
@@ -55,7 +55,7 @@ export default function EmailAuthPage() {
         </div>
 
         <div className="mt-8 text-center">
-          <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.3em]" suppressHydrationWarning>
+          <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.3em]" suppressHydrationWarning>
             {mounted ? t('auth_secure_network') : 'Yatra Secure Intelligence Network'}
           </p>
         </div>

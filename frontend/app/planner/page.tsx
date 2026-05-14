@@ -600,7 +600,7 @@ export default function YatraStudio() {
         inputs.tripType === 'round'
           ? `All transport MUST BE ROUND-TRIP for ${inputs.adults + inputs.kids} people.`
           : `All transport MUST BE ONE-WAY for ${inputs.adults + inputs.kids} people.`;
-      const prompt = `Generate a detailed 2026 Indian travel itinerary.\nDestination: ${destination}\nDates: ${dateRangeLabel}\nBudget Category: ${inputs.budget}\nTarget Total: ₹${inputs.targetBudget}\nContext from Discovery: ${suggCtx ? JSON.stringify(suggCtx) : 'None'}\nWEATHER RULE: Provide an elaborative weather object with a daily forecast. Include: Day-wise activities, specific hotel recommendations, local food spots (Diet: ${inputs.dietary.join(',')}), a final total estimate, and a 'highlights' array of 3-4 top attractions.\nPRICING RULE: ${tripRule} The 'price' for transport and the 'totalEstimate' MUST be the final combined sum for the entire party.\nJSON RULES: RFC 8259 JSON only — double-quoted keys and strings; escape any internal double quotes with backslash; no trailing commas; no // comments; output raw JSON only (no markdown fences).\nCRITICAL: Return ONLY a valid JSON object with exactly these keys: { "destination": string, "duration": string, "bestTime": string, "weather": { "temp": string, "condition": string, "tip": string, "forecast": [] }, "festivals": [], "hotels": [], "transport": [], "foodSpots": [], "shopping": [], "highlights": [], "safety": {}, "dayPlan": [], "totalEstimate": string }`;
+      const prompt = `Generate a detailed 2026 Indian travel itinerary.\nDestination: ${destination}\nDates: ${dateRangeLabel}\nBudget Category: ${inputs.budget}\nTarget Total: ₹${inputs.targetBudget}\nContext from Discovery: ${suggCtx ? JSON.stringify(suggCtx) : 'None'}\nWEATHER RULE: Provide an elaborative weather object with a daily forecast. Include: Day-wise activities, specific hotel recommendations, local food spots (Diet: ${inputs.dietary.join(',')}), a final total estimate, and a 'highlights' array of 3-4 top attractions.\nPRICING RULE: ${tripRule} The 'price' for transport and the 'totalEstimate' MUST be the final combined sum for the entire party.\nJSON RULES: Return ONLY a raw JSON object. NO markdown fences (\`\`\`json). NO preamble. NO "Okay, here is your plan". NO postamble. The output must start with { and end with } and be perfectly parseable RFC 8259 JSON.\nCRITICAL: Return ONLY exactly these keys: { "destination": string, "duration": string, "bestTime": string, "weather": { "temp": string, "condition": string, "tip": string, "forecast": [] }, "festivals": [], "hotels": [], "transport": [], "foodSpots": [], "shopping": [], "highlights": [], "safety": {}, "dayPlan": [], "totalEstimate": string }`;
 
       const gRes = await fetch('/api/ai-brain', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, stream: false }) });
       const gData = await gRes.json();
@@ -624,7 +624,7 @@ export default function YatraStudio() {
         startDate: inputs.startDate, endDate: effectiveEndDate, nights, total: parsed.totalEstimate, totalNum,
         transport: { name: parsed.transport?.[0]?.mode || 'Flight/Train', price: parsed.transport?.[0]?.price || 'Included', label: 'Primary', detail: parsed.transport?.[0]?.detail || '' },
         hotel: { name: parsed.hotels?.[0]?.name || 'Premium Stay', price: parsed.hotels?.[0]?.price || 'Included', label: 'Primary', detail: parsed.hotels?.[0]?.highlights || '' },
-        local: { name: 'Local Experience', price: 'Included', label: 'Elite', detail: 'Curated by Yatra' },
+        local: { name: 'Premium Odyssey', price: 'Included', label: 'Curated', detail: 'Guided Heritage & Luxury Access' },
         hotelsList: parsed.hotels, transportList: parsed.transport, foodSpotsList: parsed.foodSpots,
         adults: inputs.adults, kids: inputs.kids,
         weather: parsed.weather ? {
@@ -664,12 +664,12 @@ export default function YatraStudio() {
           icon: Hotel
         } : null,
         local: {
-          label: 'Mobility',
-          name: 'Ola Mini / Prime',
-          detail: 'On-demand • 5-10 min ETA',
-          price: '₹850',
-          priceNum: 850,
-          icon: Car
+          label: 'Odyssey',
+          name: 'Curated Experiences',
+          detail: 'Exclusive access • Guided',
+          price: 'Included',
+          priceNum: 0,
+          icon: Compass
         }
       });
       

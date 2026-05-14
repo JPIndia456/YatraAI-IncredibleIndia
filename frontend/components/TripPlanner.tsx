@@ -203,6 +203,8 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
         isRound ? fetch('/api/live/flights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from: searchTo, to: searchFrom, date: returnDate }) }).then(r => r.json().catch(() => ({}))) : Promise.resolve({})
       ]);
       
+      const ferries = getWaterCrossingSuggestions(searchFrom, searchTo);
+
       // Fetch Weather (non-blocking)
       WeatherService.getCurrentWeather(searchTo).then(setWeather);
       
@@ -291,14 +293,38 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
           raw: r
         }));
 
-        // Generate Realistic Flight/Train options if live data is missing or sparse
+        const busesArray = Array.isArray(data.buses) ? data.buses : (data.buses?.buses || []);
+        busesArray.forEach((r: any) => list.push({
+          label: 'Bus',
+          type: 'Bus',
+          name: r.operator || r.name || 'RedBus Express',
+          detail: `${r.type || 'Standard'} • ${r.departure || ''} → ${r.arrival || ''}`,
+          price: r.price || '₹1,200',
+          priceNum: parseInt(String(r.price || '1200').replace(/[^0-9]/g, '')) || 1200,
+          icon: Bus,
+          raw: r
+        }));
+
+        const ferriesArray = Array.isArray(data.ferries) ? data.ferries : [];
+        ferriesArray.forEach((r: any) => list.push({
+          label: 'Ferry',
+          type: 'Ferry',
+          name: r.name || 'Coastal Ferry',
+          detail: r.note || `${r.departure || ''} → ${r.arrival || ''}`,
+          price: r.price || '₹450',
+          priceNum: parseInt(String(r.price || '450').replace(/[^0-9]/g, '')) || 450,
+          icon: Ship,
+          raw: r
+        }));
+
+        // Generate Realistic Flight/Train/Bus options if live data is missing or sparse
         if (list.length < 5) {
           const providers = [
             { label: 'Flight', name: 'IndiGo | 6E-532', detail: 'Departure 08:30 AM • Non-stop • 2h 15m', price: '₹8,400', priceNum: 8400, icon: Plane },
             { label: 'Train', name: 'Rajdhani Express | 12432', detail: '04:15 PM → 11:30 AM • 2AC Class', price: '₹4,200', priceNum: 4200, icon: Train },
+            { label: 'Bus', name: 'ZingBus | AC Sleeper', detail: '21:00 → 06:30 • Premium Volvo', price: '₹1,250', priceNum: 1250, icon: Bus },
             { label: 'Flight', name: 'Air India | AI-801', detail: 'Departure 11:45 AM • Non-stop • 2h 20m', price: '₹12,500', priceNum: 12500, icon: Plane },
-            { label: 'Train', name: 'Shatabdi Express | 12002', detail: '06:00 AM → 02:30 PM • CC Class', price: '₹2,800', priceNum: 2800, icon: Train },
-            { label: 'Flight', name: 'Vistara | UK-981', detail: 'Departure 04:15 PM • Non-stop • 2h 10m', price: '₹15,200', priceNum: 15200, icon: Plane }
+            { label: 'Train', name: 'Shatabdi Express | 12002', detail: '06:00 AM → 02:30 PM • CC Class', price: '₹2,800', priceNum: 2800, icon: Train }
           ];
           
           providers.forEach(p => {
@@ -320,10 +346,13 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
         if (aiData) {
           aiData.forEach((s: any) => {
             const modeLower = String(s.mode || '').toLowerCase();
-            // Skip local items in the long-distance transport list
             if (modeLower.includes('local') || modeLower.includes('rental') || modeLower.includes('taxi') || modeLower.includes('car')) return;
 
             const isFlight = modeLower.includes('flight');
+            const isTrain = modeLower.includes('train');
+            const isBus = modeLower.includes('bus');
+            const isFerry = modeLower.includes('ferry') || modeLower.includes('boat');
+            
             const realisticName = isFlight ? 'IndiGo | 6E-532' : (s.mode || 'Intercity Express');
             
             if (!list.some(item => item.name === realisticName)) {
@@ -333,7 +362,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                 detail: s.detail || (isFlight ? 'Departure 10:30 AM • Non-stop • 2h 15m' : 'Standard Express • Reserved Class'),
                 price: s.price && s.price !== 'Included' ? s.price : (isFlight ? '₹12,500' : '₹2,500'),
                 priceNum: parseInt(String(s.price && s.price !== 'Included' ? s.price : (isFlight ? '12500' : '2500')).replace(/[^0-9]/g, '')) || (isFlight ? 12500 : 2500),
-                icon: isFlight ? Plane : Train,
+                icon: isFlight ? Plane : (isTrain ? Train : (isFerry ? Ship : Bus)),
                 raw: s
               });
             }
@@ -344,8 +373,8 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
         return list.sort((a, b) => a.priceNum - b.priceNum);
       };
 
-      setAllOutbound(buildTransportList({ trains, flights }, itn?.transportList || []));
-      setAllReturn(buildTransportList({ trains: retTrains, flights: retFlights }, itn?.transportList || []));
+      setAllOutbound(buildTransportList({ trains, flights, buses, ferries }, itn?.transportList || []));
+      setAllReturn(buildTransportList({ trains: retTrains, flights: retFlights, buses: [], ferries: [] }, itn?.transportList || []));
       
       const localList = (taxis.taxis || []).map((r: any) => ({ 
         label: 'Taxi', 
@@ -419,14 +448,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
           priceNum: priceNum(itn.hotel.price),
           icon: Hotel
         } : null),
-        local: {
-          label: 'Local',
-          name: 'Yatra Elite Experience',
-          detail: 'Curated Activities',
-          price: 'Included',
-          priceNum: 0,
-          icon: Car
-        }
+        local: null
       });
     }
   }, [mounted, activeItinerary, suggestion, mixPicks.transport, mixPicks.hotel, setMixPicks]);
@@ -641,10 +663,10 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
         </div>
         <div className="space-y-2">
           <h2 className="text-4xl font-black text-[#000080] uppercase italic tracking-tighter">{t('booking_confirmed', 'TRIP CONFIRMED!')}.</h2>
-          <p className="text-[#000080]/60 font-bold uppercase tracking-widest text-xs">{t('booking_confirmed_desc', 'Your incredible journey has been finalized.')}</p>
+          <p className="text-[#000080]/70 font-bold uppercase tracking-widest text-xs">{t('booking_confirmed_desc', 'Your incredible journey has been finalized.')}</p>
         </div>
         <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-[#000080]/10 space-y-4">
-          <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest text-[#000080]/40">
+          <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest text-[#000080]/60">
             <span>{t('indicative_total')}</span>
             <span className="text-xl text-[#000080] tracking-tighter">₹{mixTotal.toLocaleString()}</span>
           </div>
@@ -685,7 +707,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                </div>
              )}
            </div>
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-[10px] font-bold text-[#000080]/40 uppercase tracking-widest">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-[10px] font-bold text-[#000080]/60 uppercase tracking-widest">
             <span>{displayOrigin}</span>
             <ArrowRight className="w-3 h-3" />
             <span>{isoToDdMonthYy(displayStart)} — {isoToDdMonthYy(displayEnd)}</span>
@@ -715,7 +737,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Sparkles className="w-5 h-5 text-saffron" />
-              <h4 className="text-[11px] font-black text-[#000080]/40 uppercase tracking-[0.2em]">{t('select_intelligence_tier', 'Select Your Travel Style')}</h4>
+              <h4 className="text-[11px] font-black text-[#000080]/60 uppercase tracking-[0.2em]">{t('select_intelligence_tier', 'Select Your Travel Style')}</h4>
             </div>
             <div className="grid grid-cols-3 gap-4">
               {[
@@ -769,7 +791,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                   )}
                 </div>
                 <div className="flex items-center gap-3">
-                  <p className="text-[10px] font-bold text-[#000080]/40 uppercase tracking-widest">
+                  <p className="text-[10px] font-bold text-[#000080]/60 uppercase tracking-widest">
                     {loading ? 'Sourcing real-time availability...' : `Live transit to ${displayDest}`}
                   </p>
                   {!loading && (
@@ -937,6 +959,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
           </section>
 
           {/* --- LOCAL TRANSIT MODULE --- */}
+          {mixPicks.local && (
           <section className="space-y-6">
             <div className="flex items-center gap-4">
                <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
@@ -993,6 +1016,7 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                </div>
             </div>
           </section>
+          )}
         </div>
 
          {/* --- STICKY SUMMARY SIDEBAR (RIGHT) --- */}
@@ -1010,43 +1034,50 @@ export default function TripPlanner({ origin, destination, startDate, endDate, t
                     <ShoppingCart className="w-5 h-5 text-[#FF9933]" />
                     <h3 className="text-lg font-black uppercase italic tracking-tight">{t('cart_summary', 'CART SUMMARY')}</h3>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-white/40 group-hover:text-[#FF9933] transition-colors" />
+                  <ArrowRight className="w-5 h-5 text-white/60 group-hover:text-[#FF9933] transition-colors" />
                </div>
-               <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest italic">{displayDest} Booking</p>
+               <p className="text-[9px] font-bold text-white/80 uppercase tracking-widest italic">{displayDest} Booking</p>
 
                <div className="space-y-3 pt-4 border-t border-white/10">
-                   <div className="flex justify-between items-start text-[10px]">
-                      <div className="flex flex-col">
-                        <p className="font-black text-white/60 uppercase tracking-widest">Travel ({partySize} Pax)</p>
-                        <p className="text-[7px] text-white/40 uppercase font-bold italic tracking-wider">
+                    <div className="flex justify-between items-start text-[10px]">
+                      <div className="flex flex-col gap-1">
+                        <p className="font-black text-white/70 uppercase tracking-widest">Travel ({partySize} Pax)</p>
+                        <div className="flex flex-col gap-0.5 mt-1">
+                          <p className="text-[8px] text-white/80 font-black uppercase tracking-tight leading-tight">{mixPicks.transport?.name}</p>
+                          <p className="text-[7px] text-white/60 font-bold uppercase tracking-widest italic">{mixPicks.transport?.detail}</p>
+                          
+                          {mixPicks.returnTransport && (
+                            <div className="mt-1.5 pt-1.5 border-t border-white/5">
+                              <p className="text-[8px] text-white/80 font-black uppercase tracking-tight leading-tight">{mixPicks.returnTransport.name}</p>
+                              <p className="text-[7px] text-white/60 font-bold uppercase tracking-widest italic">{mixPicks.returnTransport.detail}</p>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[7px] text-[#FF9933] uppercase font-black italic tracking-wider mt-2">
                           ₹{(((Number(mixPicks.transport?.priceNum) || 0) + (Number(mixPicks.returnTransport?.priceNum) || 0))).toLocaleString()} / Pax (RT)
                         </p>
                       </div>
                       <p className="font-black text-[#FF9933]">₹{(((Number(mixPicks.transport?.priceNum) || 0) + (Number(mixPicks.returnTransport?.priceNum) || 0)) * partySize).toLocaleString()}</p>
-                   </div>
+                    </div>
                   <div className="flex justify-between items-center text-[10px]">
-                     <p className="font-black text-white/60 uppercase tracking-widest">Stay ({nights} Nights)</p>
+                     <p className="font-black text-white/70 uppercase tracking-widest">Stay ({nights} Nights)</p>
                      <p className="font-black text-[#FF9933]">₹{((Number(mixPicks.hotel?.priceNum) || 0) * nights * calculateRoomsNeeded(partySize)).toLocaleString()}</p>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px]">
-                     <p className="font-black text-white/60 uppercase tracking-widest">Local Transit</p>
-                     <p className="font-black text-[#FF9933]">₹{(Number(mixPicks.local?.priceNum) || 0).toLocaleString()}</p>
                   </div>
                </div>
 
                <div className="pt-6 border-t border-white/10 space-y-4">
                   <div className="flex justify-between items-end">
-                     <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">{t('indicative_total', 'Total Cost')}</p>
+                     <p className="text-[9px] font-black text-white/70 uppercase tracking-widest">{t('indicative_total', 'Total Cost')}</p>
                      <div className="text-right">
                         <p className="text-3xl font-black text-[#FF9933] tracking-tighter leading-none">₹{mixTotal.toLocaleString()}</p>
-                        <p className="text-[6px] font-bold text-white/30 uppercase tracking-[0.2em] mt-1 italic">Indicative Market Fare</p>
+                        <p className="text-[6px] font-bold text-white/50 uppercase tracking-[0.2em] mt-1 italic">Indicative Market Fare</p>
                      </div>
                   </div>
 
                   {/* Checkout and Refresh buttons removed to maintain minimalist concierge identity. */}
                 
                 <div className="flex flex-col gap-2">
-                   <p className="text-center text-[8px] font-bold text-white/30 uppercase tracking-widest leading-relaxed">
+                   <p className="text-center text-[8px] font-bold text-white/60 uppercase tracking-widest leading-relaxed">
                       {isVerifying ? 'Verifying live fares...' : 'Click Total to Finalize Selection'}
                    </p>
                    <div className="flex justify-center gap-3 opacity-30">

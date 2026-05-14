@@ -73,17 +73,20 @@ const getNum = (str?: string | number | null) => {
 
 /* ── Estimate Tabs ─────────────────────────────────────────────────────── */
 function EstimateTabs({
-  fNum, tNum, hNum, taxiNum, otherNum, isTaxiGrey, currentPax, nights, currentRooms, fetchedRooms, active, setActive, tripType
+  fNum, tNum, bNum, ferryNum, hNum, taxiNum, otherNum, isTaxiGrey, currentPax, nights, currentRooms, fetchedRooms, active, setActive, tripType
 }: any) {
   const isRound = tripType === 'round';
   const fTotal = fNum * currentPax;
   const tTotal = tNum * currentPax;
-  const oTotal = otherNum * currentPax;
+  const bTotal = bNum * currentPax;
+  const ferryTotal = ferryNum * currentPax;
   const hTotal = Math.round(hNum / (fetchedRooms || 1)) * currentRooms * nights;
-  const eTaxi = isTaxiGrey ? 0 : taxiNum;
-  const gFlight = fTotal + hTotal + eTaxi + oTotal;
-  const gTrain = tTotal + hTotal + eTaxi + oTotal;
-  const gMix = (fTotal / 2) + (tTotal / 2) + hTotal + eTaxi + oTotal;
+  
+  const gFlight = fTotal + hTotal;
+  const gTrain = tTotal + hTotal;
+  const gBus = bTotal + hTotal;
+  const gFerry = ferryTotal + hTotal;
+  const gMix = (fTotal / 2) + (tTotal / 2) + hTotal;
 
   const inr = (n: number) =>
     `₹${(Number.isFinite(n) ? n : 0).toLocaleString('en-IN')}`;
@@ -91,32 +94,37 @@ function EstimateTabs({
   const tabs = [];
   if (fNum > 0) tabs.push({ id: 'air', label: 'Air', total: gFlight, icon: Plane, color: 'text-saffron', bg: 'bg-saffron/10' });
   if (tNum > 0) tabs.push({ id: 'rail', label: 'Rail', total: gTrain, icon: Train, color: 'text-amber-800', bg: 'bg-amber-800/10' });
+  if (bNum > 0) tabs.push({ id: 'bus', label: 'Bus', total: gBus, icon: Bus, color: 'text-orange-600', bg: 'bg-orange-50' });
+  if (ferryNum > 0) tabs.push({ id: 'ferry', label: 'Ferry', total: gFerry, icon: Ship, color: 'text-blue-600', bg: 'bg-blue-50' });
   if (fNum > 0 && tNum > 0) tabs.push({ id: 'mix', label: 'Mix', total: gMix, icon: Sparkles, color: 'text-saffron', bg: 'bg-saffron/10' });
 
   const cur = tabs.find(foundTab => foundTab.id === active) || tabs[0];
   if (!cur) return null;
 
-  const lineItems = active === 'mix'
-    ? [
-      { icon: Plane, label: `Flight ${isRound ? '(Return)' : '(1-way)'}`, val: Math.round(fTotal / (isRound ? 2 : 1)), color: 'text-saffron', pax: currentPax },
-      { icon: Train, label: `Train ${isRound ? '(Return)' : '(1-way)'}`, val: Math.round(tTotal / (isRound ? 2 : 1)), color: 'text-amber-800', pax: currentPax },
+  let lineItems = [];
+  if (active === 'mix') {
+    lineItems = [
+      { icon: Plane, label: `Flight ${isRound ? '(RT)' : '(1-way)'}`, val: Math.round(fTotal / (isRound ? 2 : 1)), color: 'text-saffron', pax: currentPax },
+      { icon: Train, label: `Train ${isRound ? '(RT)' : '(1-way)'}`, val: Math.round(tTotal / (isRound ? 2 : 1)), color: 'text-amber-800', pax: currentPax },
       { icon: Hotel, label: `Stay (${nights}N)`, val: hTotal, color: 'text-green', pax: currentPax },
-      { icon: Car, label: 'Taxi', val: taxiNum, color: 'text-saffron', grey: isTaxiGrey, pax: currentPax },
-    ]
-    : [
+    ];
+  } else {
+    const activeIcon = active === 'air' ? Plane : (active === 'rail' ? Train : (active === 'ferry' ? Ship : Bus));
+    const activeLabel = active === 'air' ? 'Flight' : (active === 'rail' ? 'Train' : (active === 'ferry' ? 'Ferry' : 'Bus'));
+    const activeVal = active === 'air' ? fTotal : (active === 'rail' ? tTotal : (active === 'ferry' ? ferryTotal : bTotal));
+    const activeColor = active === 'air' ? 'text-saffron' : (active === 'rail' ? 'text-amber-800' : (active === 'ferry' ? 'text-blue-600' : 'text-orange-600'));
+
+    lineItems = [
       { 
-        icon: active === 'air' ? Plane : Train, 
-        label: active === 'air' 
-          ? `Flight (${currentPax} pax, ${isRound ? 'RT' : 'OW'})` 
-          : `Train (${currentPax} pax, ${isRound ? 'RT' : 'OW'})`, 
-        val: active === 'air' ? fTotal : tTotal, 
-        color: active === 'air' ? 'text-saffron' : 'text-amber-800',
+        icon: activeIcon, 
+        label: `${activeLabel} (${currentPax} pax, ${isRound ? 'RT' : 'OW'})`, 
+        val: activeVal, 
+        color: activeColor,
         pax: currentPax
       },
-      { icon: Ship, label: `Secondary (${currentPax} pax)`, val: oTotal, color: 'text-blue-500', pax: currentPax },
       { icon: Hotel, label: `Stay (${nights}N, ${currentRooms} rooms)`, val: hTotal, color: 'text-green', pax: currentPax },
-      { icon: Car, label: 'Taxi', val: taxiNum, color: 'text-saffron', grey: isTaxiGrey, pax: 1 },
     ];
+  }
 
   return (
     <div className="bg-saffron/5 border border-saffron/15 rounded-xl p-3 space-y-2">
@@ -138,13 +146,13 @@ function EstimateTabs({
       <p className="text-2xl font-black text-saffron leading-none tracking-tighter italic">{inr(cur.total)}</p>
       <div className="space-y-1 pt-1 border-t border-slate-200/50">
         {lineItems.map((item, idx) => (
-          <div key={idx} className={`flex items-center justify-between text-xs ${item.grey ? 'opacity-30 line-through' : ''}`}>
-            <span className={`flex flex-col gap-0.5 ${item.grey ? 'text-[var(--text-muted)]' : 'text-[var(--text-secondary)]'}`}>
+          <div key={idx} className="flex items-center justify-between text-xs">
+            <span className="flex flex-col gap-0.5 text-[var(--text-secondary)]">
               <span className="flex items-center gap-1.5 font-medium">
                 <item.icon className={`w-3 h-3 ${item.color}`} />
                 {item.label}
               </span>
-              {!item.grey && item.val > 0 && (
+              {item.val > 0 && (
                 <span className="text-[7px] opacity-60 ml-4.5 uppercase font-bold tracking-wider">
                    ₹{(item.val / (item.pax || 1)).toLocaleString()} / Pax
                 </span>
@@ -198,20 +206,22 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
   };
 
   const transportItems = [
-    { id: 'air', icon: Plane, label: `Flight${isRound ? ' (Return)' : ''}`, val: s.flight_cost, pax: currentPax, color: 'saffron', detail: s.flight_name || s.nearest_airport, isTransit: true },
-    { id: 'rail', icon: Train, label: `Train${isRound ? ' (Return)' : ''}`, val: s.train_cost, pax: currentPax, color: 'saffron', detail: s.train_name || s.nearest_railway, isTransit: true },
-    { id: 'other', icon: Ship, label: s.other_transport_type || 'Secondary', val: s.other_transport_cost, pax: currentPax, color: 'blue', detail: 'Local connection', isTransit: true },
-    { id: 'taxi', icon: Car, label: 'Taxi', val: s.taxi_cost, pax: 1, color: 'green', detail: 'Round-trip est.', isTransit: false },
-    { id: 'hotel', icon: Hotel, label: 'Hotel/night', val: s.hotel_per_night, pax: 1, color: 'saffron', detail: s.hotel_name || 'Per night est.', isTransit: false },
+    { id: 'air', icon: Plane, label: `Flight${isRound ? ' (Return)' : ''}`, val: s.flight_cost, pax: currentPax, color: 'saffron', detail: `${s.flight_name || s.nearest_airport || 'Standard Air'} • ${s.flight_time || 'Schedule TBD'} • ${formatPrice(s.flight_cost, 1)}/Pax`, isTransit: true },
+    { id: 'rail', icon: Train, label: `Train${isRound ? ' (Return)' : ''}`, val: s.train_cost, pax: currentPax, color: 'saffron', detail: `${s.train_name || s.nearest_railway || 'Express Rail'} • ${formatPrice(s.train_cost, 1)}/Pax`, isTransit: true },
+    { id: 'bus', icon: Bus, label: `Bus${isRound ? ' (Return)' : ''}`, val: s.bus_cost, pax: currentPax, color: 'saffron', detail: `${s.bus_operator || 'RedBus Express'} • ${formatPrice(s.bus_cost, 1)}/Pax`, isTransit: true },
+    { id: 'ferry', icon: Ship, label: 'Ferry Crossing', val: s.ferry_cost, pax: currentPax, color: 'saffron', detail: `${s.ferry_note || 'Coastal Ferry'} • ${formatPrice(s.ferry_cost, 1)}/Pax`, isTransit: true },
+    { id: 'hotel', icon: Hotel, label: 'Hotel/night', val: s.hotel_per_night, pax: 1, color: 'saffron', detail: `${s.hotel_name || 'Premium Stay'} • ${s.hotel_location || s.destination || 'Prime Area'}`, isTransit: false },
   ].filter(item => {
-    if (item.label.includes('Flight') && (!s.flight_cost || s.flight_cost === 'N/A') && (!s.train_cost || s.train_cost === 'N/A')) return false;
-    if (item.id === 'other' && (!s.other_transport_cost || s.other_transport_cost === 'N/A' || s.other_transport_type === 'None')) return false;
+    if (item.id === 'air' && (!s.flight_cost || s.flight_cost === 'N/A')) return false;
+    if (item.id === 'rail' && (!s.train_cost || s.train_cost === 'N/A')) return false;
+    if (item.id === 'bus' && (!s.bus_cost || s.bus_cost === 'N/A')) return false;
+    if (item.id === 'ferry' && (!s.ferry_cost || s.ferry_cost === 'N/A')) return false;
     return true;
   });
 
   const currentTotal = activeTab === 'air' 
-    ? (fNum * currentPax + hNum * currentRooms * nights + taxiNum + otherNum * currentPax) 
-    : (tNum * currentPax + hNum * currentRooms * nights + taxiNum + otherNum * currentPax);
+    ? (fNum * currentPax + hNum * currentRooms * nights) 
+    : (tNum * currentPax + hNum * currentRooms * nights);
 
   return (
     <motion.div
@@ -352,10 +362,20 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
 
         {/* Grand Total Tabs */}
         <EstimateTabs
-          fNum={fNum} tNum={tNum} hNum={hNum} taxiNum={taxiNum} otherNum={otherNum}
-          isTaxiGrey={isTaxiGrey} currentPax={currentPax}
-          nights={nights} currentRooms={currentRooms} fetchedRooms={fetchedRooms}
-          active={activeTab} setActive={setActiveTab}
+          fNum={fNum}
+          tNum={tNum}
+          bNum={getNum(s.bus_cost)}
+          ferryNum={getNum(s.ferry_cost)}
+          hNum={hNum}
+          taxiNum={taxiNum}
+          otherNum={otherNum}
+          isTaxiGrey={isTaxiGrey}
+          currentPax={currentPax}
+          nights={nights}
+          currentRooms={currentRooms}
+          fetchedRooms={fetchedRooms}
+          active={activeTab}
+          setActive={setActiveTab}
           tripType={inputs.tripType}
         />
 

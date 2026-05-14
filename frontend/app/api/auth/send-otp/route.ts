@@ -6,7 +6,7 @@ import { consumePersistentAuthLimit } from '@/lib/security/authRateLimit';
 import { isSupabaseNativeEmailOtpMode } from '@/lib/emailOtpMode';
 
 type SendOtpPayload = {
-  method: 'email' | 'phone';
+  method: 'email';
   value: string;
   language?: string;
 };
@@ -33,10 +33,8 @@ function getClientIp(req: NextRequest) {
   return 'unknown';
 }
 
-function normalizeTarget(method: 'email' | 'phone', value: string) {
-  if (method === 'email') return value.trim().toLowerCase();
-  const digits = value.replace(/\s+/g, '');
-  return digits.startsWith('+') ? digits : `+91${digits}`;
+function normalizeTarget(value: string) {
+  return value.trim().toLowerCase();
 }
 
 function checkRateLimit(key: string, now: number) {
@@ -88,16 +86,16 @@ export async function POST(req: NextRequest) {
     const method = body?.method;
     const value = body?.value?.trim();
 
-    if (!method || !value || (method !== 'email' && method !== 'phone')) {
+    if (method !== 'email' || !value) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
     const now = Date.now();
     cleanupStores(now);
 
-    const target = normalizeTarget(method, value);
+    const target = normalizeTarget(value);
     const ip = getClientIp(req);
-    const actorKey = `${ip}:${method}:${target}`;
+    const actorKey = `${ip}:email:${target}`;
     const ipKey = `${ip}:all`;
 
     const persistentCooldown = await consumePersistentAuthLimit(
@@ -156,24 +154,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Supabase infrastructure is not fully configured' }, { status: 500 });
     }
 
-    // Phone: SMS OTP only via Supabase (requires Twilio/MessageBird in project).
-    if (method === 'phone') {
-      const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      });
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: target,
-        options: { channel: 'sms' },
-      });
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
-      }
-      return NextResponse.json({
-        ok: true,
-        message: 'We sent a verification code to your phone via SMS.',
-        cooldownSeconds: Math.ceil(COOLDOWN_MS / 1000),
-      });
-    }
 
     // Email: Supabase-native OTP (when `EMAIL_OTP_MODE` / `NEXT_PUBLIC_EMAIL_OTP_MODE` = supabase
     // and the client uses the API instead of `signInWithOtp` in the browser).

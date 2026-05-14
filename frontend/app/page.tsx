@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Sparkles, Globe, Zap, ShieldCheck, Heart, ArrowRight, Mail, Phone, User } from 'lucide-react';
+import { Sparkles, Globe, Zap, ShieldCheck, Heart, ArrowRight, Mail, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -104,7 +104,7 @@ export default function LandingPage() {
             {t('personalized_itineraries')}
           </p>
 
-          <p className="text-sm sm:text-lg text-[#000080]/60 mb-2 max-w-3xl mx-auto font-bold leading-relaxed italic">
+          <p className="text-sm sm:text-lg text-[#000080]/85 mb-2 max-w-3xl mx-auto font-bold leading-relaxed italic">
             {t('plan_perfect_detour')}
           </p>
 
@@ -129,52 +129,29 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <div className="flex justify-center w-full mt-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full mt-12">
             <button 
-              onClick={() => authRef.current?.scrollIntoView({ behavior: 'smooth' })}
-              className="flex items-center justify-center gap-6 px-16 py-8 bg-[#000080] text-white rounded-[2.5rem] font-black text-sm uppercase hover:bg-[#000060] transition-all group shadow-[0_20px_50px_rgba(0,0,128,0.3)] hover:-translate-y-1"
+              onClick={() => router.push('/auth/email')}
+              className="flex items-center justify-center gap-6 px-12 py-8 bg-[#000080] text-white rounded-[2.5rem] font-black text-sm uppercase hover:bg-[#000060] transition-all group shadow-[0_20px_50px_rgba(0,0,128,0.3)] hover:-translate-y-1 w-full sm:w-auto"
             >
               {t('start_odyssey')}
               <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform text-[#FF9933]" />
             </button>
-          </div>
-        </motion.div>
-      </section>
 
-      {/* ── ACCESS CONTROL SECTION ── */}
-      <section ref={authRef} className="py-8 px-6 relative">
-        <div className="max-w-md mx-auto text-center">
-          <h2 className="text-2xl font-black mb-1 tracking-tight text-[#000080]">{t('access_control')}</h2>
-          <p className="text-[#000080]/50 text-[10px] mb-6 font-medium">{t('secure_auth_path')}</p>
-
-          <div className="grid grid-cols-2 gap-3">
             <button 
               onClick={() => router.push('/auth/email')}
-              className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-white border border-[#FF9933]/10 hover:border-[#FF9933]/50 hover:bg-[#FF9933]/5/20 transition-all group shadow-sm hover:shadow-xl"
+              className="flex items-center gap-4 p-4 pr-8 rounded-[2.5rem] bg-white border border-[#FF9933]/20 hover:border-[#FF9933]/50 hover:bg-[#FF9933]/5 transition-all group shadow-xl hover:-translate-y-1 w-full sm:w-auto"
             >
-              <div className="w-12 h-12 bg-[#FF9933]/5 border border-[#FF9933]/10 rounded-2xl flex items-center justify-center text-orange-300 group-hover:text-[#FF9933] group-hover:scale-110 transition-all">
+              <div className="w-14 h-14 bg-[#FF9933]/10 rounded-full flex items-center justify-center text-[#FF9933] group-hover:scale-110 transition-transform">
                 <Mail className="w-6 h-6" />
               </div>
-              <div className="text-center">
-                <div className="font-black text-xs text-[#000080]">{t('email')}</div>
-                <div className="text-[8px] text-[#000080]/40 uppercase tracking-widest font-black mt-0.5">{t('landing_otp_link')}</div>
-              </div>
-            </button>
-
-            <button 
-              onClick={() => router.push('/auth/phone')}
-              className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-white border border-[#FF9933]/10 hover:border-[#138808]/50 hover:bg-[#138808]/5/20 transition-all group shadow-sm hover:shadow-xl"
-            >
-              <div className="w-12 h-12 bg-[#138808]/5 border border-[#138808]/10 rounded-2xl flex items-center justify-center text-emerald-300 group-hover:text-[#138808] group-hover:scale-110 transition-all">
-                <Phone className="w-6 h-6" />
-              </div>
-              <div className="text-center">
-                <div className="font-black text-xs text-[#000080]">{t('phone')}</div>
-                <div className="text-[8px] text-[#000080]/40 uppercase tracking-widest font-black mt-0.5">{t('landing_sms_code')}</div>
+              <div className="text-left">
+                <div className="font-black text-xs text-[#000080] uppercase tracking-wider">{t('email')}</div>
+                <div className="text-[10px] text-[#000080]/40 font-bold uppercase tracking-widest">{t('landing_otp_link')}</div>
               </div>
             </button>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ── FOOTER ── */}

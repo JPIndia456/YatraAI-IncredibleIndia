@@ -10,8 +10,6 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  sendPhoneOtp: (phone: string) => Promise<{ error: string | null }>;
-  verifyPhoneOtp: (phone: string, otp: string) => Promise<{ error: string | null }>;
   sendEmailOtp: (email: string) => Promise<{ error: string | null }>;
   verifyEmailOtp: (email: string, otp: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -21,8 +19,6 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
-  sendPhoneOtp: async () => ({ error: null }),
-  verifyPhoneOtp: async () => ({ error: null }),
   sendEmailOtp: async () => ({ error: null }),
   verifyEmailOtp: async () => ({ error: null }),
   signOut: async () => {},
@@ -99,22 +95,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [updateState, router, syncUserChannels]);
 
-  // Phone OTP
-  const sendPhoneOtp = async (phone: string) => {
-    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
-    const { error } = await supabase.auth.signInWithOtp({ 
-      phone: formattedPhone,
-      options: { channel: 'sms' }
-    });
-    if (error) console.error('[Auth] Phone OTP Error:', error);
-    return { error: error?.message ?? null };
-  };
-
-  const verifyPhoneOtp = async (phone: string, token: string) => {
-    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
-    const { error } = await supabase.auth.verifyOtp({ phone: formattedPhone, token, type: 'sms' });
-    return { error: error?.message ?? null };
-  };
 
   // Email OTP
   const sendEmailOtp = async (email: string) => {
@@ -159,7 +139,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, session, loading,
-      sendPhoneOtp, verifyPhoneOtp,
       sendEmailOtp, verifyEmailOtp,
       signOut,
     }}>

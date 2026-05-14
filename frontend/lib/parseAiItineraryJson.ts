@@ -140,15 +140,25 @@ export function sanitizeJsonText(json: string): string {
 }
 
 export function parseAiItineraryJson(raw: string): Record<string, unknown> {
-  const unfenced = stripMarkdownFence(raw);
-  let slice = extractBalancedJsonObject(unfenced);
+  // 1. Aggressive cleaning
+  const cleaned = raw.trim()
+    .replace(/^```(?:json)?/i, '')
+    .replace(/```$/i, '')
+    .trim();
+
+  let slice = extractBalancedJsonObject(cleaned);
+  
   if (!slice) {
-    const start = unfenced.indexOf('{');
-    const end = unfenced.lastIndexOf('}');
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
     if (start === -1 || end <= start) {
-      throw new Error('AI response was not in a valid format');
+      // Last resort: maybe it's just raw JSON without fences but with prose
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (match) slice = match[0];
+      else throw new Error('AI response was not in a valid format');
+    } else {
+      slice = cleaned.slice(start, end + 1);
     }
-    slice = unfenced.slice(start, end + 1);
   }
 
   slice = sanitizeJsonText(slice);

@@ -235,6 +235,60 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
         </div>
         )}
 
+        {/* Buses */}
+        {searchData.buses?.length > 0 && (
+        <div className="space-y-2">
+          <SectionHeader id="buses" icon={Bus} title={t('selection_studio_bus_options')} count={searchData.buses.length} variant="orange" />
+          <AnimatePresence>
+            {expandedSection === 'buses' && (
+                <div className="overflow-x-auto custom-scrollbar pt-2">
+                  <table className="w-full border-separate border-spacing-y-1.5">
+                    <thead>
+                      <tr className="text-[9px] font-black text-zinc-600 uppercase tracking-widest text-left">
+                        <th className="pb-2 pl-3">{t('selection_studio_bus')}</th>
+                        <th className="pb-2">{t('selection_studio_route')}</th>
+                        <th className="pb-2">{t('selection_studio_price')}</th>
+                        <th className="pb-2"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(searchData.buses?.length ? [...searchData.buses].sort((a,b) => (a.priceNum || 0) - (b.priceNum || 0)) : []).map((b: any, i: number) => {
+                        const tp = mixPicks.transport as any;
+                        const isBusPick = tp?.type === 'Bus' || tp?.label === 'Bus';
+                        const rowKey = `${b.operator}|${b.departure}|${b.price}`;
+                        const pickedKey = `${tp?.name}|${tp?.departure}|${tp?.price}`;
+                        const isSelected = isBusPick && rowKey === pickedKey;
+                        return (
+                          <tr key={i} onClick={() => {
+                            const pick = { ...b, type: 'Bus', label: 'Bus', name: b.operator };
+                            setMixPicks({ ...mixPicks, transport: pick });
+                            patchTourGuide({ mix_picks: { ...mixPicks, transport: pick } });
+                          }}
+                            className={`group cursor-pointer transition-all ${isSelected ? 'bg-saffron/10' : 'hover:bg-orange-50/30'}`}
+                          >
+                            <td className="py-2.5 pl-3 rounded-l-xl border-y border-l border-orange-100 group-hover:border-saffron/30">
+                              <span className={`text-[11px] font-bold uppercase transition-colors ${isSelected ? 'text-saffron' : 'text-[#000080]'}`}>{b.operator}</span>
+                            </td>
+                            <td className="py-2.5 border-y border-orange-100 group-hover:border-saffron/30">
+                              <span className="text-[9px] text-slate-400 font-bold uppercase">{b.type} · {b.departure} → {b.arrival}</span>
+                            </td>
+                            <td className="py-2.5 border-y border-orange-100 group-hover:border-saffron/30">
+                              <span className="text-[11px] font-black text-saffron">{b.price}</span>
+                            </td>
+                            <td className="py-2.5 pr-3 rounded-r-xl border-y border-r border-orange-100 group-hover:border-saffron/30 text-right">
+                              {isSelected ? <CheckCircle2 className="w-3.5 h-3.5 text-saffron ml-auto" /> : <div className="w-3.5 h-3.5 rounded-full border border-orange-100 ml-auto" />}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+            )}
+          </AnimatePresence>
+        </div>
+        )}
+
         {/* Ferries / Ro-Ro */}
         {searchData.ferries?.length > 0 && (
         <div className="space-y-2">
@@ -343,44 +397,6 @@ export default function StepSelection({ onConfirm, onBack, onUpdateParams }: Ste
         </div>
         )}
 
-        {/* 4. Taxis */}
-        <div className="space-y-2">
-          <SectionHeader id="taxis" icon={Car} title={t('selection_studio_mobility_options')} count={searchData.taxis?.length || 0} />
-          <AnimatePresence>
-            {expandedSection === 'taxis' && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-2 pl-4 border-l border-saffron/20 ml-6">
-                {(searchData.taxis?.length ? searchData.taxis : [
-                   { name: 'Private Sedan (24/7)', type: 'Private', detail: 'AC, Experienced Driver', price: '₹2,500/day' },
-                   { name: 'Shared Outstation', type: 'Shared', detail: 'Standard AC', price: '₹1,200/seat' }
-                ]).map((x: any, i: number) => {
-                   const pl = mixPicks.local as { name?: string; type?: string; price?: string } | undefined;
-                   const rowKey = `${x.name}|${x.type}|${x.price}`;
-                   const pickedKey = `${pl?.name}|${pl?.type}|${pl?.price}`;
-                   const isSelected = rowKey === pickedKey && rowKey !== '||';
-                  return (
-                    <button 
-                      key={i} 
-                      onClick={() => {
-                        setMixPicks({ ...mixPicks, local: x });
-                        patchTourGuide({ mix_picks: { ...mixPicks, local: x } });
-                      }}
-                      className={`w-full text-left p-3 rounded-xl border transition-all ${isSelected ? 'bg-saffron/10 border-saffron/30 ring-1 ring-saffron/20' : 'bg-orange-50/40 border-orange-100 hover:border-saffron/20'} flex justify-between items-center group`}
-                    >
-                      <div className="space-y-1">
-                        <p className={`text-xs font-bold uppercase transition-colors ${isSelected ? 'text-saffron' : 'text-[#000080]'}`}>{x.name}</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase">{x.type} · {x.detail}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-black text-saffron">{x.price}</p>
-                        {isSelected && <span className="text-[8px] font-black text-white bg-saffron px-1.5 py-0.5 rounded uppercase tracking-widest">{t('selection_studio_selected')}</span>}
-                      </div>
-                    </button>
-                  );
-                })}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
       </div>
 
       <div className="flex flex-col gap-4 pt-10 border-t border-slate-200">

@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import { GoogleGenAI } from "@google/genai";
 import { GEMINI_MODEL } from '@/lib/geminiModel';
 import { getSearchCache, setSearchCache } from '@/lib/services/searchCache';
-import { AmadeusService } from '@/lib/services/travel/amadeus';
 
 const IATA_MAP: Record<string, string> = {
   'mumbai': 'BOM', 'delhi': 'DEL', 'bangalore': 'BLR', 'bengaluru': 'BLR',
@@ -55,31 +54,73 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, flights: cached, count: cached.length, route: `${fromCode} → ${toCode}`, source: 'cache' });
     }
 
-    // 2. Try Amadeus (Production-grade live data)
-    if (process.env.AMADEUS_CLIENT_ID) {
+    // 2. Try Booking.com RapidAPI (V1 Flights)
+    const bookingKey = process.env.BOOKING_RAPIDAPI_KEY;
+    const bookingHost = process.env.BOOKING_RAPIDAPI_HOST || 'booking-com15.p.rapidapi.com';
+    
+    if (bookingKey && bookingKey !== 'dummy_key') {
       try {
-        const amadeusFlights = await AmadeusService.searchFlights({
-          origin: fromCode,
-          destination: toCode,
-          date,
-          adults
+        console.log(`[Flights] Fetching from Booking.com RapidAPI for ${fromCode} -> ${toCode}...`);
+        const bookingUrl = `https://${bookingHost}/api/v1/flights/searchFlights?sourceAirportCode=${fromCode}&destinationAirportCode=${toCode}&date=${date}&itineraryType=ONE_WAY&sortOrder=PRICE&numAdults=${adults}&numSeniors=0&numChildren=0&numInfants=0&cabinClass=${seat.toUpperCase()}&currencyCode=INR`;
+        
+        const bookingResp = await fetch(bookingUrl, {
+          headers: {
+            'x-rapidapi-key': bookingKey,
+            'x-rapidapi-host': bookingHost
+          },
+          signal: AbortSignal.timeout(6000)
         });
-        if (amadeusFlights && amadeusFlights.length > 0) {
-          await setSearchCache('flights', { origin: from, destination: to, date }, amadeusFlights, 'amadeus-live');
-          return NextResponse.json({ 
-            success: true, 
-            flights: amadeusFlights, 
-            count: amadeusFlights.length, 
-            route: `${fromCode} → ${toCode}`,
-            source: 'amadeus-live' 
+
+        if (bookingResp.ok) {
+          const bData = await bookingResp.json();
+          // Map Booking.com V1 response to YatraAI format
+          const flightList = bData?.data?.flights || bData?.flights || [];
+          const mapped = flightList.slice(0, 10).map((f: any, idx: number) => {
+             const segment = f.segments?.[0] || {};
+             const leg = segment.legs?.[0] || {};
+             const airline = leg.airlineName || f.airline || 'Airline';
+             const priceStr = f.price?.totalPrice ? `₹${Math.round(f.price.totalPrice).toLocaleString('en-IN')}` : `₹${(4500 + (idx*500)).toLocaleString()}`;
+             
+             return {
+                id: `booking-${f.id || idx}`,
+                airline: airline,
+                airlineCode: leg.airlineCode || 'XX',
+                flight: f.flightNumber || `${leg.airlineCode || 'AI'}${100 + idx}`,
+                from: from,
+                to: to,
+                fromCode: fromCode,
+                toCode: toCode,
+                departure: leg.departureTime?.split('T')[1]?.slice(0,5) || f.departureTime || '08:00',
+                arrival: leg.arrivalTime?.split('T')[1]?.slice(0,5) || f.arrivalTime || '10:30',
+                duration: f.duration || '2h 30m',
+                stops: f.stops === 0 ? 'Non-stop' : `${f.stops} Stop`,
+                price: priceStr,
+                cabin: seat.charAt(0).toUpperCase() + seat.slice(1),
+                baggage: '15kg included',
+                seats: 5,
+                refundable: true,
+                date: date,
+                source: 'booking-com'
+             };
           });
+
+          if (mapped.length > 0) {
+            await setSearchCache('flights', { origin: from, destination: to, date }, mapped, 'booking-com');
+            return NextResponse.json({
+              success: true,
+              flights: mapped,
+              count: mapped.length,
+              route: `${fromCode} → ${toCode}`,
+              source: 'booking-com'
+            });
+          }
         }
-      } catch (amadeusErr) {
-        console.warn('[Flights] Amadeus search failed:', amadeusErr);
+      } catch (err) {
+        console.warn('[Flights] Booking.com RapidAPI failed:', err);
       }
     }
 
-    // 3. Try Aviation Edge (real-time flight feed) before AI fallback
+    // 4. Try Aviation Edge (real-time flight feed) before AI fallback
     const aviationEdgeKey = process.env.AVIATION_EDGE_API_KEY;
     if (aviationEdgeKey && aviationEdgeKey !== 'YOUR_AVIATION_EDGE_KEY') {
       try {

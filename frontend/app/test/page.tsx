@@ -19,7 +19,7 @@ export default function TestPage() {
   const authSummary = useMemo(() => {
     if (loading) return 'Checking auth session...';
     if (!user) return 'Not signed in';
-    return `Signed in as ${user.email || user.phone || user.id}`;
+    return `Signed in as ${user.email || user.id}`;
   }, [loading, user]);
 
   async function runChecks() {

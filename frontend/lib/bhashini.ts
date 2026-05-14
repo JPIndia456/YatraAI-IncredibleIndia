@@ -99,32 +99,78 @@ export async function transcribeIndianVoice(audioBase64: string, sourceLang?: st
  * 3. TRANSLATE
  */
 export async function translateText(text: string, from: string, to: string) {
-  if (from === to) return text;
+  if (from === to || !text) return text;
 
-  try {
-    const response = await fetch(BHASHINI_CONFIG.COMPUTE_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": BHASHINI_CONFIG.API_KEY as string
-      },
-      body: JSON.stringify({
-        pipelineTasks: [
-          {
+  const bKey = BHASHINI_CONFIG.API_KEY;
+  const sKey = process.env.SARVAM_API_KEY;
+  
+  const isBReady = bKey && !/REPLACE|PASTE|YOUR|XXX/i.test(bKey);
+  const isSReady = sKey && !/REPLACE|PASTE|YOUR|XXX/i.test(sKey);
+
+  if (!isBReady && !isSReady) return text;
+
+  // 1. Try Sarvam if available (Premium/Preferred)
+  if (isSReady) {
+    try {
+      const langMap: Record<string, string> = { 
+        'en': 'en-IN', 'hi': 'hi-IN', 'mr': 'mr-IN', 'ta': 'ta-IN', 
+        'te': 'te-IN', 'bn': 'bn-IN', 'gu': 'gu-IN', 'kn': 'kn-IN', 
+        'ml': 'ml-IN', 'pa': 'pa-IN', 'or': 'or-IN' 
+      };
+      const sFrom = langMap[from] || 'en-IN';
+      const sTo = langMap[to] || 'hi-IN';
+
+      const response = await fetch("https://api.sarvam.ai/translate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "api-subscription-key": sKey as string
+        },
+        body: JSON.stringify({
+          input: text,
+          source_language_code: sFrom,
+          target_language_code: sTo,
+          speaker_gender: "Female",
+          mode: "formal"
+        })
+      });
+      const result = await response.json();
+      if (result.translated_text) return result.translated_text;
+    } catch (e) {
+      console.warn("Sarvam translation failed, falling back...");
+    }
+  }
+
+  // 2. Fallback to Bhashini
+  if (isBReady) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+
+      const response = await fetch(BHASHINI_CONFIG.COMPUTE_ENDPOINT, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": bKey as string
+        },
+        body: JSON.stringify({
+          pipelineTasks: [{
             taskType: "translation",
             config: { language: { sourceLanguage: from, targetLanguage: to } }
-          }
-        ],
-        inputData: { input: [{ source: text }] }
-      })
-    });
-
-    const result = await response.json();
-    return result?.pipelineResponse?.[0]?.output?.[0]?.target || text;
-  } catch (error) {
-    console.error("Bhashini Translation Error:", error);
-    return text;
+          }],
+          inputData: { input: [{ source: text }] }
+        })
+      });
+      clearTimeout(timeout);
+      const result = await response.json();
+      return result?.pipelineResponse?.[0]?.output?.[0]?.target || text;
+    } catch (error) {
+      console.error("Bhashini Translation Error:", error);
+    }
   }
+
+  return text;
 }
 
 /**
@@ -151,36 +197,75 @@ export async function speakIndianText(text: string, lang: string = 'hin') {
  * Returns base64 audio string, or "" if unavailable / key not set.
  */
 export async function generateIndianVoice(text: string, lang: string = 'hin'): Promise<string> {
-  const key = BHASHINI_CONFIG.API_KEY;
-  // Skip if key is missing or is a placeholder value
-  if (!key || /REPLACE|PASTE|YOUR|XXX/i.test(key)) {
-    return ""; // No key — caller uses browser TTS fallback
+  const bKey = BHASHINI_CONFIG.API_KEY;
+  const sKey = process.env.SARVAM_API_KEY;
+
+  const isBReady = bKey && !/REPLACE|PASTE|YOUR|XXX/i.test(bKey);
+  const isSReady = sKey && !/REPLACE|PASTE|YOUR|XXX/i.test(sKey);
+
+  if (!isBReady && !isSReady) return "";
+
+  // 1. Try Sarvam TTS (Premium)
+  if (isSReady) {
+    try {
+      const langMap: Record<string, string> = { 
+        'hin': 'hi-IN', 'tam': 'ta-IN', 'tel': 'te-IN', 'ben': 'bn-IN', 
+        'mar': 'mr-IN', 'guj': 'gu-IN', 'kan': 'kn-IN', 'mal': 'ml-IN', 
+        'pan': 'pa-IN', 'eng': 'en-IN' 
+      };
+      const sLang = langMap[lang] || 'hi-IN';
+
+      const response = await fetch("https://api.sarvam.ai/text-to-speech", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "api-subscription-key": sKey as string
+        },
+        body: JSON.stringify({
+          inputs: [text],
+          target_language_code: sLang,
+          speaker: "meera",
+          pitch: 0,
+          pace: 1.1,
+          loudness: 1.5,
+          speech_sample_rate: 16000,
+          enable_preprocessing: true,
+          model: "bulbul:v1"
+        })
+      });
+      const result = await response.json();
+      // Sarvam returns base64 in result.audios[0]
+      return result?.audios?.[0] || "";
+    } catch (e) {
+      console.warn("Sarvam TTS failed, falling back to Bhashini...");
+    }
   }
 
-  try {
-    const response = await fetch(BHASHINI_CONFIG.COMPUTE_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": key
-      },
-      body: JSON.stringify({
-        pipelineTasks: [
-          {
+  // 2. Fallback to Bhashini TTS
+  if (isBReady) {
+    try {
+      const response = await fetch(BHASHINI_CONFIG.COMPUTE_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": bKey
+        },
+        body: JSON.stringify({
+          pipelineTasks: [{
             taskType: "tts",
             config: { language: { sourceLanguage: lang }, gender: "female" }
-          }
-        ],
-        inputData: { input: [{ source: text }] }
-      })
-    });
-
-    const result = await response.json();
-    return result?.pipelineResponse?.[0]?.output?.[0]?.audio?.[0]?.audioContent || "";
-  } catch (error) {
-    console.error("Bhashini Server-Side TTS Error:", error);
-    return "";
+          }],
+          inputData: { input: [{ source: text }] }
+        })
+      });
+      const result = await response.json();
+      return result?.pipelineResponse?.[0]?.output?.[0]?.audio?.[0]?.audioContent || "";
+    } catch (error) {
+      console.error("Bhashini TTS Error:", error);
+    }
   }
+
+  return "";
 }
 
 /**

@@ -57,23 +57,10 @@ export async function POST(req: NextRequest) {
         user_id: user.id,
         channel_type: 'email',
         channel_address: user.email.trim().toLowerCase(),
-        is_primary: !user.phone,
+        is_primary: true,
         is_verified: Boolean(user.email_confirmed_at),
         verified_at: user.email_confirmed_at ?? null,
         status: user.email_confirmed_at ? 'active' : 'pending',
-        metadata: { source: 'auth_sync' },
-      });
-    }
-
-    if (user.phone) {
-      rows.push({
-        user_id: user.id,
-        channel_type: 'phone_sms',
-        channel_address: normalizePhone(user.phone),
-        is_primary: Boolean(user.phone),
-        is_verified: Boolean(user.phone_confirmed_at),
-        verified_at: user.phone_confirmed_at ?? null,
-        status: user.phone_confirmed_at ? 'active' : 'pending',
         metadata: { source: 'auth_sync' },
       });
     }

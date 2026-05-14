@@ -4,17 +4,17 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Phone, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 /** Browser-initiated Supabase OTP keeps PKCE state so email-link redirects can finish at /auth/callback. */
 const SUPABASE_EMAIL_OTP_FROM_BROWSER =
   process.env.NEXT_PUBLIC_EMAIL_OTP_MODE?.trim().toLowerCase() === 'supabase';
 
-export default function OTPAuth({ initialMethod = 'email', hideToggle = false }: { initialMethod?: 'email' | 'phone', hideToggle?: boolean }) {
+export default function OTPAuth({ hideToggle = false }: { hideToggle?: boolean }) {
   const { t, language } = useLanguage();
   const [step, setStep] = useState<'input' | 'verify'>('input');
-  const [method, setMethod] = useState<'email' | 'phone'>(initialMethod);
+  const [method, setMethod] = useState<'email'>('email');
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState('');
   const [otp, setOtp] = useState('');
@@ -38,34 +38,14 @@ export default function OTPAuth({ initialMethod = 'email', hideToggle = false }:
 
   const handleInitialAction = async () => {
     if (loading) return;
-    if (!value) return toast.error(method === 'email' ? t('enter_email') : t('enter_phone'));
+    if (!value) return toast.error(t('enter_email'));
     if (isOtpRequest && remainingCooldown > 0) {
       return toast.error(t('auth_too_many_requests', { seconds: remainingCooldown }));
     }
     setLoading(true);
 
     try {
-      if (method === 'phone') {
-        const response = await fetch('/api/auth/send-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ method: 'phone', value }),
-        });
-        const result = await response.json();
-        if (!response.ok) {
-          const retrySec =
-            typeof result.retryAfterSeconds === 'number' ? result.retryAfterSeconds : undefined;
-          if (retrySec != null && retrySec > 0) {
-            setCooldownUntil(Date.now() + retrySec * 1000);
-          }
-          throw new Error(result.error || t('auth_failed_send_otp'));
-        }
-        setEmailOtpDigits(8);
-        setOtpChannel('supabase');
-        setStep('verify');
-        toast.success(t('otp_sent'));
-        setCooldownUntil(Date.now() + (result.cooldownSeconds ?? 60) * 1000);
-      } else if (SUPABASE_EMAIL_OTP_FROM_BROWSER) {
+      if (SUPABASE_EMAIL_OTP_FROM_BROWSER) {
         const emailAddr = value.trim().toLowerCase();
         const { error } = await supabase.auth.signInWithOtp({
           email: emailAddr,
@@ -131,10 +111,7 @@ export default function OTPAuth({ initialMethod = 'email', hideToggle = false }:
 
     setLoading(true);
     try {
-      const normalized =
-        method === 'phone'
-          ? (value.startsWith('+') ? value.replace(/\s+/g, '') : `+91${value.replace(/\s+/g, '')}`)
-          : value.trim().toLowerCase();
+      const normalized = value.trim().toLowerCase();
 
       const response = await fetch('/api/auth/verify-otp', {
         method: 'POST',
@@ -143,7 +120,7 @@ export default function OTPAuth({ initialMethod = 'email', hideToggle = false }:
         body: JSON.stringify({
           email: normalized,
           otp: otp.trim(),
-          method,
+          method: 'email',
           otpChannel,
         }),
       });
@@ -174,46 +151,14 @@ export default function OTPAuth({ initialMethod = 'email', hideToggle = false }:
             exit={{ opacity: 0, x: 20 }}
             className="space-y-4"
           >
-            {!hideToggle && (
-              <div className="flex p-1 bg-zinc-900/80 rounded-xl border border-zinc-800">
-                <button
-                  onClick={() => {
-                    setMethod('email');
-                    setStep('input');
-                    setOtp('');
-                    setEmailOtpDigits(4);
-                    setOtpChannel(null);
-                  }}
-                  className={`flex-1 flex items-center justify-center space-x-2 py-2.5 rounded-lg transition-all ${method === 'email' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
-                    }`}
-                >
-                  <Mail className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider" suppressHydrationWarning>{mounted ? t('auth_email_label') : 'Email'}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setMethod('phone');
-                    setStep('input');
-                    setOtp('');
-                    setEmailOtpDigits(4);
-                    setOtpChannel(null);
-                  }}
-                  className={`flex-1 flex items-center justify-center space-x-2 py-2.5 rounded-lg transition-all ${method === 'phone' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
-                    }`}
-                >
-                  <Phone className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider" suppressHydrationWarning>{mounted ? t('auth_phone_label') : 'Phone'}</span>
-                </button>
-              </div>
-            )}
 
             <div className="space-y-3">
               <input
-                type={method === 'email' ? 'email' : 'tel'}
+                type="email"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder={method === 'email' ? 'example@mail.com' : '+91 00000 00000'}
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-3 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/50 transition-all placeholder:text-zinc-400"
+                placeholder="example@mail.com"
+                className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-3 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/50 transition-all placeholder:text-zinc-500 font-medium"
               />
 
               <button
@@ -245,7 +190,7 @@ export default function OTPAuth({ initialMethod = 'email', hideToggle = false }:
             className="space-y-4"
           >
             <div className="text-center space-y-2">
-              <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">
+              <p className="text-xs text-zinc-700 uppercase tracking-widest font-bold">
                 {mounted ? t('auth_code_sent_to') : 'Verification code sent to'}
               </p>
               <p className="text-cyan-500 font-medium">{value}</p>
@@ -255,10 +200,10 @@ export default function OTPAuth({ initialMethod = 'email', hideToggle = false }:
               type="text"
               inputMode="numeric"
               autoComplete="one-time-code"
-              maxLength={method === 'email' ? emailOtpDigits : 8}
+              maxLength={emailOtpDigits}
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-              placeholder={method === 'email' && emailOtpDigits === 6 ? '0 0 0 0 0 0' : '0 0 0 0'}
+              placeholder={emailOtpDigits === 6 ? '0 0 0 0 0 0' : '0 0 0 0'}
               className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-5 text-zinc-900 text-center text-4xl sm:text-5xl tracking-[0.2em] sm:tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/50 transition-all shadow-xl"
             />
 
@@ -269,7 +214,7 @@ export default function OTPAuth({ initialMethod = 'email', hideToggle = false }:
                   setOtp('');
                   setOtpChannel(null);
                 }}
-                className="flex-1 px-6 py-4 rounded-xl border border-zinc-200 text-zinc-500 font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 hover:bg-zinc-50 transition-all"
+                className="flex-1 px-6 py-4 rounded-xl border border-zinc-200 text-zinc-700 font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 hover:bg-zinc-50 transition-all"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>{mounted ? t('back') : 'Back'}</span>
