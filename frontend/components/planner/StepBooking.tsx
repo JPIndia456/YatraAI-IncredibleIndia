@@ -28,7 +28,7 @@ function parsePrice(p?: string): number {
   return parseInt(String(p).replace(/[₹,]/g, '')) || 0;
 }
 
-export default function StepBooking({ searchData, setInputs, nights, tripType, onBack, onBookAndPay }: StepBookingProps) {
+export default function StepBooking({ searchData, setInputs, nights, tripType, onBack, onBookAndPay, isSaving }: StepBookingProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { mixPicks, activeItinerary, setActiveItinerary, setIsProfileOpen } = useTripPlannerStore();
