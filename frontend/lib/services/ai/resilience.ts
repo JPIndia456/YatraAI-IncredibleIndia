@@ -306,7 +306,7 @@ export async function resilientGenerateContent(
             contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
             tools: [{ googleSearch: {} }] as any,
           }),
-          35000 // Grounded search gets more time
+          60000 // Extended timeout for Grounded search
         );
         const response = await result.response;
         if (response.text()) return { text: response.text(), model: geminiModel, grounded: true };
@@ -331,7 +331,7 @@ export async function resilientGenerateContent(
           },
         });
         const groundedPrompt = useGrounding ? `${NO_LIVE_DATA_DISCLAIMER}\n\n${fullPrompt}` : fullPrompt;
-        const result = await withTimeout(model.generateContent(groundedPrompt), 15000); // Fallbacks must be fast
+        const result = await withTimeout(model.generateContent(groundedPrompt), 45000); // Extended timeout for large plans
         const response = await result.response;
         if (response.text()) return { text: response.text(), model: geminiModel, grounded: false };
       } catch (e: any) {
@@ -376,7 +376,7 @@ export async function resilientGenerateContent(
       try {
         const text = await withTimeout(
           callGroq(useGrounding ? `${NO_LIVE_DATA_DISCLAIMER}\n\n${fullPrompt}` : fullPrompt, groqModel),
-          12000
+          25000
         );
         if (text) return { text, model: `groq-${groqModel}`, grounded: false };
       } catch (e: any) {
