@@ -75,7 +75,7 @@ const toggleArr = <T,>(arr: T[], val: T): T[] =>
   arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
 
 export default function StepInputs({
-  inputs,
+  inputs: rawInputs,
   activeLang,
   setActiveLang,
   setInputs,
@@ -83,6 +83,29 @@ export default function StepInputs({
   onDiscover,
 }: StepInputsProps) {
   const { t } = useTranslation();
+  
+  // Memory Sanitizer: Ensure all fields exist even if loaded from a legacy localstorage state
+  const inputs: PlannerInputs = {
+    origin: '',
+    specificDest: '',
+    startDate: '',
+    endDate: '',
+    tripType: 'round',
+    targetBudget: 50000,
+    adults: 1,
+    kids: 0,
+    kidAges: '',
+    dietary: [],
+    likes: [],
+    dislikes: [],
+    destTypes: [],
+    ecoFriendly: false,
+    wheelchair: false,
+    telegramId: '',
+    language: 'en',
+    budget: 'moderate',
+    ...(rawInputs || {})
+  };
   const { setLanguage } = useLanguage();
   const [showIntelDetail, setShowIntelDetail] = useState(false);
   const [locationIntel, setLocationIntel] = useState<LocationIntelPayload | null>(null);
@@ -420,7 +443,7 @@ export default function StepInputs({
           </div>
         </div>
 
-        {(inputs.origin.trim() || inputs.specificDest.trim()) && (
+        {((inputs.origin || '').trim() || (inputs.specificDest || '').trim()) && (
           <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/[0.05] px-3 py-2.5 space-y-2">
             <div className="flex items-start gap-2">
               <HelpCircle className="w-3.5 h-3.5 text-amber-400/90 shrink-0 mt-0.5" aria-hidden />
