@@ -159,10 +159,19 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
   const handleSave = async () => {
     setSyncStatus('saving');
     const updates = {
-      ...form,
-      user_persona: form.user_persona || form.persona, // Ensure both are synced
+      full_name: form.full_name,
+      display_name: form.display_name,
+      favorite_destinations: form.favorite_destinations,
+      email: form.email,
+      phone: form.phone,
+      gender: form.gender,
+      preferred_language: form.preferred_language,
+      persona: form.user_persona || form.persona, // 'user_persona' is a generated column, we only write to 'persona'
       likes: form.likes.split(',').map(s => s.trim()).filter(Boolean),
-      dislikes: form.dislikes.split(',').map(s => s.trim()).filter(Boolean)
+      dislikes: form.dislikes.split(',').map(s => s.trim()).filter(Boolean),
+      telegram_id: form.telegram_id,
+      telegram_enabled: form.telegram_enabled,
+      preferred_voice: form.preferred_voice
     };
     const { error } = await updateProfile(updates);
     if (error) {
