@@ -40,7 +40,7 @@ const SERVICE_KEY = envVars.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SE
 if (!SERVICE_KEY || SERVICE_KEY.startsWith('REPLACE_')) {
   console.error('\n❌  SUPABASE_SERVICE_ROLE_KEY missing or not set.\n');
   console.error('📋  How to get it:');
-  console.error('  1. Open: https://supabase.com/dashboard/project/ogrltimjrrvchqzlddqt/settings/api');
+  console.error('  1. Open: https://supabase.com/dashboard/project/nvoiaumlxdcbojlamwjv/settings/api');
   console.error('  2. Under "Project API keys", copy the secret (service_role) key');
   console.error('  3. Paste into .env.local: SUPABASE_SERVICE_ROLE_KEY=eyJ...\n');
   process.exit(1);

@@ -13,7 +13,7 @@ const OPENROUTER_FREE_MODELS = [
 const OPENROUTER_PAID_MODEL = "anthropic/claude-opus-4.7";
 
 export async function callAnthropic(prompt: string, model?: string): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = (process.env.ANTHROPIC_API_KEY || "").trim();
 
   if (!apiKey) {
     throw new Error("ANTHROPIC_API_KEY is missing.");
@@ -92,17 +92,18 @@ export async function callAnthropic(prompt: string, model?: string): Promise<str
     throw lastError || new Error("All OpenRouter models rate-limited. Try again in a few minutes.");
   }
 
-  // Direct Anthropic API (native key)
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: model?.replace("anthropic/", "") || "claude-3-5-sonnet-20241022",
-      max_tokens: 2048,
+    const preferredModel = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022";
+    
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: model?.replace("anthropic/", "") || preferredModel,
+        max_tokens: 2048,
       messages: [{ role: "user", content: prompt }],
     }),
   });

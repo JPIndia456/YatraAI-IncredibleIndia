@@ -20,7 +20,7 @@ const CITY_TO_STATION: Record<string, string> = {
   'puri': 'PURI', 'tirupati': 'TPTY', 'shirdi': 'SNSI', 'kanpur': 'CNB',
   'cochin': 'ERS', 'calicut': 'CLT', 'kozhikode': 'CLT', 'guwahati ': 'GHY',
   'shillong': 'GHY', 'darjeeling': 'NJP', 'gangtok': 'NJP', 'new jalpaiguri': 'NJP',
-  'ayodhya': 'AY', 'mathura': 'MTJ', 'ujjain': 'UJN', 'haridwar': 'HW',
+  'ayodhya': 'AY', 'mathura': 'MTJ', 'ujjain': 'UJN', 'nainital': 'KGM',
   'leh': 'SML', 'ladakh': 'SML', 'ooty': 'MTP', 'muntner': 'MTP',
   'hampi': 'HPT', 'hospet': 'HPT', 'gokarna': 'GOK', 'pondicherry': 'PDY',
 };
@@ -210,8 +210,11 @@ List exactly 6 real trains with accurate timing. Return ONLY raw JSON (no markdo
 }
 Return 6 real trains that actually run on this route. If no trains exist, return [] for trains.`;
 
-        const response = await ai.getGenerativeModel({ model: GEMINI_MODEL }).generateContent(prompt);
-        const text = response.response.text() || '';
+        const response = await ai.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: prompt,
+        });
+        const text = response.text || '';
         const jsonStart = text.indexOf('{');
         const jsonEnd = text.lastIndexOf('}');
         if (jsonStart !== -1 && jsonEnd !== -1) {

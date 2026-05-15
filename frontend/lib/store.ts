@@ -34,7 +34,7 @@ export interface ChatMessage {
   quickReplies?: Array<{
     label: string;
     value: string;
-    field: 'origin' | 'destination' | 'startDate' | 'endDate' | 'budget' | 'adults';
+    field: 'origin' | 'destination' | 'startDate' | 'endDate' | 'budget' | 'adults' | 'kids' | 'tripType';
   }>;
 }
 
@@ -54,6 +54,7 @@ interface TripState {
   userPersona: string;
   likes: string[];
   dislikes: string[];
+  preferredVoice: 'male' | 'female';
 
   // Generated Itinerary
   itinerary: DayItinerary[] | null;
@@ -82,6 +83,7 @@ interface TripState {
   setUserPersona: (persona: string) => void;
   setLikes: (likes: string[]) => void;
   setDislikes: (dislikes: string[]) => void;
+  setPreferredVoice: (voice: 'male' | 'female') => void;
 
   // Optimistic booking actions
   addOptimisticBooking: (booking: Omit<OptimisticBooking, 'id' | 'createdAt' | 'status'>) => string;
@@ -99,7 +101,7 @@ export const useTripStore = create<TripState>((set, get) => ({
   startDate: null,
   endDate: null,
   budget: 'Vaisya',
-  targetBudget: 50000,
+  targetBudget: 10000,
   adults: 1,
   kids: 0,
   travelType: 'leisure',
@@ -112,6 +114,7 @@ export const useTripStore = create<TripState>((set, get) => ({
   userPersona: 'Cultural Explorer',
   likes: [],
   dislikes: [],
+  preferredVoice: 'female',
 
   setOrigin: (origin) => set({ origin }),
   setDestination: (destination) => {
@@ -130,6 +133,7 @@ export const useTripStore = create<TripState>((set, get) => ({
   setUserPersona: (userPersona) => set({ userPersona }),
   setLikes: (likes) => set({ likes }),
   setDislikes: (dislikes) => set({ dislikes }),
+  setPreferredVoice: (preferredVoice) => set({ preferredVoice }),
   resetTrip: () => set({
     origin: '',
     destination: '',
@@ -354,6 +358,15 @@ export interface ActiveItinerary {
     night: { name: string; desc: string }[];
     nature: { name: string; desc: string }[];
   };
+  // Day-by-day plan (used by AI Brain for day-plan context)
+  days?: Array<{
+    day?: number;
+    title?: string;
+    description?: string;
+    activities?: string[];
+    meals?: string[];
+    lodging?: string;
+  }>;
 }
 
 interface TripPlannerState {

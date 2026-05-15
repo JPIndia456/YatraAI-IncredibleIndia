@@ -85,7 +85,10 @@ export default function NavigationWrapper({
               className={`flex-1 max-w-[260px] md:max-w-[280px] bg-[#FF9933] px-4.5 md:px-7 py-3 md:py-4 rounded-2xl text-white font-black text-xs md:text-sm flex items-center justify-center space-x-2 shadow-xl shadow-saffron/30 transition-all ${disabledNext ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:bg-orange-600'}`}
             >
               <Sparkles className="w-4 h-4 text-white animate-pulse" />
-              <span className="uppercase tracking-[0.12em]">{nextLabel || t('next')}</span>
+              <span className="uppercase tracking-[0.12em]">
+                <span className="sm:hidden">{nextLabel?.split(' ')[0] || t('next')}</span>
+                <span className="hidden sm:inline">{nextLabel || t('next')}</span>
+              </span>
               {isRTL ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
             </motion.button>
           )}

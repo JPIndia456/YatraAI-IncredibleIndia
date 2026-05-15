@@ -23,10 +23,19 @@ import {
   Info, 
   Ship,
   Check,
-  Bus
+  Bus,
+  Navigation,
+  ArrowRight
 } from 'lucide-react';
 import type { PlannerInputs } from './StepInputs';
 import { useLanguage } from '@/contexts/LanguageContext';
+
+/* ── Tiers ─────────────────────────────────────────────────────────────── */
+const TIERS = [
+  { id: 'economy',  label: 'Economy',  sub: 'Budget',   color: 'text-orange-600', bg: 'bg-orange-50', multiplier: 0.85 },
+  { id: 'moderate', label: 'Standard', sub: 'Balanced', color: 'text-saffron',    bg: 'bg-saffron/10', multiplier: 1.0 },
+  { id: 'luxury',   label: 'Premium',  sub: 'Elite',    color: 'text-blue-600',   bg: 'bg-blue-50',    multiplier: 1.6 }
+] as const;
 
 interface SuggestionCardProps {
   s: any;
@@ -34,7 +43,7 @@ interface SuggestionCardProps {
   inputs: PlannerInputs;
   fetchedInputs: { adults: number; kids: number } | null;
   setInputs: Dispatch<SetStateAction<PlannerInputs>>;
-  onConfirm: (s: any, dest: string) => void;
+  onConfirm: (s: any, dest: string, transportMode: string) => void;
   onAskAI: (dest: string) => void;
 }
 
@@ -44,10 +53,12 @@ interface StepSuggestionsProps {
   fetchedInputs: { adults: number; kids: number } | null;
   selectedIdx: number | null;
   setInputs: Dispatch<SetStateAction<PlannerInputs>>;
-  onConfirm: (s: any, dest: string) => void;
+  onConfirm: (s: any, dest: string, transportMode: string) => void;
   onAskAI: (dest: string) => void;
   onBack: () => void;
   onReset: () => void;
+  onGenerate: () => void;
+  isLoading: boolean;
 }
 
 /* ── Helpers ───────────────────────────────────────────────────────────── */
@@ -87,79 +98,87 @@ function EstimateTabs({
   const gTrain = tTotal + hTotal;
   const gBus = bTotal + hTotal;
   const gFerry = ferryTotal + hTotal;
-  const gMix = (fTotal / 2) + (tTotal / 2) + hTotal;
+
+  const transportChoices = [
+    { id: 'air', val: fTotal, icon: Plane, label: 'Flight', color: 'text-saffron' },
+    { id: 'rail', val: tTotal, icon: Train, label: 'Train', color: 'text-amber-800' },
+    { id: 'bus', val: bTotal, icon: Bus, label: 'Bus', color: 'text-orange-600' }
+  ]; // Removed filter to ensure tabs are always visible
 
   const inr = (n: number) =>
     `₹${(Number.isFinite(n) ? n : 0).toLocaleString('en-IN')}`;
 
   const tabs = [];
-  if (fNum > 0) tabs.push({ id: 'air', label: 'Air', total: gFlight, icon: Plane, color: 'text-saffron', bg: 'bg-saffron/10' });
-  if (tNum > 0) tabs.push({ id: 'rail', label: 'Rail', total: gTrain, icon: Train, color: 'text-amber-800', bg: 'bg-amber-800/10' });
-  if (bNum > 0) tabs.push({ id: 'bus', label: 'Bus', total: gBus, icon: Bus, color: 'text-orange-600', bg: 'bg-orange-50' });
+  // Show Air tab if there is a flight cost OR if route distance justifies it (>= 150 km)
+  // This ensures the tab always appears for long-haul routes even if AI price is pending
+  tabs.push({ id: 'air', label: 'Air', total: gFlight, icon: Plane, color: 'text-[#FF9933]', bg: 'bg-[#FF9933]/10' });
+  if (tNum > 0) tabs.push({ id: 'rail', label: 'Rail', total: gTrain, icon: Train, color: 'text-amber-800', bg: 'bg-amber-800/15' });
+  if (bNum > 0) tabs.push({ id: 'bus', label: 'Bus', total: gBus, icon: Bus, color: 'text-[#138808]', bg: 'bg-[#138808]/10' });
   if (ferryNum > 0) tabs.push({ id: 'ferry', label: 'Ferry', total: gFerry, icon: Ship, color: 'text-blue-600', bg: 'bg-blue-50' });
-  if (fNum > 0 && tNum > 0) tabs.push({ id: 'mix', label: 'Mix', total: gMix, icon: Sparkles, color: 'text-saffron', bg: 'bg-saffron/10' });
 
   const cur = tabs.find(foundTab => foundTab.id === active) || tabs[0];
   if (!cur) return null;
 
   let lineItems = [];
-  if (active === 'mix') {
-    lineItems = [
-      { icon: Plane, label: `Flight ${isRound ? '(RT)' : '(1-way)'}`, val: Math.round(fTotal / (isRound ? 2 : 1)), color: 'text-saffron', pax: currentPax },
-      { icon: Train, label: `Train ${isRound ? '(RT)' : '(1-way)'}`, val: Math.round(tTotal / (isRound ? 2 : 1)), color: 'text-amber-800', pax: currentPax },
-      { icon: Hotel, label: `Stay (${nights}N)`, val: hTotal, color: 'text-green', pax: currentPax },
-    ];
-  } else {
-    const activeIcon = active === 'air' ? Plane : (active === 'rail' ? Train : (active === 'ferry' ? Ship : Bus));
-    const activeLabel = active === 'air' ? 'Flight' : (active === 'rail' ? 'Train' : (active === 'ferry' ? 'Ferry' : 'Bus'));
-    const activeVal = active === 'air' ? fTotal : (active === 'rail' ? tTotal : (active === 'ferry' ? ferryTotal : bTotal));
-    const activeColor = active === 'air' ? 'text-saffron' : (active === 'rail' ? 'text-amber-800' : (active === 'ferry' ? 'text-blue-600' : 'text-orange-600'));
+  const activeIcon = active === 'air' ? Plane : (active === 'rail' ? Train : (active === 'ferry' ? Ship : Bus));
+  const activeLabel = active === 'air' ? 'Flight' : (active === 'rail' ? 'Train' : (active === 'ferry' ? 'Ferry' : 'Bus'));
+  const activeVal = active === 'air' ? fTotal : (active === 'rail' ? tTotal : (active === 'ferry' ? ferryTotal : bTotal));
+  const activeColor = active === 'air' ? 'text-[#FF9933]' : (active === 'rail' ? 'text-amber-800' : (active === 'ferry' ? 'text-blue-600' : 'text-[#138808]'));
 
-    lineItems = [
-      { 
-        icon: activeIcon, 
-        label: `${activeLabel} (${currentPax} pax, ${isRound ? 'RT' : 'OW'})`, 
-        val: activeVal, 
-        color: activeColor,
-        pax: currentPax
-      },
-      { icon: Hotel, label: `Stay (${nights}N, ${currentRooms} rooms)`, val: hTotal, color: 'text-green', pax: currentPax },
-    ];
-  }
+  const activeBg = active === 'air' ? 'bg-[#FF9933]/10' : (active === 'rail' ? 'bg-amber-800/15' : (active === 'ferry' ? 'bg-blue-50' : 'bg-[#138808]/10'));
+
+  lineItems = [
+    { 
+      icon: activeIcon, 
+      label: `${activeLabel} (${currentPax} pax, ${isRound ? 'RT' : 'OW'})`, 
+      val: activeVal, 
+      color: activeColor,
+      bg: activeBg,
+      pax: currentPax
+    },
+    { icon: Hotel, label: `Stay (${nights}N, ${currentRooms} rooms)`, val: hTotal, color: 'text-green', bg: 'bg-green/10', pax: currentPax },
+  ];
 
   return (
-    <div className="bg-saffron/5 border border-saffron/15 rounded-xl p-3 space-y-2">
-      <div className="flex items-center justify-between">
-        <p className="text-[10px] font-bold text-saffron uppercase tracking-widest">Grand Total Estimate</p>
-        <div className="flex bg-white/40 backdrop-blur-sm border border-slate-200/60 rounded-xl p-1 gap-1 shadow-sm">
+    <div className="bg-slate-50/80 border border-slate-200/50 rounded-[2rem] p-5 space-y-4 shadow-inner">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] leading-none">Valuation Threshold</p>
+        <div className="flex flex-wrap bg-white border border-slate-200 rounded-2xl p-1 gap-1 shadow-sm">
           {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={e => { e.stopPropagation(); setActive(tab.id); }}
-                className={`px-2.5 py-1 rounded-md text-[9px] font-black transition-all flex items-center gap-1.5 ${active === tab.id ? `${tab.bg} ${tab.color}` : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}
+                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${active === tab.id ? `${tab.bg} ${tab.color} shadow-sm ring-1 ring-inset ring-current/10` : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}
               >
-                <tab.icon className="w-3 h-3" />
+                <tab.icon className="w-4 h-4" />
                 {tab.label}
               </button>
           ))}
         </div>
       </div>
-      <p className="text-2xl font-black text-saffron leading-none tracking-tighter italic">{inr(cur.total)}</p>
-      <div className="space-y-1 pt-1 border-t border-slate-200/50">
+      
+      <div className="flex items-baseline gap-2">
+        <p className="text-3xl font-black text-[#000080] leading-none tracking-tighter italic">{inr(cur.total)}</p>
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Est. Total</span>
+      </div>
+
+      <div className="space-y-2 pt-4 border-t border-slate-200/50">
         {lineItems.map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between text-xs">
-            <span className="flex flex-col gap-0.5 text-[var(--text-secondary)]">
-              <span className="flex items-center gap-1.5 font-medium">
-                <item.icon className={`w-3 h-3 ${item.color}`} />
-                {item.label}
-              </span>
-              {item.val > 0 && (
-                <span className="text-[7px] opacity-60 ml-4.5 uppercase font-bold tracking-wider">
-                   ₹{(item.val / (item.pax || 1)).toLocaleString()} / Pax
-                </span>
-              )}
-            </span>
-            <span className="font-semibold text-saffron">{inr(item.val)}</span>
+          <div key={idx} className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-lg ${item.bg || 'bg-white'} border border-slate-100 flex items-center justify-center shadow-sm`}>
+                <item.icon className={`w-4 h-4 ${item.color}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-black text-[#000080] uppercase tracking-tighter truncate">{item.label}</p>
+                {item.val > 0 && (
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                    ₹{(item.val / (item.pax || 1)).toLocaleString()} / PAX
+                  </p>
+                )}
+              </div>
+            </div>
+            <p className="text-xs font-black text-saffron italic">{inr(item.val)}</p>
           </div>
         ))}
       </div>
@@ -171,7 +190,9 @@ function EstimateTabs({
 function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onAskAI }: SuggestionCardProps) {
   const [pending, setPending] = useState(false);
   const [locationCheckAnswer, setLocationCheckAnswer] = useState<'yes' | 'no' | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('air');
+  const [activeTab, setActiveTab] = useState<string>(
+    () => getNum(undefined) >= 0 ? 'air' : 'rail'
+  );
   const { t } = useLanguage();
 
   const locationCheckText = typeof s.location_check === 'string' ? s.location_check.trim() : '';
@@ -187,11 +208,14 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
 
   useEffect(() => {
     setLocationCheckAnswer(null);
-    if (fNum > 0) setActiveTab('air');
+    // Pick the best default tab based on available data and distance
+    const distanceOk = !s.distance_km || s.distance_km >= 150;
+    if (fNum > 0 && distanceOk) setActiveTab('air');
     else if (tNum > 0) setActiveTab('rail');
     else if (bNum > 0) setActiveTab('bus');
     else if (ferryNum > 0) setActiveTab('ferry');
-  }, [locationCheckText, fNum, tNum, bNum, ferryNum]);
+    else setActiveTab('rail'); // safe fallback
+  }, [locationCheckText, fNum, tNum, bNum, ferryNum, s.distance_km]);
 
   const startMs = new Date(inputs.startDate).getTime();
   const endMs = new Date(inputs.endDate).getTime();
@@ -203,11 +227,12 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
   const currentRooms = calculateRooms(inputs.adults, inputs.kids);
   const fetchedRooms = calculateRooms(fetchedInputs?.adults || 2, fetchedInputs?.kids || 0);
 
-  const fTotal = fNum * currentPax;
+  const tierMultiplier = TIERS.find(t => t.id === (inputs.budget || 'moderate'))?.multiplier || 1.0;
+  const fTotal = fNum * currentPax * (activeTab === 'air' ? tierMultiplier : 1.0);
   const tTotal = tNum * currentPax;
   const bTotal = bNum * currentPax;
   const ferryTotal = ferryNum * currentPax;
-  const hTotal = Math.round(hNum / (fetchedRooms || 1)) * currentRooms * nights;
+  const hTotal = Math.round((hNum * tierMultiplier) / (fetchedRooms || 1)) * currentRooms * nights;
 
   const currentTotal = useMemo(() => {
     if (activeTab === 'air') return fTotal + hTotal;
@@ -229,16 +254,17 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
   };
 
   const transportItems = [
-    { id: 'air', icon: Plane, label: `Flight${isRound ? ' (Return)' : ''}`, val: s.flight_cost, pax: currentPax, color: 'saffron', detail: `${s.flight_name || s.nearest_airport || 'Standard Air'} • ${s.flight_time || 'Schedule TBD'} • ${formatPrice(s.flight_cost, 1)}/Pax`, isTransit: true },
-    { id: 'rail', icon: Train, label: `Train${isRound ? ' (Return)' : ''}`, val: s.train_cost, pax: currentPax, color: 'saffron', detail: `${s.train_name || s.nearest_railway || 'Express Rail'} • ${formatPrice(s.train_cost, 1)}/Pax`, isTransit: true },
-    { id: 'bus', icon: Bus, label: `Bus${isRound ? ' (Return)' : ''}`, val: s.bus_cost, pax: currentPax, color: 'saffron', detail: `${s.bus_operator || 'RedBus Express'} • ${formatPrice(s.bus_cost, 1)}/Pax`, isTransit: true },
-    { id: 'ferry', icon: Ship, label: 'Ferry Crossing', val: s.ferry_cost, pax: currentPax, color: 'saffron', detail: `${s.ferry_note || 'Coastal Ferry'} • ${formatPrice(s.ferry_cost, 1)}/Pax`, isTransit: true },
-    { id: 'hotel', icon: Hotel, label: 'Hotel/night', val: s.hotel_per_night, pax: 1, color: 'saffron', detail: `${s.hotel_name || 'Premium Stay'} • ${s.hotel_location || s.destination || 'Prime Area'}`, isTransit: false },
+    { id: 'air', icon: Plane, label: `Flight${isRound ? ' (Return)' : ''}`, val: s.flight_cost, pax: currentPax, color: 'saffron', detail: `${inputs.budget === 'luxury' ? 'Premier Cabin' : 'Value Class'} • ${s.flight_name || s.nearest_airport || 'Standard Air'} • ${formatPrice(s.flight_cost, 1)}/Pax`, isTransit: true },
+    { id: 'rail', icon: Train, label: `Train${isRound ? ' (Return)' : ''}`, val: s.train_cost, pax: currentPax, color: 'saffron', detail: `${inputs.budget === 'luxury' ? 'AC Express' : 'Sleeper Class'} • ${s.train_name || s.nearest_railway || 'Express Rail'} • ${formatPrice(s.train_cost, 1)}/Pax`, isTransit: true },
+    { id: 'bus', icon: Bus, label: `Bus${isRound ? ' (Return)' : ''}`, val: s.bus_cost, pax: currentPax, color: 'saffron', detail: `${inputs.budget === 'luxury' ? 'Volvo Multi-Axle' : 'Standard Express'} • ${s.bus_operator || 'RedBus Express'} • ${formatPrice(s.bus_cost, 1)}/Pax`, isTransit: true },
+    { id: 'ferry', icon: Ship, label: 'Ferry Crossing', val: s.ferry_cost, pax: currentPax, color: 'saffron', detail: `${inputs.budget === 'luxury' ? 'Luxury Cruise' : 'Local Ferry'} • ${s.ferry_note || 'Coastal Ferry'} • ${formatPrice(s.ferry_cost, 1)}/Pax`, isTransit: true },
+    { id: 'hotel', icon: Hotel, label: 'Hotel/night', val: s.hotel_per_night, pax: 1, color: 'saffron', detail: `${inputs.budget === 'luxury' ? '5-Star Heritage' : inputs.budget === 'economy' ? 'Value Stay' : 'Premium Stay'} • ${s.hotel_location || s.destination || 'Prime Area'}`, isTransit: false },
   ].filter(item => {
-    if (item.id === 'air' && (!s.flight_cost || s.flight_cost === 'N/A')) return false;
-    if (item.id === 'rail' && (!s.train_cost || s.train_cost === 'N/A')) return false;
-    if (item.id === 'bus' && (!s.bus_cost || s.bus_cost === 'N/A')) return false;
-    if (item.id === 'ferry' && (!s.ferry_cost || s.ferry_cost === 'N/A')) return false;
+    // Only hide Air on genuinely short-haul routes (< 150 km)
+    // Do NOT hide Air just because the AI returned 'N/A' — show it grayed out instead
+    if (item.id === 'air' && s.distance_km && s.distance_km < 150) return false;
+    if (['rail', 'bus', 'hotel'].includes(item.id)) return true;
+    if (item.id === 'ferry' && (!s.ferry_cost || s.ferry_cost === 'N/A' || s.ferry_cost === 0)) return false;
     return true;
   });
 
@@ -254,7 +280,7 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
       <div className="absolute -inset-px bg-gradient-to-r from-saffron/15 to-saffron/15 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none" />
 
       <div 
-        onClick={() => onConfirm(s, s.destination)}
+        onClick={() => onConfirm(s, s.destination, activeTab)}
         className="relative glass-panel overflow-hidden group/card shadow-xl hover:shadow-2xl transition-all duration-500 rounded-[2.5rem] cursor-pointer active:scale-[0.98]"
       >
 
@@ -275,6 +301,12 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
                 <MapPin className="w-3.5 h-3.5 text-[#FF9933] shrink-0" />
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{s.destination}</p>
               </div>
+              {s.distance_km && (
+                <div className="flex items-center gap-2 bg-saffron/5 px-2 py-0.5 rounded-full border border-saffron/10">
+                  <Navigation className="w-3 h-3 text-saffron shrink-0" />
+                  <p className="text-[10px] font-black text-saffron uppercase tracking-widest">{s.distance_km} kms</p>
+                </div>
+              )}
               <div className="flex items-center gap-2 bg-blue-50/50 px-2 py-0.5 rounded-full border border-blue-100/50">
                 <CloudSun className="w-3 h-3 text-blue-400 shrink-0" />
                 <p className="text-[10px] font-bold text-blue-600/70 uppercase tracking-wider italic">{s.weather_summary || 'Syncing...'}</p>
@@ -380,6 +412,9 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
           </div>
         )}
 
+
+        {/* Tier selector removed per user request */}
+
         {/* Grand Total Tabs */}
         <EstimateTabs
           fNum={fNum}
@@ -406,9 +441,8 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
             <div className="h-px flex-1 bg-slate-100 mx-6" />
           </div>
           
-          <div className="space-y-3">
+          <div className="space-y-2">
             {transportItems.filter(item => {
-              if (activeTab === 'mix') return true;
               if (item.id === 'hotel') return true;
               return item.id === activeTab;
             }).map((item, idx) => {
@@ -416,20 +450,21 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
               const isGrey = isNoData;
 
               return (
-                <div key={idx} className={`flex items-center justify-between p-5 rounded-3xl border border-slate-50 bg-slate-50/30 transition-all ${isGrey ? 'opacity-30 grayscale scale-95' : 'hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 hover:border-[#FF9933]/20 group/row'}`}>
+                <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-white transition-all ${isGrey ? 'opacity-30 grayscale scale-95' : 'hover:shadow-xl hover:shadow-slate-200/30 hover:border-saffron/20 group/row shadow-sm'}`}>
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${isGrey ? 'bg-slate-100 text-slate-300' : (item.color === 'green' ? 'bg-[#138808]/10 text-[#138808]' : 'bg-[#FF9933]/10 text-[#FF9933]')}`}>
-                      <item.icon className="w-6 h-6" />
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-inner ${isGrey ? 'bg-slate-50 text-slate-300' : (item.id === 'hotel' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600')}`}>
+                      <item.icon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${isGrey ? 'text-slate-400' : 'text-[#FF9933]'}`}>{item.label}</p>
-                      <p className={`text-base font-black uppercase tracking-tighter ${isGrey ? 'text-slate-500' : 'text-[#000080]'}`}>
-                        {isNoData ? 'Data Sync Pending' : item.detail}
+                      <p className={`text-[9px] font-black uppercase tracking-widest leading-none mb-1 ${isGrey ? 'text-slate-400' : 'text-slate-400'}`}>{item.label}</p>
+                      <p className={`text-sm font-black uppercase tracking-tighter leading-tight ${isGrey ? 'text-slate-500' : 'text-[#000080]'}`}>
+                        {isNoData ? 'Data Sync Pending' : item.detail.split(' • ')[0]}
                       </p>
+                      <p className="text-[9px] font-bold text-slate-400 truncate max-w-[180px]">{item.detail.split(' • ').slice(1).join(' • ')}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-xl font-black italic tracking-tighter ${isGrey ? 'text-slate-300' : 'text-[#000080]'}`}>
+                    <p className={`text-lg font-black italic tracking-tighter ${isGrey ? 'text-slate-300' : 'text-[#000080]'}`}>
                       {isNoData ? '—' : formatPrice(item.val, item.pax, (item as any).isTransit)}
                     </p>
                   </div>
@@ -464,15 +499,27 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
           </div>
         </div>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onConfirm(s, s.destination);
-          }}
-          className="w-full py-4 bg-[#FF9933] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-saffron/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-        >
-          Select Odyssey <ChevronRight className="w-4 h-4" />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAskAI?.(s);
+            }}
+            className="flex-1 py-4 bg-white border-2 border-slate-100 text-[#000080] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:border-saffron/20 transition-all flex items-center justify-center gap-2 active:scale-95 group"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-saffron group-hover:animate-pulse" /> Ask AI
+          </button>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onConfirm(s, s.destination, activeTab);
+            }}
+            className="flex-[2] py-4 bg-[#FF9933] text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-saffron/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            Secure this Odyssey <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
     </motion.div>
@@ -482,7 +529,7 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
 /* ── StepSuggestions ────────────────────────────────────────────────────── */
 export default function StepSuggestions({
   suggestions, inputs, fetchedInputs, selectedIdx, setInputs,
-  onConfirm, onAskAI, onBack, onReset,
+  onConfirm, onAskAI, onBack, onReset, onGenerate, isLoading
 }: StepSuggestionsProps) {
   const { t } = useLanguage();
   return (
@@ -492,19 +539,16 @@ export default function StepSuggestions({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
-      className="space-y-2 md:landscape:space-y-1"
+      className="space-y-6 md:landscape:space-y-4"
     >
-
-
       {/* Cards */}
       <div className="space-y-5">
         {(() => {
           const visibleSuggestions = suggestions.filter(s => {
             const budgetNum = Number(inputs.targetBudget) || 0;
             const priceNum = parseInt(String(s.totalPrice || '0').replace(/[₹,]/g, ''), 10);
-            // Strict check: if no budget set, show all. If budget set, MUST be <= and must have a price.
             if (!budgetNum) return true;
-            if (!priceNum) return false; // Hide if price is not yet available/syncing
+            if (!priceNum) return true; // No price data → always show, can't filter what we don't know
             return priceNum <= budgetNum;
           });
 
@@ -531,11 +575,36 @@ export default function StepSuggestions({
 
                   <div className="flex flex-col items-center gap-4">
                     <button
+                      onClick={onGenerate}
+                      disabled={isLoading}
+                      className={`group relative overflow-hidden py-5 px-12 rounded-full font-black text-sm uppercase tracking-[0.3em] transition-all active:scale-95 shadow-2xl ${
+                        isLoading 
+                          ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                          : 'bg-gradient-to-r from-saffron via-white to-green text-[#000080] hover:shadow-saffron/40'
+                      }`}
+                    >
+                      <div className="relative z-10 flex items-center gap-3">
+                        {isLoading ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin" />
+                            <span>Drafting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4 text-saffron animate-pulse" />
+                            <span>{t('suggestions_generate_btn')}</span>
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </>
+                        )}
+                      </div>
+                    </button>
+                    
+                    <button
                       onClick={onBack}
                       className="group relative px-8 py-3 bg-[#FF9933] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-saffron/20 active:scale-95"
                     >
                       <span className="relative z-10 flex items-center gap-2">
-                        Adjust Investment <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        {t('adjust_investment') || 'Adjust Investment'} <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </span>
                     </button>
                     

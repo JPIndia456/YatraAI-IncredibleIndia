@@ -51,7 +51,7 @@ export default function EmailAuthPage() {
         </div>
 
         <div className="bg-white border border-zinc-100 rounded-[2rem] p-6 shadow-xl shadow-zinc-900/5">
-          <OTPAuth initialMethod="email" hideToggle={true} />
+          <OTPAuth hideToggle={true} />
         </div>
 
         <div className="mt-8 text-center">

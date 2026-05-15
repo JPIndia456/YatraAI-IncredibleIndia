@@ -16,6 +16,9 @@ const IATA_MAP: Record<string, string> = {
   'indore': 'IDR', 'bhopal': 'BHO', 'nagpur': 'NAG', 'aurangabad': 'IXU',
   'jodhpur': 'JDH', 'udaipur': 'UDR', 'rajahmundry': 'RJA', 'vijayawada': 'VGA',
   'tiruchirappalli': 'TRZ', 'tirupati': 'TIR', 'mangalore': 'IXE',
+  'diu': 'DIU', 'daman': 'NMB', 'hubli': 'HBX', 'belgaum': 'IXG',
+  'mysore': 'MYQ', 'shirdi': 'SAG', 'raipur': 'RPR', 'gwalior': 'GWL',
+  'shimla': 'SLV', 'kullu': 'KUU', 'dharamsala': 'DHM', 'jammu and kashmir': 'IXJ',
 };
 
 function getIata(city: string): string {

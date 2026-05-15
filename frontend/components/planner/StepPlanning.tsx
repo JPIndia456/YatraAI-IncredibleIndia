@@ -11,7 +11,7 @@ export default function StepPlanning() {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="py-16 flex flex-col items-center gap-8"
+      className="py-8 sm:py-16 flex flex-col items-center gap-4 sm:gap-8"
     >
       {/* Spinner */}
       <div className="relative w-20 h-20">

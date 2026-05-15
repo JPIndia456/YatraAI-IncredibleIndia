@@ -15,13 +15,12 @@ type TripInsertData = {
   nights: number;
   tier_label: string;
   total_estimate: string;
-  total_price: number;
+  total_amount: number;
   transport: Record<string, unknown>;
   hotel: Record<string, unknown>;
   local_transport: Record<string, unknown>;
   full_plan: Record<string, unknown>;
   tier_comparison: unknown[];
-  trip_details: Record<string, unknown>;
   status: 'saved';
 };
 
@@ -68,13 +67,12 @@ export async function POST(req: Request) {
       nights: nights || 1,
       tier_label: tierLabel,
       total_estimate: total,
-      total_price: totalPrice || 0,
+      total_amount: totalPrice || 0,
       transport: transport || {},
       hotel: hotel || {},
       local_transport: local || {},
       full_plan: fullPlan || {},
       tier_comparison: tierComparison || [],
-      trip_details: tripDetails || {},
       status: 'saved',
     };
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Sparkles, Train, Plane, Zap, Send, Compass, User, Users, ShieldCheck, ChevronDown, Trash2, Plus, Check, ArrowRight, Download, CheckCircle2, AlertCircle, UserCircle } from 'lucide-react';
+import { Sparkles, Train, Plane, Zap, Send, Compass, User, Users, ShieldCheck, ChevronDown, Trash2, Plus, Check, ArrowRight, Download, CheckCircle2, AlertCircle, UserCircle, Bus } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useTripPlannerStore, useTourGuideStore, useAIBrainStore } from '@/lib/store';
@@ -92,21 +92,66 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
       title: 'text-indigo-400',
       cta: 'bg-indigo-600 text-white',
     },
+  };  // Transport Selection Logic
+  const allTransport = activeItinerary?.transportList || [];
+  const flight = allTransport.find((t: any) => t?.mode?.toLowerCase().includes('flight'));
+  const rail = allTransport.find((t: any) => t?.mode?.toLowerCase().includes('train'));
+  const bus = allTransport.find((t: any) => t?.mode?.toLowerCase().includes('bus'));
+
+  const currentTransport = mixPicks.transport;
+  const isFlight = String(currentTransport?.label || currentTransport?.type || '').toLowerCase().includes('flight');
+  const isRail = String(currentTransport?.label || currentTransport?.type || '').toLowerCase().includes('train');
+  const isBus = String(currentTransport?.label || currentTransport?.type || '').toLowerCase().includes('bus');
+
+  const setTransportMode = (mode: 'flight' | 'train' | 'bus') => {
+    const target = mode === 'flight' ? flight : mode === 'train' ? rail : bus;
+    if (target) {
+      useTripPlannerStore.getState().setMixPicks({
+        ...mixPicks,
+        transport: {
+          id: `trans-${Math.random()}`,
+          name: target.mode,
+          type: target.mode,
+          price: target.price,
+          time: target.duration || 'Flexible',
+          class: target.detail || 'Standard',
+          isAI: true
+        }
+      });
+    } else {
+      toast.error(`No ${mode} option available for this route.`);
+    }
   };
 
-  // Transport Selection
   if (mixPicks.transport) {
-    const isFlight = String(mixPicks.transport.label || mixPicks.transport.type || '').toLowerCase().includes('flight');
     options.push({
-      icon: isFlight ? Plane : Train,
-      title: isFlight ? `${mixPicks.transport.name || mixPicks.transport.airline} ${t('booking_booking_label')}` : t('booking_railways_ticket'),
+      icon: isFlight ? Plane : isRail ? Train : Bus,
+      title: isFlight ? `${mixPicks.transport.name || 'Flight'} ${t('booking_booking_label')}` : isRail ? t('booking_railways_ticket') : 'Bus Ticket',
       name: mixPicks.transport.name || mixPicks.transport.train_name || t('booking_transport_ticket'),
       price: mixPicks.transport.price || '₹0',
       detail: isFlight 
-        ? `${mixPicks.transport.departure} → ${mixPicks.transport.arrival} · ${mixPicks.transport.duration || t('booking_non_stop')}`
-        : `${mixPicks.transport.class} · ${mixPicks.transport.departure} → ${mixPicks.transport.arrival}`,
-      color: isFlight ? 'blue' : 'cyan',
+        ? `${mixPicks.transport.departure || '08:00'} → ${mixPicks.transport.arrival || '10:30'} · ${mixPicks.transport.duration || t('booking_non_stop')}`
+        : `${mixPicks.transport.class || 'Standard'} · ${mixPicks.transport.departure || 'Flexible'} → ${mixPicks.transport.arrival || 'Scheduled'}`,
+      color: isFlight ? 'blue' : isRail ? 'cyan' : 'emerald',
       badge: t('booking_selected'),
+    });
+  }
+
+  // Return Transport — shown for round trips
+  if (mixPicks.returnTransport) {
+    const rt = mixPicks.returnTransport as any;
+    const rtIsFlight = String(rt.type || rt.label || '').toLowerCase().includes('flight');
+    const rtIsRail = String(rt.type || rt.label || '').toLowerCase().includes('train');
+    options.push({
+      icon: rtIsFlight ? Plane : rtIsRail ? Train : Bus,
+      title: rtIsFlight ? `Return Flight ${t('booking_booking_label')}` : rtIsRail ? `Return ${t('booking_railways_ticket')}` : 'Return Bus',
+      name: rt.airline || rt.name || rt.train_name || 'Return Journey',
+      price: rt.price || '₹0',
+      detail: rtIsFlight
+        ? `${rt.departure || '—'} → ${rt.arrival || '—'} · ${rt.duration || 'Return'}`
+        : `${rt.class || 'Standard'} · Return Leg`,
+      color: rtIsFlight ? 'indigo' : rtIsRail ? 'cyan' : 'emerald',
+      badge: 'Return',
     });
   }
 
@@ -118,7 +163,7 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
       name: mixPicks.hotel.name,
       price: mixPicks.hotel.price || '₹0',
       detail: `${mixPicks.hotel.rating}⭐ · ${mixPicks.hotel.location || mixPicks.hotel.area}`,
-      color: 'emerald',
+      color: isFlight ? 'emerald' : 'blue', // Varied colors
       badge: t('booking_selected'),
     });
   }
@@ -140,7 +185,8 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
       transition={{ duration: 0.35 }}
       className="space-y-6"
     >
-      {/* Header */}
+
+
       <div className="text-center space-y-2 py-4 relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-24 bg-gradient-to-r from-[#FF9933]/10 via-transparent to-[#138808]/10 blur-3xl pointer-events-none" />
         <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center mx-auto border-2 border-slate-100 shadow-xl relative z-10">
@@ -160,68 +206,7 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
         </div>
       </div>
 
-      {/* Option cards */}
-      {options.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {options.map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className={`glass-panel p-4 border-l-4 ${colorUi[item.color]?.border || colorUi.blue.border} space-y-3 hover:bg-white/[0.03] transition-all rounded-xl`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <item.icon className={`w-4 h-4 ${colorUi[item.color]?.icon || colorUi.blue.icon}`} />
-                  <span className={`text-xs font-semibold ${colorUi[item.color]?.title || colorUi.blue.title}`}>{item.title}</span>
-                </div>
-                <span className="text-11 font-semibold px-2 py-0.5 bg-white/5 rounded-full border border-slate-200 text-[var(--text-muted)]">
-                  {item.badge}
-                </span>
-              </div>
 
-              <div>
-                <h4 className="text-base font-black text-[#003366] uppercase italic leading-none">{item.name}</h4>
-                <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 tracking-tight">{item.detail}</p>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-slate-200/50">
-                <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">{t('booking_estimated_price')}</p>
-                  <p className="text-xl font-black text-[#003366] italic">{item.price}</p>
-                </div>
-                <div className="flex gap-1.5 items-center">
-                  <div className="flex items-center gap-1 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-lg">
-                    <Check className="w-3 h-3 text-[#138808]" />
-                    <span className="text-[8px] font-black text-[#138808] uppercase tracking-widest">{t('booking_selected')}</span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <div className="glass-panel py-3 px-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center border border-slate-200 shrink-0">
-              <Compass className="w-4 h-4 text-slate-400 animate-pulse" />
-            </div>
-            <p className="text-[10px] font-black uppercase tracking-tight">
-              <span className="text-saffron">{t('booking_sourcing_options')}</span> 
-              <span className="text-slate-400 ml-2 font-bold italic truncate hidden sm:inline">{t('booking_checking_availability')}</span>
-            </p>
-          </div>
-          <button 
-            onClick={() => {
-              useAIBrainStore.getState().addMessage({ role: 'user', content: 'Sync my booking options. I am ready to book now.' });
-            }}
-            className="px-4 py-2 bg-saffron/10 hover:bg-saffron/20 border border-saffron/20 rounded-lg text-[9px] font-black text-saffron uppercase tracking-widest transition-all shrink-0"
-          >
-            {t('booking_resync_ai')}
-          </button>
-        </div>
-      )}
 
       {/* Passenger Manifest Table */}
       <motion.div 
@@ -250,19 +235,13 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
         </div>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-12 gap-3 px-2 text-[8px] font-black text-slate-400 uppercase tracking-widest">
-            <div className="col-span-1 text-center">#</div>
-            <div className="col-span-4">{t('booking_full_name')}</div>
-            <div className="col-span-2">{t('booking_gender')}</div>
-            <div className="col-span-2">{t('booking_age')}</div>
-            <div className="col-span-3 text-right">{t('booking_actions')}</div>
-          </div>
+
 
           <div className="space-y-3">
             {passengers.map((p, idx) => (
               <div key={idx} className={`grid grid-cols-12 gap-4 items-center bg-white/[0.02] border border-slate-200 rounded-2xl p-3 transition-all ${p.name.length > 1 ? 'border-blue-600/20' : 'hover:border-slate-200'}`}>
                 <div className="col-span-1 flex items-center justify-center">
-                  <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black ${p.type === 'adult' ? 'bg-zinc-800 text-zinc-400' : 'bg-blue-600/20 text-blue-600'}`}>
+                  <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black ${p.type === 'adult' ? 'bg-slate-100 text-slate-500' : 'bg-blue-600/20 text-blue-600'}`}>
                     {idx + 1}
                   </div>
                 </div>
@@ -359,7 +338,7 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
           <motion.div 
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => onBookAndPay(null)}
+            onClick={() => onBookAndPay(passengers)}
             className="glass-panel p-6 border-saffron/20 bg-saffron/5 rounded-3xl flex items-center justify-between mb-2 cursor-pointer group"
           >
              <div className="space-y-1">

@@ -176,9 +176,9 @@ export async function translateText(text: string, from: string, to: string) {
 /**
  * 4. SPEAK (TTS)
  */
-export async function speakIndianText(text: string, lang: string = 'hin') {
+export async function speakIndianText(text: string, lang: string = 'hin', gender: 'male' | 'female' = 'female') {
   try {
-    const audioContent = await generateIndianVoice(text, lang);
+    const audioContent = await generateIndianVoice(text, lang, gender);
     if (!audioContent) return false;
     
     if (typeof window !== 'undefined') {
@@ -196,7 +196,7 @@ export async function speakIndianText(text: string, lang: string = 'hin') {
  * 5. GENERATE VOICE (Server-Side via Bhashini)
  * Returns base64 audio string, or "" if unavailable / key not set.
  */
-export async function generateIndianVoice(text: string, lang: string = 'hin'): Promise<string> {
+export async function generateIndianVoice(text: string, lang: string = 'hin', gender: 'male' | 'female' = 'female'): Promise<string> {
   const bKey = BHASHINI_CONFIG.API_KEY;
   const sKey = process.env.SARVAM_API_KEY;
 
@@ -205,39 +205,58 @@ export async function generateIndianVoice(text: string, lang: string = 'hin'): P
 
   if (!isBReady && !isSReady) return "";
 
-  // 1. Try Sarvam TTS (Premium)
+  // 1. Try Sarvam TTS (Primary — bulbul:v2)
   if (isSReady) {
     try {
-      const langMap: Record<string, string> = { 
-        'hin': 'hi-IN', 'tam': 'ta-IN', 'tel': 'te-IN', 'ben': 'bn-IN', 
-        'mar': 'mr-IN', 'guj': 'gu-IN', 'kan': 'kn-IN', 'mal': 'ml-IN', 
-        'pan': 'pa-IN', 'eng': 'en-IN' 
+      const langMap: Record<string, string> = {
+        // Bhashini 3-letter codes
+        'hin': 'hi-IN', 'tam': 'ta-IN', 'tel': 'te-IN', 'ben': 'bn-IN',
+        'mar': 'mr-IN', 'guj': 'gu-IN', 'kan': 'kn-IN', 'mal': 'ml-IN',
+        'pan': 'pa-IN', 'eng': 'en-IN', 'urd': 'ur-IN',
+        // UI 2-letter codes
+        'hi': 'hi-IN', 'en': 'en-IN', 'ta': 'ta-IN', 'te': 'te-IN',
+        'mr': 'mr-IN', 'gu': 'gu-IN', 'kn': 'kn-IN', 'ml': 'ml-IN',
+        'pa': 'pa-IN', 'bn': 'bn-IN', 'ur': 'ur-IN', 'or': 'or-IN',
       };
       const sLang = langMap[lang] || 'hi-IN';
-
-      const response = await fetch("https://api.sarvam.ai/text-to-speech", {
-        method: "POST",
+      // Speaker varies by language for most natural output
+      const speakerMap: Record<string, string> = {
+        'hi-IN': gender === 'male' ? 'pawan' : 'meera',
+        'en-IN': gender === 'male' ? 'pawan' : 'meera',
+        'ta-IN': gender === 'male' ? 'pawan' : 'meera',
+        'te-IN': gender === 'male' ? 'pawan' : 'meera',
+        'mr-IN': gender === 'male' ? 'pawan' : 'meera',
+        'gu-IN': gender === 'male' ? 'pawan' : 'meera',
+        'kn-IN': gender === 'male' ? 'pawan' : 'meera',
+        'ml-IN': gender === 'male' ? 'pawan' : 'meera',
+        'pa-IN': gender === 'male' ? 'pawan' : 'meera',
+        'bn-IN': gender === 'male' ? 'pawan' : 'meera',
+        'ur-IN': gender === 'male' ? 'pawan' : 'meera',
+      };
+      const response = await fetch('https://api.sarvam.ai/text-to-speech', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "api-subscription-key": sKey as string
+          'Content-Type': 'application/json',
+          'api-subscription-key': sKey as string
         },
         body: JSON.stringify({
-          inputs: [text],
+          inputs: [text.slice(0, 500)], // Sarvam limit
           target_language_code: sLang,
-          speaker: "meera",
+          speaker: speakerMap[sLang] || 'meera',
           pitch: 0,
-          pace: 1.1,
+          pace: 1.05,
           loudness: 1.5,
-          speech_sample_rate: 16000,
+          speech_sample_rate: 22050,
           enable_preprocessing: true,
-          model: "bulbul:v1"
+          model: 'bulbul:v2'
         })
       });
-      const result = await response.json();
-      // Sarvam returns base64 in result.audios[0]
-      return result?.audios?.[0] || "";
+      if (response.ok) {
+        const result = await response.json();
+        if (result?.audios?.[0]) return result.audios[0];
+      }
     } catch (e) {
-      console.warn("Sarvam TTS failed, falling back to Bhashini...");
+      console.warn('Sarvam TTS failed, falling back to Bhashini...');
     }
   }
 
@@ -253,7 +272,7 @@ export async function generateIndianVoice(text: string, lang: string = 'hin'): P
         body: JSON.stringify({
           pipelineTasks: [{
             taskType: "tts",
-            config: { language: { sourceLanguage: lang }, gender: "female" }
+            config: { language: { sourceLanguage: lang }, gender: gender }
           }],
           inputData: { input: [{ source: text }] }
         })

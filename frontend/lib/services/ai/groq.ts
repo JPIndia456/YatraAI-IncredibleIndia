@@ -1,9 +1,9 @@
 const GROQ_MODELS_BY_PRIORITY = [
-  "llama-3.3-70b-versatile",    // Best quality, 128K context — primary
-  "llama-3.1-70b-versatile",    // Llama 3.1 70B, separate quota
-  "llama-3.1-8b-instant",       // Fast & lightweight, high rate limit
-  "gemma2-9b-it",               // Google Gemma via Groq, separate quota
-  "llama-3.2-11b-vision-preview",// Llama 3.2, vision-capable fallback
+  "llama-3.3-70b-versatile",    // Best quality, current primary
+  "llama-3.1-70b-specdec",      // High speed 70B variant
+  "llama-3.1-8b-instant",       // Fast & lightweight
+  "mixtral-8x7b-32768",         // Stable MoE
+  "gemma2-9b-it",               // Google Gemma via Groq
 ];
 
 export async function callGroq(prompt: string, model: string = "llama"): Promise<string> {

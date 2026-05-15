@@ -39,11 +39,13 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
     gender: '',
     favorite_destinations: [] as string[],
     preferred_language: 'en',
+    persona: 'Cultural Explorer',
     user_persona: 'Cultural Explorer',
     likes: '',
     dislikes: '',
     telegram_id: '',
-    telegram_enabled: false
+    telegram_enabled: false,
+    preferred_voice: 'female'
   });
   const [trips, setTrips] = useState<any[]>([]);
 
@@ -77,11 +79,13 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
           gender: p.gender || '',
           favorite_destinations: p.favorite_destinations || [],
           preferred_language: p.preferred_language || 'en',
-          user_persona: p.user_persona || 'Cultural Explorer',
+          user_persona: p.user_persona || p.persona || 'Cultural Explorer',
+          persona: p.user_persona || p.persona || 'Cultural Explorer',
           likes: p.likes?.join(', ') || '',
           dislikes: p.dislikes?.join(', ') || '',
           telegram_id: p.telegram_id || '',
-          telegram_enabled: !!p.telegram_enabled
+          telegram_enabled: !!p.telegram_enabled,
+          preferred_voice: p.preferred_voice || 'female'
         });
         // Sync to TourGuideStore
         const { patchTourGuide } = useTourGuideStore.getState();
@@ -99,14 +103,46 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
   useEffect(() => {
     async function loadTrips() {
       if (!user || !isOpen) return;
-      const { data, error } = await supabase
-        .from('yatra_bookings')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      if (!error && data) {
-        setTrips(data);
+      
+      const [bookingsRes, plansRes] = await Promise.all([
+        supabase
+          .from('yatra_bookings')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('yatra_trip_plans')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+      ]);
+
+      let allTrips: any[] = [];
+      
+      if (!bookingsRes.error && bookingsRes.data) {
+        allTrips = [...allTrips, ...bookingsRes.data];
       }
+      
+      if (!plansRes.error && plansRes.data) {
+        // Map trip plans to a similar structure for the UI
+        const mappedPlans = plansRes.data.map((p: any) => ({
+          id: p.id,
+          destination: p.destination,
+          status: p.status || 'saved',
+          total_price: p.total_amount,
+          created_at: p.created_at,
+          trip_details: {
+            to: p.destination,
+            startDate: p.start_date,
+            tierLabel: p.tier_label
+          }
+        }));
+        allTrips = [...allTrips, ...mappedPlans];
+      }
+
+      // Sort combined list by date
+      allTrips.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setTrips(allTrips);
     }
     loadTrips();
   }, [user, isOpen]);
@@ -124,6 +160,7 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
     setSyncStatus('saving');
     const updates = {
       ...form,
+      user_persona: form.user_persona || form.persona, // Ensure both are synced
       likes: form.likes.split(',').map(s => s.trim()).filter(Boolean),
       dislikes: form.dislikes.split(',').map(s => s.trim()).filter(Boolean)
     };
@@ -131,12 +168,13 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
     if (error) {
       setSyncStatus('error');
     } else {
-      const { setUserPersona, setLikes, setDislikes } = useTripStore.getState();
+      const { setUserPersona, setLikes, setDislikes, setPreferredVoice } = useTripStore.getState();
       const { patchTourGuide } = useTourGuideStore.getState();
       
-      setUserPersona(updates.user_persona);
-      setLikes(updates.likes);
-      setDislikes(updates.dislikes);
+      setUserPersona(updates.user_persona || updates.persona || 'Cultural Explorer');
+      setLikes(updates.likes || []);
+      setDislikes(updates.dislikes || []);
+      setPreferredVoice(updates.preferred_voice || 'female');
       
       // Keep TourGuideStore in sync for immediate use in other steps
       patchTourGuide({ 
@@ -389,8 +427,11 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
                     </label>
                     <div className="relative group">
                       <select
-                        value={form.user_persona}
-                        onChange={(e) => setForm({ ...form, user_persona: e.target.value })}
+                        value={form.user_persona || form.persona}
+                        onChange={(e) => {
+                          setForm({ ...form, user_persona: e.target.value, persona: e.target.value });
+                          useTripStore.getState().setUserPersona(e.target.value);
+                        }}
                         className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs text-[#000080] font-bold focus:border-saffron focus:bg-white outline-none transition-all appearance-none cursor-pointer"
                       >
                         {personaOptions.map(p => (
@@ -400,6 +441,38 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
                         ))}
                       </select>
                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#138808] pointer-events-none transition-transform group-focus-within:rotate-180" />
+                    </div>
+                  </div>
+               </div>
+
+               {/* Voice Preference */}
+               <div className="space-y-6 mb-10">
+                  <div className="flex items-center gap-3">
+                    <Volume2 className="w-4 h-4 text-[#FF9933]" />
+                    <h3 className="text-xs font-black text-[#000080] uppercase tracking-[0.2em]">Voice Identity</h3>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] text-[#138808] uppercase font-black tracking-widest ml-1 flex items-center gap-1.5">
+                      Guide Voice
+                    </label>
+                    <div className="flex gap-2">
+                      {['female', 'male'].map((v) => (
+                        <button
+                          key={v}
+                          onClick={() => {
+                            setForm({ ...form, preferred_voice: v as any });
+                            useTripStore.getState().setPreferredVoice(v as any);
+                          }}
+                          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                            form.preferred_voice === v 
+                              ? 'bg-[#FF9933] border-[#FF9933] text-white shadow-md shadow-orange-100' 
+                              : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'
+                          }`}
+                        >
+                          {v === 'female' ? 'Meera (Female)' : 'Pawan (Male)'}
+                        </button>
+                      ))}
                     </div>
                   </div>
                </div>

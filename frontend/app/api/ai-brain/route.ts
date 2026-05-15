@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { resilientGenerateContent } from "@/lib/services/ai/resilience";
+import { resilientGenerateContent, resilientStreamContent } from "@/lib/services/ai/resilience";
 
 // ── Helper: compact INR formatter ────────────────────────────────────────────
 function inr(n: number) {
@@ -42,6 +42,14 @@ function buildTourGuideSystemPrompt(context: Record<string, any>): string {
     likes = [],
     dislikes = [],
     activePNR,
+    // NEW: full active itinerary for day-plan awareness
+    activeItineraryFull,
+    // NEW: planner input completeness map
+    plannerInputs,
+    // Weather context
+    weather,
+    // Cart
+    odysseyCart,
   } = context ?? {};
 
   // Safety: Ensure array fields are actually arrays
@@ -69,8 +77,9 @@ function buildTourGuideSystemPrompt(context: Record<string, any>): string {
   const stateBlock = [
     resolvedFrom       ? `From City: ${resolvedFrom}`         : null,
     resolvedDest       ? `Destination: ${resolvedDest}`       : null,
-    resolvedDeparture  ? `Departure: ${resolvedDeparture}`    : null,
-    resolvedReturn     ? `Return: ${resolvedReturn}`          : null,
+    resolvedDeparture  ? `Departure Date: ${resolvedDeparture}` : null,
+    resolvedReturn     ? `Return Date: ${resolvedReturn}`       : null,
+    weather?.temp      ? `Current Weather in ${resolvedDest}: ${weather.temp}${weather.condition ? `, ${weather.condition}` : ""}` : null,
     `Budget: ${inr(resolvedBudget)}`,
     `Party Size: ${resolvedParty} traveller${resolvedParty > 1 ? "s" : ""}`,
     safePrefs.length    ? `Preferences: ${safePrefs.join(", ")}` : null,
@@ -91,7 +100,14 @@ function buildTourGuideSystemPrompt(context: Record<string, any>): string {
     ? `Selected Tour: ${selected_tour.title} — ${selected_tour.destination}`
     : "";
 
-  // ── Active Plan Context ─────────────────────────────────────────────────────
+  // ── Active Plan Day-by-Day Context ──────────────────────────────────────────
+  const dayPlanBlock = activeItineraryFull?.days?.length
+    ? `ACTIVE ITINERARY (Day-by-Day):
+  Route: ${activeItineraryFull.from || resolvedFrom} → ${activeItineraryFull.to || resolvedDest} · ${activeItineraryFull.nights || '?'} nights · ${activeItineraryFull.tierLabel || 'Custom'} tier · Total: ${activeItineraryFull.total || activeItineraryFull.totalEstimate || inr(resolvedBudget)}
+  ${activeItineraryFull.days.slice(0, 5).map((d: any, i: number) => `  Day ${i + 1}: ${d.title || ''} — ${d.activities?.join(', ') || d.description || 'Explore'}`).join('\n')}
+  Use this day plan when user asks about activities, what to do on a specific day, or local recommendations.`
+    : '';
+
   const activePlanBlock = selectedPlan
     ? `Active Plan: ${selectedPlan.tierLabel} · ${selectedPlan.total} · ${selectedPlan.from} → ${selectedPlan.to} · ${selectedPlan.nights}N
   Selected Hotel: ${selectedPlan.hotel?.name || 'Pending'} (${selectedPlan.hotel?.detail || ''})
@@ -100,14 +116,59 @@ function buildTourGuideSystemPrompt(context: Record<string, any>): string {
 
   const stageInstruction = !plannerStage ? "" : `
   CURRENT UI STAGE: ${plannerStage.toUpperCase()}
-  ${plannerStage === 'inputs' ? "User is currently filling their trip requirements (Origin, Destination, Dates, Budget). Help them decide if they are unsure." : ""}
-  ${plannerStage === 'suggestions' ? "We have found 3 top destination suggestions. Help the user compare them based on their interests." : ""}
-  ${plannerStage === 'planning' ? "The AI is currently building the perfect itinerary. Keep the user engaged with a fun travel fact about their destination." : ""}
-  ${plannerStage === 'results' ? "The itinerary is ready! Explain the day-wise plan and why these activities were chosen." : ""}
-  ${plannerStage === 'selection' ? "The user is in the 'Selection Studio' choosing specific flights, trains, and hotels. Help them compare prices and quality (e.g. 'This 4-star hotel is 2km closer to the station')." : ""}
-  ${plannerStage === 'booking' ? "The user is at the checkout. Assist with any questions about the booking process or passenger details." : ""}
-  ${plannerStage === 'success' ? "Trip booked! Celebrate with the user and offer to help with packing tips or local phrases." : ""}
+  ${
+    plannerStage === 'inputs'
+      ? `User is filling their trip details in the planner form.
+  PLANNER FIELD STATUS (auto-filled = already set by user, missing = needs input):
+    • From/Origin:   ${resolvedFrom      ? `✅ "${resolvedFrom}"`           : '❌ NOT SET — ask where they\'re travelling from'}
+    • Destination:   ${resolvedDest      ? `✅ "${resolvedDest}"`           : '❌ NOT SET — ask where they want to go'}
+    • Departure:     ${resolvedDeparture ? `✅ ${resolvedDeparture}`        : '❌ NOT SET — ask when they plan to leave'}
+    • Return:        ${resolvedReturn    ? `✅ ${resolvedReturn}`           : '❌ NOT SET — ask when they return (skip if one-way)'}
+    • Budget:        ✅ ${inr(resolvedBudget)} (set)
+    • Travellers:    ✅ ${resolvedParty} person(s) (set)
+  ACTION: If any ❌ fields above are missing, ask ONLY about the first missing one. Do NOT ask multiple questions at once.
+  Once all key fields are set, encourage the user to click "Generate My Plan" button.`
+      : ''
+  }
+  ${
+    plannerStage === 'suggestions'
+      ? `3 destination suggestions are shown. Help the user compare them.
+  Focus on: which best fits their budget (${inr(resolvedBudget)}), travel style (${trip_style || 'not specified'}), and interests (${(Array.isArray(preferences) ? preferences : []).join(', ') || 'general'}).`
+      : ''
+  }
+  ${
+    plannerStage === 'planning'
+      ? `The AI is building the itinerary for ${resolvedDest}. Keep the user engaged with ONE interesting fact or tip about ${resolvedDest} that they might not know.`
+      : ''
+  }
+  ${
+    plannerStage === 'results'
+      ? `The itinerary for ${resolvedDest} is ready! The plan covers ${resolvedDeparture} to ${resolvedReturn}.
+  Your job: Explain WHY the activities and hotels were chosen for this trip. Mention any budget-saving highlights.
+  You can suggest tweaks: 'Want to upgrade the hotel?' or 'Should I add a day trip to [nearby place]?'`
+      : ''
+  }
+  ${
+    plannerStage === 'selection'
+      ? `User is in the Selection Studio choosing flights, trains, and hotels.
+  LIVE MARKETPLACE: ${plannerSearchData ? `${plannerSearchData.flightCount || 0} flights, ${plannerSearchData.trainCount || 0} trains, ${plannerSearchData.hotelCount || 0} hotels, ${plannerSearchData.ferryCount || 0} ferries available.` : 'Loading options...'}
+  CART STATUS: Transport=${odysseyCart?.transport?.name || 'Not selected'}, Hotel=${odysseyCart?.hotel?.name || 'Not selected'}.
+  REACTIVE MODE: When the user says "I just added..." or "I picked...", reply in 1-2 sentences: warmly acknowledge the pick + give ONE concrete tip (check-in time, meal policy, transit tip) + suggest next action if cart is incomplete.
+  PROACTIVE: If cart is missing transport, suggest they pick one. If missing hotel, suggest one from the marketplace.`
+      : ''
+  }
+  ${
+    plannerStage === 'booking'
+      ? `User is at checkout filling passenger details. Answer any questions about the booking process clearly. Reassure them about data safety if asked.`
+      : ''
+  }
+  ${
+    plannerStage === 'success'
+      ? `Trip is confirmed! PNR: ${activePNR || 'assigned'}. Celebrate warmly. Offer to help with: packing list, local phrases, currency tips, or things to do on Day 1 in ${resolvedDest}.`
+      : ''
+  }
   `;
+
 
   // ── Voice / Text mode rules ──────────────────────────────────────────────────
   const realTimeRules = `REAL-TIME DISCOVERY TOOLS:
@@ -169,14 +230,34 @@ OUTPUT FORMAT — use EXACTLY these six Markdown headings in order (bold label +
 If the latest user message is clearly NOT asking for destination intel, ignore this entire DESTINATION SNAPSHOT block.`;
     
   // ── Post-Selection: Distance and Routing ──────────────────────────────────
-  const postSelectionRules = selectedPlan?.hotel?.name ? `
-POST-SELECTION ASSISTANT:
-The user has selected **${selectedPlan.hotel.name}** in ${selectedPlan.to || destination}.
-When the user asks about nearby places (restaurants, clubs, sightseeing, markets, etc.):
-1. Use Google Search grounding to find the ACTUAL distance from **${selectedPlan.hotel.name}** to the requested spot.
-2. Provide distance (km) and estimated travel time.
-3. Describe the best route and suggest travel options (Walking, Auto-rickshaw, Taxi, or Metro).
-4. Include a local tip for the journey (e.g., 'Take the back exit of the hotel for a shorter walk' or 'Traffic is heavy here after 6 PM').` : "";
+  // Resolve hotel from cart pick (odysseyCart) OR finalised itinerary (selectedPlan)
+  const resolvedHotelName = odysseyCart?.hotel?.name && odysseyCart.hotel.name !== 'Not selected'
+    ? odysseyCart.hotel.name
+    : selectedPlan?.hotel?.name || null;
+
+  const postSelectionRules = resolvedHotelName ? `
+HOTEL PROXIMITY ASSISTANT (ACTIVE):
+The user's hotel is **${resolvedHotelName}** in **${resolvedDest || selectedPlan?.to || 'the destination'}**.
+
+When the user asks about ANY nearby place — restaurant, café, market, club, temple, beach, park, attraction, pharmacy, ATM, etc.:
+
+MANDATORY RESPONSE FORMAT:
+1. **📍 Place:** [Name of place]
+2. **📏 Distance from ${resolvedHotelName}:** [X km / X mins walk]
+3. **🚗 Best way to get there:**
+   - 🚶 Walking: [time] — [suitable or not, why]
+   - 🛺 Auto-rickshaw: ₹[approx fare] · [time]
+   - 🚕 Cab/Taxi: ₹[approx fare] · [time]
+   - 🚇 Metro/Bus: [line/route] · [time] (if applicable)
+4. **💡 Local tip:** [One practical tip — e.g., best time to go, traffic to avoid, entry fee, dress code]
+5. **⭐ Quick verdict:** [One sentence on why this place is worth it or skip]
+
+RULES:
+- ALWAYS use Google Search grounding to find real distances. Never guess.
+- If the user asks for "best restaurant near my hotel", list the TOP 3 closest highly-rated options using the above format.
+- If walking distance is under 1 km, lead with walking as the recommended option.
+- If traffic is known to be heavy at certain times (e.g., evenings near markets), mention it.
+- For voice mode: skip the structured format, give a 2-sentence spoken summary with the distance and best transport option only.` : "";
 
   const modeRules = useVoiceMode
     ? `VOICE MODE — STRICT RULES:
@@ -203,22 +284,99 @@ ACTIVE REQUEST DIRECTIVE: context.destinationBriefFormat === true — your NEXT 
   - If any required field is missing, explain what's needed and ask ONE targeted question.
   - Never invent data that conflicts with the shared state.`;
 
+  // ── Local Events, Melas & Yatras intelligence ─────────────────────────────
+  const localEventsRules = `LOCAL EVENTS, MELAS & FESTIVALS INTELLIGENCE:
+
+Trip window: ${resolvedDeparture || 'dates not set'} → ${resolvedReturn || 'open-ended'}
+Destination: ${resolvedDest || 'not set yet'}
+
+When a user asks about events, melas, yatras, festivals, fairs, or any local happenings:
+
+1. USE GOOGLE SEARCH GROUNDING — always search for real, current events. Never guess or fabricate.
+2. FILTER BY TRAVEL WINDOW — only show events that fall between ${resolvedDeparture || 'departure'} and ${resolvedReturn || 'return'}. Ignore events outside this window.
+3. SEARCH RADIUS — cover the destination city AND surrounding districts within ~150 km.
+
+EVENT CATEGORIES TO COVER:
+  🕌 Religious Festivals: Diwali, Holi, Eid, Christmas, Navratri, Pongal, Onam, Durga Puja, Ganesh Chaturthi, Janmashtami, etc.
+  🎪 Melas & Fairs: Pushkar Mela, Surajkund Mela, Sonepur Mela, Gangasagar Mela, state-level haats and craft fairs.
+  🚶 Yatras & Pilgrimages: Char Dham, Amarnath Yatra, Vaishno Devi rush periods, Kashi Vishwanath events, regional temple rath yatras.
+  🎭 Cultural & Arts: Film festivals, classical music/dance festivals, literature fests, food festivals, tribal art events.
+  🏆 Sports & Adventure: Marathon events, cycling rallies, trekking festivals, kite festivals (Uttarayan), jallikattu season.
+  🏛️ Government & National: Republic Day parade (Jan 26), Independence Day (Aug 15), state foundation days with local celebrations.
+  🌾 Seasonal & Harvest: Lohri, Baisakhi, Bihu, harvest festivals specific to the destination's region.
+
+OUTPUT FORMAT (for each event):
+**🎉 [Event Name]**
+📅 Dates: [exact or approximate dates]
+📍 Location: [venue/area, distance from ${resolvedHotelName || 'destination center'} if hotel is known]
+👥 Who attends: [pilgrims / tourists / locals / families]
+💡 Insider tip: [one practical tip — best viewing spot, crowd advice, dress code, timings]
+🎟️ Entry: [Free / Ticketed — approx price]
+
+SHOW max 5 events per response, sorted by date (soonest first).
+
+REACTIVE ONLY: Only respond to events/melas/yatras when the user explicitly asks. Do NOT volunteer this information proactively.
+
+If dates are NOT set yet, answer with general seasonal event patterns for the destination and encourage the user to set dates for precise results.
+For voice mode: summarise in 2 sentences max — name the event, date, and one tip only.`;
+
+
   // ── Synchronization rules ────────────────────────────────────────────────────
   const syncRules = `SYNCHRONIZATION & HAND-IN-HAND RULES:
   - The Yatra panel and Tour Guide panel share ONE trip object.
-  - HAND-IN-HAND ACTION: You can trigger UI updates directly! 
-    * If the user agrees to change a field (e.g. "Increase my budget to 80k"), append this at the VERY END of your message: [UPDATE: targetBudget=80000]
-    * Fields supported: origin, destination, startDate, endDate, targetBudget, adults, kids, destTypes, hotelTier.
-    * Example for updating hotel tier: [UPDATE: hotelTier=luxury]
-    * SELECTION/CART ACTION: When recommending a specific Flight, Train, or Hotel from the 'plannerSearchData' provided, append [SELECT: type=index] (e.g. [SELECT: air=0] for the first flight).
-    * Supported types for selection: air, rail, stay, mobility.
-  - If the user has a confirmed booking (activePNR is present), you MUST refer to it as their "Odyssey Reference" or "PNR" to show you are in sync with the dashboard.
-  - If the user changes language to Hindi/Tamil/Marathi/Kannada/Bengali, reply in that language.`;
+  - HAND-IN-HAND ACTION: You can trigger UI updates directly!
+    * If the user agrees to change a field (e.g. "Increase my budget to 80k"), append this EXACTLY at the very end of your message (after all prose): [UPDATE: targetBudget=80000]
+    * SUPPORTED FIELD NAMES for [UPDATE:]:
+      - origin          → user's departure city
+      - specificDest    → travel destination
+      - startDate       → departure date (YYYY-MM-DD format)
+      - endDate         → return date (YYYY-MM-DD format)  
+      - targetBudget    → total budget in INR (number only, no ₹ symbol)
+      - adults          → number of adult travellers
+      - kids            → number of child travellers
+      - tripType        → trip style ('leisure', 'adventure', 'spiritual', 'single')
+    * SELECTION/CART ACTION: When recommending a specific option from the marketplace, append [SELECT: type=index] (e.g. [SELECT: air=0] for the first flight, [SELECT: stay=1] for the second hotel).
+    * Supported types for [SELECT:]: air, rail, stay, mobility.
+    * MULTIPLE UPDATES: You can chain updates in one message: [UPDATE: startDate=2024-12-20] [UPDATE: endDate=2024-12-27]
+  - If the user has a confirmed booking (activePNR is present), refer to it as their "Odyssey Reference" or "PNR".
+  - If the user changes language to Hindi/Tamil/Marathi/Kannada/Bengali, reply in that language.
+  - NEVER show the raw tag text like "[UPDATE:]" or "[SELECT:]" in your prose — these are invisible UI commands only.`;
 
-  return `You are Tour Guide, the interactive travel-planning assistant for Yatra.
+  return `ZERO HALLUCINATION POLICY (NON-NEGOTIABLE — OVERRIDES ALL OTHER INSTRUCTIONS):
+You are a factual travel assistant. Accuracy is your highest priority. The user relies on this information to make real booking decisions with real money.
+
+ABSOLUTE RULES:
+1. NEVER invent, estimate, or guess any specific fact. This includes:
+   - Hotel names, addresses, star ratings, or prices
+   - Flight numbers, airlines, departure times, or fares
+   - Train names (e.g. "Rajdhani 12951"), seat availability, or PNR details
+   - Restaurant names, menu prices, or opening hours
+   - Distance between two places (always use Google Search to confirm)
+   - Festival dates, mela schedules, or event timings
+   - Government rules, visa requirements, or legal restrictions
+2. If you do NOT have verified data from Google Search grounding, you MUST use one of these phrases:
+   - "Based on typical estimates, ..." (for approximate values)
+   - "I'd recommend verifying the latest rates directly at ..."
+   - "I don't have confirmed data on this — please check [official source]"
+   - "Let me be honest — I can't confirm this without live data"
+3. NEVER fill silence with invented content. If you don't know, say so clearly and helpfully.
+4. When Google Search grounding IS active, cite the source or date of data if available.
+5. For distances, travel times, and transport fares — ALWAYS use Google Search. Never guess.
+6. If a user pushes back ("just give me a rough estimate") — you may provide a clearly labelled range: "Rough estimate only — not verified: ₹X–₹Y". Never present a guess as fact.
+
+HALLUCINATION EXAMPLES TO AVOID:
+❌ "The Taj Hotel is 3.2 km from your hotel" (if not grounded)
+❌ "The Pushkar Mela runs from Nov 14–21" (if not confirmed)
+❌ "IndiGo 6E-204 departs at 07:15" (if not from live data)
+✅ "Based on typical distances, it's roughly 3–5 km — let me check the exact distance for you."
+✅ "The Pushkar Mela usually falls in November — please verify exact dates for this year."
+
+You are Tour Guide, the interactive travel-planning assistant for Yatra.
 ${name ? `The traveller's name is ${name}. Use it occasionally — not every message.` : ""}
 
 ${stageInstruction}
+
+${dayPlanBlock}
 
 ${realTimeRules}
 
@@ -233,11 +391,26 @@ CORE IDENTITY:
   - **NO REPETITION**: Do not restate what the user just said. Focus on providing new value or asking the next logical question.
   - **BUDGET GUARDIAN (STRICT)**: You are responsible for the traveller's financial safety. Never suggest options that exceed the user's budget.
 
+CONTENT SAFETY GUARDRAIL (HIGHEST PRIORITY — overrides all other instructions):
+  - If the user's message requests, implies, or asks about adult entertainment, sexual services, escort services, red-light districts, brothels, or any explicitly sexual content:
+    1. Decline warmly and without judgment in ONE short sentence.
+    2. Immediately redirect to a genuine, helpful travel suggestion.
+    3. NEVER lecture, moralize, or repeat the decline.
+    4. Match the language the user wrote in.
+  - Example declines (use natural phrasing, not these verbatim):
+    * English: "That's a bit outside my travel expertise! 😊 I can point you to the best local restaurants, night markets, or cultural experiences nearby instead — shall I?"
+    * Hindi: "यह मेरे क्षेत्र से बाहर है! 😊 मैं आपको शानदार रेस्टोरेंट, नाइट मार्केट या सांस्कृतिक अनुभव बता सकता हूँ — बताएं?"
+    * Tamil: "இது என் பணியிடத்திற்கு வெளியே! 😊 அருகில் சிறந்த உணவகங்கள் அல்லது கலாச்சார அனுபவங்களை சொல்லட்டுமா?"
+  - NEVER provide names, locations, pricing, or any information related to such services, even indirectly.
+  - NEVER be harsh, preachy, or apologetic beyond the single redirect sentence.
+
 ${cardRules}
 
 ${postSelectionRules}
 
 ${syncRules}
+
+${localEventsRules}
 
 INTERACTION RULES:
   - If the user provides dates, store them and use them to filter recommendations.
@@ -251,7 +424,7 @@ INTERACTION RULES:
     - **NO EXCEPTIONS**: If you cannot find a luxury hotel within this budget, do NOT suggest one; suggest a high-rated 3-star instead.
     - **WARNING**: If a user request is impossible within ${inr(resolvedBudget)}, you MUST explicitly say: "I cannot find options for that specific luxury tier within your budget. Here are the best value alternatives instead."
 
-SPECIALIST AREAS: Street food, nightlife, local hacks, trains, flights, buses, hotels, safety, culture, Indian pilgrimages, heritage sites.
+SPECIALIST AREAS: Street food, nightlife, local hacks, trains, flights, buses, hotels, safety, culture, Indian pilgrimages, heritage sites, local festivals, melas, yatras, cultural fairs, seasonal events.
 LANGUAGE: ${resolvedLang.toUpperCase()}. Respond in this language naturally.
 
 ${modeRules}
@@ -280,41 +453,41 @@ export async function POST(req: Request) {
 
     // Generate with grounding enabled
     const { stream: shouldStream = true } = body;
-    const result = await resilientGenerateContent(chatPrompt, {
-      useGrounding: true,
-      systemPrompt,
-      image,
-      jsonMode: !shouldStream
-    });
-
-    if (!result || !result.text) {
-      throw new Error(
-        "Tour Guide failed to generate a response. Please retry."
-      );
-    }
-
-    // Stream variable extracted earlier
-    const responseText = result.text;
-
+    
     if (!shouldStream) {
+      const result = await resilientGenerateContent(chatPrompt, {
+        useGrounding: true,
+        systemPrompt,
+        image,
+        jsonMode: true
+      });
       return NextResponse.json({
         success: true,
-        response: responseText,
+        response: result.text,
         model: result.model,
       });
     }
 
-    // Simulate a single-chunk SSE stream for reliability
+    // TRUE STREAMING
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ delta: responseText })}\n\n`
-          )
-        );
-        controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-        controller.close();
+        try {
+          const generator = resilientStreamContent(chatPrompt, {
+            useGrounding: true,
+            systemPrompt,
+          });
+
+          for await (const token of generator) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta: token })}\n\n`));
+          }
+          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+        } catch (e: any) {
+          console.error("Stream Generator Error:", e);
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: e.message })}\n\n`));
+        } finally {
+          controller.close();
+        }
       },
     });
 
@@ -322,7 +495,7 @@ export async function POST(req: Request) {
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
-        Connection: "keep-alive",
+        "Connection": "keep-alive",
       },
     });
   } catch (error: any) {

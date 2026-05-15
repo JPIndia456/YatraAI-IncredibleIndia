@@ -37,10 +37,10 @@ export async function POST(req: Request) {
         user_id: user.id,
         booking_type: details?.type || 'TRAIN',
         status: 'pending_payment',
-        total_price: details?.total || 0,
+        total_amount: Math.round(details?.total || 0),
         pnr: details?.pnr || null,
         is_tatkal: details?.isTatkal || false,
-        trip_details: {
+        trip_data: {
           from,
           to,
           date,

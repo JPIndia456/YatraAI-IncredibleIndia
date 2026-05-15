@@ -432,7 +432,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
               <p className="text-[10px] text-[#000080] font-bold tracking-tight">Modify & Re-Craft</p>
             </div>
           </div>
-          <p className="text-[9px] text-black/50 leading-relaxed text-left italic">
+          <p className="text-[9px] text-slate-500 leading-relaxed text-left italic">
             "Want to increase or decrease your travel budget? Just tell me, and I'll re-optimize your entire plan."
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -454,78 +454,86 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
           </div>
           <div className="text-left">
              <p className="text-[10px] font-black text-[#000080] uppercase tracking-widest leading-none">Select/Choose</p>
-             <p className="text-[11px] font-bold text-black/70 italic">Best Options Available →</p>
+             <p className="text-[11px] font-bold text-slate-600 italic">Best Options Available →</p>
           </div>
         </button>
 
         {mixPicks && (mixPicks.transport || mixPicks.hotel || mixPicks.local) && (
-          <div className="bg-slate-50 border border-black/5 rounded-2xl p-4 space-y-3 shadow-xl">
-             <p className="text-[9px] font-black text-black/40 uppercase tracking-[0.2em] mb-1">Your Selected Picks</p>
-             <div className="space-y-2">
+          <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-5 space-y-4 shadow-inner">
+             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Odyssey Cart Status</p>
+             <div className="space-y-3">
                 {mixPicks.transport && (
-                  <div className="flex items-center justify-between group/pick">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-orange-50"><Plane className="w-3 h-3 text-saffron" /></div>
+                  <div className="flex items-center justify-between group/pick bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center border border-orange-100">
+                        <Plane className="w-4 h-4 text-saffron" />
+                      </div>
                       <div className="text-left">
-                        <p className="text-[9px] font-black text-[#000080] uppercase leading-none">{mixPicks.transport.name}</p>
-                        <p className="text-[8px] text-black/40 font-bold uppercase">{mixPicks.transport.price}</p>
+                        <p className="text-[10px] font-black text-[#000080] uppercase leading-none truncate max-w-[120px]">{mixPicks.transport.name}</p>
+                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-tight mt-1">{mixPicks.transport.price}</p>
                       </div>
                     </div>
-                    <button onClick={() => { setMixPicks({ transport: null }); }} className="p-1 opacity-0 group-hover/pick:opacity-100 hover:text-red-400 transition-all">
-                      <X className="w-3 h-3" />
+                    <button onClick={() => { setMixPicks({ transport: null }); }} className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all text-slate-300">
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
                 {mixPicks.hotel && (
-                  <div className="flex items-center justify-between group/pick">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-green/10"><Hotel className="w-3 h-3 text-green" /></div>
+                  <div className="flex items-center justify-between group/pick bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100">
+                        <Hotel className="w-4 h-4 text-[#138808]" />
+                      </div>
                       <div className="text-left">
-                        <p className="text-[9px] font-black text-[#000080] uppercase leading-none">{mixPicks.hotel.name}</p>
-                        <p className="text-[8px] text-black/40 font-bold uppercase">{mixPicks.hotel.price}/night (Per night before taxes)</p>
+                        <p className="text-[10px] font-black text-[#000080] uppercase leading-none truncate max-w-[120px]">{mixPicks.hotel.name}</p>
+                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-tight mt-1">{mixPicks.hotel.price}/night</p>
                       </div>
                     </div>
-                    <button onClick={() => { setMixPicks({ hotel: null }); }} className="p-1 opacity-0 group-hover/pick:opacity-100 hover:text-red-400 transition-all">
-                      <X className="w-3 h-3" />
+                    <button onClick={() => { setMixPicks({ hotel: null }); }} className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all text-slate-300">
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
                 {mixPicks.local && (
-                  <div className="flex items-center justify-between group/pick">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-orange-50"><Car className="w-3 h-3 text-saffron" /></div>
+                  <div className="flex items-center justify-between group/pick bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center border border-blue-100">
+                        <Car className="w-4 h-4 text-blue-600" />
+                      </div>
                       <div className="text-left">
-                        <p className="text-[9px] font-black text-[#000080] uppercase leading-none">{mixPicks.local.name}</p>
-                        <p className="text-[8px] text-black/40 font-bold uppercase">{mixPicks.local.price}</p>
+                        <p className="text-[10px] font-black text-[#000080] uppercase leading-none truncate max-w-[120px]">{mixPicks.local.name}</p>
+                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-tight mt-1">{mixPicks.local.price}</p>
                       </div>
                     </div>
-                    <button onClick={() => { setMixPicks({ local: null }); }} className="p-1 opacity-0 group-hover/pick:opacity-100 hover:text-red-400 transition-all">
-                      <X className="w-3 h-3" />
+                    <button onClick={() => { setMixPicks({ local: null }); }} className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all text-slate-300">
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
              </div>
-             <p className="text-[8px] text-black/40 font-medium border-t border-black/5 pt-2 italic">
-               "This is what I considered during your budget plan to ensure clear cut clarity."
-             </p>
+             <div className="pt-3 border-t border-slate-200">
+               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
+                 AI Agent: "Your selections are optimized for the {activeItinerary?.tierLabel || 'current'} plan."
+               </p>
+             </div>
           </div>
         )}
 
         {/* AI-side quick selectors synced with Planner via shared store */}
         {(flightOptions.length > 0 || trainOptions.length > 0 || ferryOptions.length > 0 || hotelOptions.length > 0 || mobilityOptions.length > 0) && (
-          <div className="bg-slate-50 border border-black/5 rounded-2xl p-4 space-y-4 shadow-xl">
+          <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-4 space-y-4 shadow-xl">
             <p className="text-[9px] font-black text-[#FF9933] uppercase tracking-[0.2em]">AI Quick Selectors</p>
 
             {flightOptions.length > 0 && (
               <div className="space-y-2">
-                <p className="text-[8px] font-black text-black/40 uppercase tracking-widest">Flight (Radio Select)</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Flight (Radio Select)</p>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                   {flightOptions.map((f: any, idx: number) => {
                     const name = `${f.airline || 'Flight'} ${f.flight || ''}`.trim();
                     const detail = `${f.departure || ''} → ${f.arrival || ''}${f.duration ? ` · ${f.duration}` : ''}`;
                     const selected = (mixPicks?.transport?.name === name) && (mixPicks?.transport?.label === 'Flight');
                     return (
-                      <label key={`ai-flight-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-[#FF9933]/40 bg-[#FF9933]/10' : 'border-black/5 bg-white/80'}`}>
+                      <label key={`ai-flight-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-[#FF9933]/40 bg-[#FF9933]/10' : 'border-slate-200 bg-white/80'}`}>
                         <input
                           type="radio"
                           name="ai-flight-select"
@@ -548,7 +556,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                         />
                         <div className="min-w-0">
                           <p className="text-[9px] font-black text-[#000080] uppercase truncate">{name}</p>
-                          <p className="text-[8px] text-black/40 font-bold uppercase truncate">{detail}</p>
+                          <p className="text-[8px] text-slate-400 font-bold uppercase truncate">{detail}</p>
                         </div>
                         <span className="ml-auto text-[9px] font-black text-[#FF9933]">{f.price || '—'}</span>
                       </label>
@@ -560,14 +568,14 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
 
             {hotelOptions.length > 0 && (
               <div className="space-y-2">
-                <p className="text-[8px] font-black text-black/40 uppercase tracking-widest">Hotel (Radio Select)</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Hotel (Radio Select)</p>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                   {hotelOptions.map((h: any, idx: number) => {
                     const name = h.name || 'Hotel';
                     const detail = `${h.area || ''}${h.stars ? ` · ${'★'.repeat(h.stars)}` : ''}`.trim();
                     const selected = mixPicks?.hotel?.name === name;
                     return (
-                      <label key={`ai-hotel-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-green/40 bg-green/10' : 'border-black/5 bg-white/80'}`}>
+                      <label key={`ai-hotel-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-green/40 bg-green/10' : 'border-slate-200 bg-white/80'}`}>
                         <input
                           type="radio"
                           name="ai-hotel-select"
@@ -590,7 +598,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                         />
                         <div className="min-w-0">
                           <p className="text-[9px] font-black text-[#000080] uppercase truncate">{name}</p>
-                          <p className="text-[8px] text-black/40 font-bold uppercase truncate">{detail || 'Recommended stay'}</p>
+                          <p className="text-[8px] text-slate-400 font-bold uppercase truncate">{detail || 'Recommended stay'}</p>
                         </div>
                         <span className="ml-auto text-[9px] font-black text-blue-700">{String(h.price || '').replace(/\(|\)/g, '') || '—'}</span>
                       </label>
@@ -602,14 +610,14 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
 
             {trainOptions.length > 0 && (
               <div className="space-y-2">
-                <p className="text-[8px] font-black text-black/40 uppercase tracking-widest">Train (Radio Select)</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Train (Radio Select)</p>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                   {trainOptions.map((t: any, idx: number) => {
                     const name = t.name || 'Train';
                     const detail = `${t.departure || ''} → ${t.arrival || ''}${t.duration ? ` · ${t.duration}` : ''}`;
                     const selected = (mixPicks?.transport?.name === name) && (mixPicks?.transport?.label === 'Train');
                     return (
-                      <label key={`ai-train-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-[#FF9933]/40 bg-[#FF9933]/10' : 'border-black/5 bg-white/80'}`}>
+                      <label key={`ai-train-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-[#FF9933]/40 bg-[#FF9933]/10' : 'border-slate-200 bg-white/80'}`}>
                         <input
                           type="radio"
                           name="ai-train-select"
@@ -632,7 +640,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                         />
                         <div className="min-w-0">
                           <p className="text-[9px] font-black text-[#000080] uppercase truncate">{name}</p>
-                          <p className="text-[8px] text-black/40 font-bold uppercase truncate">{detail}</p>
+                          <p className="text-[8px] text-slate-400 font-bold uppercase truncate">{detail}</p>
                         </div>
                         <span className="ml-auto text-[9px] font-black text-[#FF9933]">{String(t.price || '').replace(/\(|\)/g, '') || '—'}</span>
                       </label>
@@ -644,14 +652,14 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
 
             {ferryOptions.length > 0 && (
               <div className="space-y-2">
-                <p className="text-[8px] font-black text-black/40 uppercase tracking-widest">Ferry / Ro‑Ro (Radio Select)</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Ferry / Ro‑Ro (Radio Select)</p>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                   {ferryOptions.map((f: any, idx: number) => {
                     const name = f.name || 'Ferry';
                     const detail = [f.departure, f.arrival].filter(Boolean).join(' → ') + (f.duration ? ` · ${f.duration}` : '');
                     const selected = (mixPicks?.transport?.name === name) && (mixPicks?.transport?.label === 'Ferry');
                     return (
-                      <label key={`ai-ferry-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-green/40 bg-green/10' : 'border-black/5 bg-white/80'}`}>
+                      <label key={`ai-ferry-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-green/40 bg-green/10' : 'border-slate-200 bg-white/80'}`}>
                         <input
                           type="radio"
                           name="ai-ferry-select"
@@ -674,7 +682,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                         />
                         <div className="min-w-0">
                           <p className="text-[9px] font-black text-[#000080] uppercase truncate">{name}</p>
-                          <p className="text-[8px] text-black/40 font-bold uppercase truncate">{detail || 'Sea crossing'}</p>
+                          <p className="text-[8px] text-slate-400 font-bold uppercase truncate">{detail || 'Sea crossing'}</p>
                         </div>
                         <span className="ml-auto text-[9px] font-black text-blue-700">{String(f.price || '').replace(/\(|\)/g, '') || '—'}</span>
                       </label>
@@ -686,14 +694,14 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
 
             {mobilityOptions.length > 0 && (
               <div className="space-y-2">
-                <p className="text-[8px] font-black text-black/40 uppercase tracking-widest">Mobility (Radio Select)</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Mobility (Radio Select)</p>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                   {mobilityOptions.map((m: any, idx: number) => {
                     const name = m.type || m.name || 'Taxi';
                     const detail = `${m.eta || ''}${m.estimatedKm ? ` · ${m.estimatedKm}` : ''}`.trim() || 'Ground mobility';
                     const selected = mixPicks?.local?.name === name;
                     return (
-                      <label key={`ai-mobility-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-saffron/40 bg-saffron/10' : 'border-black/5 bg-white/80'}`}>
+                      <label key={`ai-mobility-${idx}`} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${selected ? 'border-saffron/40 bg-saffron/10' : 'border-slate-200 bg-white/80'}`}>
                         <input
                           type="radio"
                           name="ai-mobility-select"
@@ -716,7 +724,7 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
                         />
                         <div className="min-w-0">
                           <p className="text-[9px] font-black text-[#000080] uppercase truncate">{name}</p>
-                          <p className="text-[8px] text-black/40 font-bold uppercase truncate">{detail}</p>
+                          <p className="text-[8px] text-slate-400 font-bold uppercase truncate">{detail}</p>
                         </div>
                         <span className="ml-auto text-[9px] font-black text-blue-700">{String(m.price || '').replace(/\(|\)/g, '') || '—'}</span>
                       </label>
@@ -731,16 +739,16 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
     )}
 
     {hasData && !activeItinerary && (
-      <div className="bg-slate-50 border border-black/5 rounded-2xl p-3 flex items-center justify-between">
+      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-3 h-3 text-green" />
-          <span className="text-[8px] font-black uppercase tracking-widest text-black/40">Grounded Data Live</span>
+          <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Grounded Data Live</span>
         </div>
         <div className="flex gap-1.5">
-          {searchData.flights?.length > 0 && <Plane className="w-2.5 h-2.5 text-black/30" />}
-          {searchData.trains?.length > 0 && <Train className="w-2.5 h-2.5 text-black/30" />}
-          {searchData.ferries?.length > 0 && <Ship className="w-2.5 h-2.5 text-black/30" />}
-          {searchData.hotels?.length > 0 && <Hotel className="w-2.5 h-2.5 text-black/30" />}
+          {searchData.flights?.length > 0 && <Plane className="w-2.5 h-2.5 text-slate-300" />}
+          {searchData.trains?.length > 0 && <Train className="w-2.5 h-2.5 text-slate-300" />}
+          {searchData.ferries?.length > 0 && <Ship className="w-2.5 h-2.5 text-slate-300" />}
+          {searchData.hotels?.length > 0 && <Hotel className="w-2.5 h-2.5 text-slate-300" />}
         </div>
       </div>
     )}
@@ -756,36 +764,36 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
         {activeItinerary ? (
           <div className="space-y-3">
             <div>
-              <p className="text-[10px] text-black/70 font-bold">{activeItinerary.from} → {activeItinerary.to} · {activeItinerary.nights}N</p>
-              <p className="text-[9px] text-black/40 mt-1 line-clamp-2">Transport: <span className="text-black/50">{activeItinerary.transport.name}</span></p>
-              <p className="text-[9px] text-black/40 line-clamp-2">Hotel: <span className="text-black/50">{activeItinerary.hotel.name}</span></p>
-              <p className="text-[9px] text-black/40 line-clamp-2">Activities: <span className="text-black/50">{activeItinerary.local.name}</span></p>
+              <p className="text-[10px] text-slate-700 font-bold">{activeItinerary.from || 'Trip'} → {activeItinerary.to || 'Destination'} · {activeItinerary.nights || 0}N</p>
+              <p className="text-[9px] text-slate-400 mt-1 line-clamp-2">Transport: <span className="text-slate-500">{activeItinerary.transport?.name || 'Not selected'}</span></p>
+              <p className="text-[9px] text-slate-400 line-clamp-2">Hotel: <span className="text-slate-500">{activeItinerary.hotel?.name || 'Not selected'}</span></p>
+              <p className="text-[9px] text-slate-400 line-clamp-2">Activities: <span className="text-slate-500">{activeItinerary.local?.name || 'Exploring local'}</span></p>
               <p className="text-sm font-black text-[#FF9933] mt-2">{activeItinerary.total}</p>
             </div>
             
             <div className="border-t border-[#FF9933]/20 pt-2">
-              <p className="text-[8px] font-black uppercase tracking-widest text-black/40 mb-2">Explore Alternatives</p>
+              <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-2">Explore Alternatives</p>
               <div className="grid grid-cols-3 gap-2">
                 <button 
-                  onClick={() => sendMessage(`Show me alternative Flight options for my trip from ${activeItinerary.from} to ${activeItinerary.to}`)}
-                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-black/5 rounded-lg hover:border-[#FF9933]/50 hover:bg-[#FF9933]/10 transition-all"
+                  onClick={() => sendMessage(`Show me alternative Flight options for my trip from ${activeItinerary.from || 'current location'} to ${activeItinerary.to || 'my destination'}`)}
+                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-slate-200 rounded-lg hover:border-[#FF9933]/50 hover:bg-[#FF9933]/10 transition-all"
                 >
                   <Plane className="w-4 h-4 text-[#FF9933]" />
-                  <span className="text-[8px] font-bold text-black/50">Flights</span>
+                  <span className="text-[8px] font-bold text-slate-500">Flights</span>
                 </button>
                 <button 
-                  onClick={() => sendMessage(`Show me alternative Train options for my trip from ${activeItinerary.from} to ${activeItinerary.to}`)}
-                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-black/5 rounded-lg hover:border-[#FF9933]/50 hover:bg-[#FF9933]/10 transition-all"
+                  onClick={() => sendMessage(`Show me alternative Train options for my trip from ${activeItinerary.from || 'current location'} to ${activeItinerary.to || 'my destination'}`)}
+                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-slate-200 rounded-lg hover:border-[#FF9933]/50 hover:bg-[#FF9933]/10 transition-all"
                 >
                   <Train className="w-4 h-4 text-[#FF9933]" />
-                  <span className="text-[8px] font-bold text-black/50">Trains</span>
+                  <span className="text-[8px] font-bold text-slate-500">Trains</span>
                 </button>
                 <button 
-                  onClick={() => sendMessage(`Show me alternative Hotel options in ${activeItinerary.to}`)}
-                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-black/5 rounded-lg hover:border-[#FF9933]/50 hover:bg-[#FF9933]/10 transition-all"
+                  onClick={() => sendMessage(`Show me alternative Hotel options in ${activeItinerary.to || 'my destination'}`)}
+                  className="flex flex-col items-center justify-center gap-1 py-2 px-1 bg-slate-50 border border-slate-200 rounded-lg hover:border-[#FF9933]/50 hover:bg-[#FF9933]/10 transition-all"
                 >
                   <Moon className="w-4 h-4 text-[#FF9933]" />
-                  <span className="text-[8px] font-bold text-black/50">Hotels</span>
+                  <span className="text-[8px] font-bold text-slate-500">Hotels</span>
                 </button>
               </div>
             </div>
@@ -799,8 +807,8 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
           <div className="space-y-1">
             {tiers && tiers.slice(0, 3).map((t: any) => (
               <div key={t.label} className="flex justify-between text-[9px]">
-                <span className="text-black/40">{t.label}</span>
-                <span className="font-bold text-black/70">{t.total}</span>
+                <span className="text-slate-400">{t.label}</span>
+                <span className="font-bold text-slate-700">{t.total}</span>
               </div>
             ))}
             <button 
@@ -822,8 +830,8 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
         <ShieldCheck className="w-3.5 h-3.5 text-[#138808]" />
         <span className="text-[9px] font-bold text-[#138808] uppercase tracking-widest">Caring AI Agent</span>
       </div>
-      <p className="text-[9px] text-black/40 leading-relaxed">
-        I monitor <strong className="text-black/70">AQI, Weather</strong> and <strong className="text-black/70">Safety</strong> trends for your trip. Your security and comfort are my top priority.
+      <p className="text-[9px] text-slate-400 leading-relaxed">
+        I monitor <strong className="text-slate-700">AQI, Weather</strong> and <strong className="text-slate-700">Safety</strong> trends for your trip. Your security and comfort are my top priority.
       </p>
     </div>
 
@@ -834,8 +842,8 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
             <Mic className="w-5 h-5 text-sky-600" />
           </div>
           <div>
-            <p className="text-sm font-bold text-black tracking-tight">AI Voice Interaction</p>
-            <p className="text-2xs text-black/40 font-medium uppercase tracking-widest">Bhashini Multilingual</p>
+            <p className="text-sm font-bold text-slate-800 tracking-tight">AI Voice Interaction</p>
+            <p className="text-2xs text-slate-400 font-medium uppercase tracking-widest">Bhashini Multilingual</p>
           </div>
         </div>
         <motion.button
@@ -847,13 +855,13 @@ const HomeView = memo(({ sendMessage, activeItinerary, tiers, context, language,
           <div className="absolute inset-0 rounded-full border-2 border-orange-400 opacity-20 animate-ping" />
         </motion.button>
       </div>
-      <p className="text-xs text-black/50 italic font-medium">
+      <p className="text-xs text-slate-500 italic font-medium">
         "Ask me to find a cheaper option or book the Rajdhani..."
       </p>
-      <div className="flex items-center gap-2 pt-2 border-t border-black/5">
+      <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
         <Globe className="w-3.5 h-3.5 text-emerald-400" />
-        <p className="text-[9px] text-black/40 leading-relaxed">
-          Language: <span className="text-black font-bold">{language?.toUpperCase() || 'EN'}</span>. Responses and voice adapt to your selected language.
+        <p className="text-[9px] text-slate-400 leading-relaxed">
+          Language: <span className="text-slate-800 font-bold">{language?.toUpperCase() || 'EN'}</span>. Responses and voice adapt to your selected language.
         </p>
       </div>
       </div>
@@ -869,16 +877,16 @@ const ChatView = memo(({
   setSelectedImage, selectedImage, audioRef
 }: any) => (
   <div className="flex flex-col h-full">
-    <div className="shrink-0 px-4 py-3 bg-slate-1000 border-b border-slate-200 flex gap-2 overflow-x-auto scrollbar-hide">
+    <div className="shrink-0 px-4 py-3 bg-slate-50 border-b border-slate-200 flex gap-2 overflow-x-auto scrollbar-hide">
       {dynamicPrompts.map(({ icon: Icon, label, prompt }: any) => (
         <button
           key={label}
           onClick={() => sendMessage(prompt)}
           disabled={isStreaming}
-          className={`flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-black/5 rounded-full whitespace-nowrap hover:border-[#FF9933]/50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full whitespace-nowrap hover:border-[#FF9933]/50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           <Icon className="w-3 h-3 text-[#138808]" />
-          <span className="text-[8px] font-black uppercase tracking-widest text-black/40 group-hover:text-[#000080]">{label}</span>
+          <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 group-hover:text-[#000080]">{label}</span>
         </button>
       ))}
     </div>
@@ -886,8 +894,8 @@ const ChatView = memo(({
     <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pt-4 pb-2 space-y-3">
       {isEmpty ? (
         <div className="h-full flex flex-col items-center justify-center text-center space-y-3 opacity-40">
-          <MessageSquare className="w-10 h-10 text-black/20" />
-          <p className="text-[10px] text-black/30 font-bold">Start a conversation</p>
+          <MessageSquare className="w-10 h-10 text-slate-300" />
+          <p className="text-[10px] text-slate-400 font-bold">Start a conversation</p>
         </div>
       ) : (
         messages.map((msg: any, i: number) => <MessageBubble key={i} msg={msg} />)
@@ -903,7 +911,8 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
   const { language, setLanguage, t } = useLanguage();
   const { 
     destination, startDate, endDate, origin, isOnboarded,
-    userPersona: storePersona, likes: storeLikes, dislikes: storeDislikes
+    userPersona: storePersona, likes: storeLikes, dislikes: storeDislikes,
+    preferredVoice: storeVoice, setPreferredVoice
   } = useTripStore();
   const { activeItinerary, tiers, searchData, plannerStage, mixPicks, setPlannerStage, weather, activePNR } = useTripPlannerStore();
   // Tour Guide shared state — read-only here; written by planner page
@@ -918,15 +927,15 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
   } = useAIBrainStore();
 
   // ── States ──────────────────────────────────────────────────────────────
-  // ── Auto-fetch weather for Active Trip Context ──
+  // ── Auto-fetch weather whenever destination changes ──
   useEffect(() => {
-    if (destination && destination.trim().length > 2 && !weather) {
-      const cleanDest = destination.split(',')[0].replace(/(North|South|East|West)\s+/i, '').trim();
-      WeatherService.getCurrentWeather(cleanDest).then(data => {
-        if (data) useTripPlannerStore.getState().setWeather(data);
-      });
-    }
-  }, [destination, weather]);
+    if (!destination || destination.trim().length <= 2) return;
+    const cleanDest = destination.split(',')[0].replace(/(North|South|East|West)\s+/i, '').trim();
+    WeatherService.getCurrentWeather(cleanDest).then(data => {
+      if (data) useTripPlannerStore.getState().setWeather(data);
+    });
+  }, [destination]); // re-fetch whenever destination changes
+
 
   const [inputValue, setInputValue] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -936,6 +945,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const [audioFeedback, setAudioFeedback] = useState(false);
   const { setUserPersona, setLikes, setDislikes } = useTripStore();
 
@@ -954,6 +964,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
           if (data.user_persona) setUserPersona(data.user_persona);
           if (data.likes) setLikes(data.likes);
           if (data.dislikes) setDislikes(data.dislikes);
+          if (data.preferred_voice) setPreferredVoice(data.preferred_voice as any);
         }
       } catch (err) {
         console.warn('[AIBrain] Profile sync failed:', err);
@@ -1003,12 +1014,16 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
 
 
   const persona = (() => {
-    if (storePersona && storePersona !== 'Cultural Explorer') return `${storePersona} 🚀`;
+    // Priority 1: User's selected archetype from Profile always wins
+    if (storePersona && storePersona !== 'Lead Architect') return `${storePersona} 🚀`;
+    
+    // Priority 2: Dynamic vibe based on destination (only if no persona selected)
     const vibe = (destination || tourGuide.destination || '').toLowerCase();
     if (vibe.includes('goa') || vibe.includes('beach') || vibe.includes('bali')) return 'Sun-Kissed Guide 🏖️';
     if (vibe.includes('manali') || vibe.includes('mountain') || vibe.includes('switzerland')) return 'Alpine Explorer 🏔️';
     if (vibe.includes('paris') || vibe.includes('romantic') || vibe.includes('london')) return 'Sophisticated Local 🥂';
     if (vibe.includes('japan') || vibe.includes('kyoto') || vibe.includes('tokyo')) return 'Zen Navigator 🏮';
+    
     return storePersona ? `${storePersona} 🚀` : 'Lead Architect 🚀';
   })();
 
@@ -1251,14 +1266,25 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
       }
     };
 
-    // ── Clean technical tags and markdown before speaking ──
+    // ── Strip ALL markdown and technical tags before speaking ──
     const cleanText = text
-      .replace(/\[UPDATE:.*?\]/g, '')
-      .replace(/\[SELECT:.*?\]/g, '')
-      .replace(/\[DISCOVERY:.*?\]/g, '')
-      .replace(/\*\*(.*?):\*\*/g, '$1') // Remove bold markers from headers
-      .replace(/[#*_~`]/g, '')           // Remove remaining markdown characters
+      .replace(/\[UPDATE:[^\]]*\]/g, '')
+      .replace(/\[SELECT:[^\]]*\]/g, '')
+      .replace(/\[DISCOVERY:[^\]]*\]/g, '')
+      .replace(/^#{1,6}\s+/gm, '')         // headings
+      .replace(/\*\*([^*]+)\*\*/g, '$1')   // bold
+      .replace(/\*([^*]+)\*/g, '$1')       // italic
+      .replace(/_{1,2}([^_]+)_{1,2}/g, '$1') // underscore italic/bold
+      .replace(/`{1,3}[^`]*`{1,3}/g, '')  // inline code / code blocks
+      .replace(/^[-*+]\s+/gm, '')          // bullet points
+      .replace(/^\d+\.\s+/gm, '')         // numbered lists
+      .replace(/^[-]{3,}$/gm, '')          // horizontal rules
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // markdown links → keep text
+      .replace(/[|\\]/g, '')               // table chars
+      .replace(/\n{3,}/g, '\n\n')         // collapse excess newlines
+      .replace(/\s{2,}/g, ' ')            // collapse excess spaces
       .trim();
+
 
     if (!cleanText) {
       onDone();
@@ -1266,7 +1292,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
     }
 
     try {
-      const audioBase64 = await generateIndianVoice(cleanText, language);
+      const audioBase64 = await generateIndianVoice(cleanText, language, storeVoice);
       if (audioBase64) {
         if (audioRef.current) audioRef.current.pause();
         audioRef.current = new Audio(`data:audio/wav;base64,${audioBase64}`);
@@ -1284,7 +1310,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
       try { await speakWithBrowserTTS(text, language); } catch { /* silent */ }
       onDone();
     }
-  }, [language]);
+  }, [language, storeVoice]);
 
   useEffect(() => { speakResponseRef.current = speakResponse; }, [speakResponse]);
 
@@ -1503,11 +1529,99 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
   }, [destination, tourGuide.destination, clearHistory, messages.length]);
 
 
+  // ── Auto-activate AI Brain when destination is selected ─────────────────────
+  const lastAutoActivatedDest = useRef<string | null>(null);
 
+  // Multilingual greeting templates
+  const buildDestinationGreeting = useCallback((dest: string, from: string, budgetStr: string, lang: string): string => {
+    const templates: Record<string, (d: string, f: string, b: string) => string[]> = {
+      hi: (d, f, b) => [
+        `बढ़िया चुनाव! **${d}** एक शानदार जगह है। 🌟`,
+        f ? `मैं देख रहा हूँ कि आप **${f}** से यात्रा कर रहे हैं।` : '',
+        b ? `**${b}** के बजट में मैं आपकी बेहतरीन यात्रा प्लान करूँगा।` : '',
+        `क्या आप **घूमने का सबसे अच्छा समय**, **स्थानीय आकर्षण**, या **तारीखें तय करने** में मदद चाहते हैं?`,
+      ],
+      ta: (d, f, b) => [
+        `அருமையான தேர்வு! **${d}** ஒரு அற்புதமான இடம். 🌟`,
+        f ? `நீங்கள் **${f}** இலிருந்து பயணிக்கிறீர்கள் என்று பார்க்கிறேன்.` : '',
+        b ? `**${b}** பட்ஜெட்டில் சிறந்த பயணத்தை திட்டமிட உதவுகிறேன்.` : '',
+        `**சிறந்த நேரம்**, **உள்ளூர் சிறப்புகள்**, அல்லது **தேதிகள்** தேர்வு செய்ய உதவட்டுமா?`,
+      ],
+      mr: (d, f, b) => [
+        `उत्तम निवड! **${d}** एक अप्रतिम ठिकाण आहे. 🌟`,
+        f ? `मला दिसतं की तुम्ही **${f}** वरून प्रवास करत आहात.` : '',
+        b ? `**${b}** च्या बजेटमध्ये मी तुमची सुंदर सहल आखतो.` : '',
+        `**सर्वोत्तम वेळ**, **स्थानिक आकर्षणे**, किंवा **तारखा** निवडण्यात मदत हवी आहे का?`,
+      ],
+      kn: (d, f, b) => [
+        `ಅದ್ಭುತ ಆಯ್ಕೆ! **${d}** ಒಂದು ಅಪೂರ್ವ ತಾಣ. 🌟`,
+        f ? `ನೀವು **${f}** ನಿಂದ ಪ್ರಯಾಣಿಸುತ್ತಿದ್ದೀರಿ ಎಂದು ಕಾಣುತ್ತಿದೆ.` : '',
+        b ? `**${b}** ಬಜೆಟ್‌ನಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಪ್ರವಾಸ ಯೋಜಿಸುತ್ತೇನೆ.` : '',
+        `**ಉತ್ತಮ ಸಮಯ**, **ಸ್ಥಳೀಯ ಆಕರ್ಷಣೆಗಳು**, ಅಥವಾ **ದಿನಾಂಕ** ಆಯ್ಕೆಯಲ್ಲಿ ಸಹಾಯ ಬೇಕೇ?`,
+      ],
+      bn: (d, f, b) => [
+        `দারুণ পছন্দ! **${d}** একটি অসাধারণ গন্তব্য। 🌟`,
+        f ? `আমি দেখছি আপনি **${f}** থেকে যাত্রা করছেন।` : '',
+        b ? `**${b}** বাজেটে আমি আপনার সেরা ভ্রমণ পরিকল্পনা করব।` : '',
+        `**সেরা সময়**, **স্থানীয় আকর্ষণ**, বা **তারিখ নির্বাচনে** সাহায্য করব?`,
+      ],
+      te: (d, f, b) => [
+        `అద్భుతమైన ఎంపిక! **${d}** చాలా అందమైన ప్రదేశం. 🌟`,
+        f ? `మీరు **${f}** నుండి ప్రయాణిస్తున్నారని చూస్తున్నాను.` : '',
+        b ? `**${b}** బడ్జెట్‌లో మీకు ఉత్తమ ప్రయాణాన్ని ప్లాన్ చేస్తాను.` : '',
+        `**సరైన సమయం**, **స్థానిక విశేషాలు**, లేదా **తేదీలు** ఎంచుకోవడంలో సహాయం చేయమా?`,
+      ],
+      gu: (d, f, b) => [
+        `સરસ પસંદ! **${d}** એક અદ્ભૂત સ્થળ છે. 🌟`,
+        f ? `હું જોઉ છું કે તમે **${f}** થી પ્રવાસ કરો છો.` : '',
+        b ? `**${b}** ના બજેટમાં હું તમારી શ્રેષ્ઠ સફર ગોઠવીશ.` : '',
+        `**શ્રેષ્ઠ સમય**, **સ્થાનિક આકર્ષણો**, અથવા **તારીખ** પસંદ કરવામાં મદદ જોઈએ?`,
+      ],
+      ml: (d, f, b) => [
+        `മനോഹരമായ തിരഞ്ഞെടുപ്പ്! **${d}** അൽഭുതകരമായ ഒരു ലക്ഷ്യസ്ഥാനം. 🌟`,
+        f ? `നിങ്ങൾ **${f}** ൽ നിന്ന് യാത്ര ചെയ്യുകയാണ് എന്ന് ഞാൻ കാണുന്നു.` : '',
+        b ? `**${b}** ബജറ്റിൽ ഏറ്റവും മികച്ച യാത്ര ആസൂത്രണം ചെയ്യാം.` : '',
+        `**ഏറ്റവും നല്ല സമയം**, **പ്രാദേശിക ആകർഷണങ്ങൾ**, അല്ലെങ്കിൽ **തീയതികൾ** തിരഞ്ഞെടുക്കാൻ സഹായിക്കട്ടെ?`,
+      ],
+      pa: (d, f, b) => [
+        `ਵਧੀਆ ਚੋਣ! **${d}** ਇੱਕ ਸ਼ਾਨਦਾਰ ਮੰਜ਼ਿਲ ਹੈ। 🌟`,
+        f ? `ਮੈਂ ਦੇਖ ਰਿਹਾ ਹਾਂ ਕਿ ਤੁਸੀਂ **${f}** ਤੋਂ ਸਫ਼ਰ ਕਰ ਰਹੇ ਹੋ।` : '',
+        b ? `**${b}** ਬਜਟ ਵਿੱਚ ਮੈਂ ਤੁਹਾਡੀ ਵਧੀਆ ਯਾਤਰਾ ਬਣਾਵਾਂਗਾ।` : '',
+        `**ਸਭ ਤੋਂ ਵਧੀਆ ਸਮਾਂ**, **ਸਥਾਨਕ ਖਿੱਚ**, ਜਾਂ **ਤਾਰੀਖਾਂ** ਚੁਣਨ ਵਿੱਚ ਮਦਦ ਚਾਹੀਦੀ ਹੈ?`,
+      ],
+      en: (d, f, b) => [
+        `Great choice! **${d}** is a wonderful destination. 🌟`,
+        f ? `I see you're travelling from **${f}**.` : '',
+        b ? `With a budget of **${b}**, I can help you plan the perfect trip.` : '',
+        `Would you like me to tell you the **best time to visit**, **local highlights**, or help you **pick your travel dates**?`,
+      ],
+    };
+
+    const fn = templates[lang] || templates['en'];
+    return fn(dest, from, budgetStr).filter(Boolean).join(' ');
+  }, []);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    const currentDest = (destination || tourGuide.destination || '').trim();
+    if (!currentDest || currentDest.length < 2) return;
+    if (currentDest === lastAutoActivatedDest.current) return;
+    lastAutoActivatedDest.current = currentDest;
+
+    setOpen(true);
+
+    const timer = setTimeout(() => {
+      const from = origin || tourGuide.from_city || '';
+      const budget = tourGuide.budget || useTripStore.getState().targetBudget || 0;
+      const budgetStr = budget ? `₹${Number(budget).toLocaleString('en-IN')}` : '';
+      const greeting = buildDestinationGreeting(currentDest, from, budgetStr, language || 'en');
+      addMessage({ role: 'assistant', content: greeting });
+    }, 600);
+
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [destination, tourGuide.destination]);
+
+
 
   useEffect(() => {
     if (!VOICE_FORCE_SERVER_STT) return;
@@ -1529,48 +1643,83 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
 
 
   // ── Dynamic Prompts ─────────────────────────────────────────────────────────
-  const dynamicPrompts = useMemo(() => [
-    {
-      icon: Hotel,
-      label: '5 Best Hotels',
-      prompt: destination ? `Find me the 5 highest-rated hotels in ${destination} for ${startDate || 'my trip'} within budget. Return them as [SELECT: stay=index] items.` : 'Show me top 5 hotel options for my trip.'
-    },
-    {
-      icon: Train,
-      label: 'Fastest train',
-      prompt: origin && destination ? `What is the fastest train from ${origin} to ${destination} right now?` : 'What are the fastest trains for my current route?'
-    },
-    {
-      icon: Plane,
-      label: 'Cheapest flight',
-      prompt: origin && destination ? `Best value flight from ${origin} to ${destination} around ${startDate || 'my dates'}?` : 'Show me flight options for my trip.'
-    },
-    {
-      icon: Thermometer,
-      label: 'Weather',
-      prompt: (destination || tourGuide.destination) ? `What is the weather like in ${destination || tourGuide.destination} right now?` : 'What is the current weather and best time to visit India?'
-    },
-    {
-      icon: Wallet,
-      label: 'Budget tips',
-      prompt: destination ? `Give me 3 budget travel tips for ${destination} under ₹5,000 per day.` : 'Give me 3 budget travel tips for my trip.'
-    },
-    {
-      icon: Utensils,
-      label: 'Street Food',
-      prompt: destination ? `Where are the most authentic street food spots in ${destination}?` : 'Where are the most authentic street food spots nearby?'
-    },
-    {
-      icon: PartyPopper,
-      label: 'Night Clubs',
-      prompt: destination ? `Find me the highest-rated night clubs in ${destination}.` : 'Find me the highest-rated night clubs and lounges.'
-    },
-    {
-      icon: ShoppingBag,
-      label: 'Shopping',
-      prompt: destination ? `Where are the best local markets in ${destination}?` : 'Where are the best local markets and bazaars?'
-    },
-  ], [origin, destination, startDate]);
+  const dynamicPrompts = useMemo(() => {
+    const basePrompts = [
+      {
+        icon: Thermometer,
+        label: 'Weather',
+        prompt: (destination || tourGuide.destination) ? `What is the weather like in ${destination || tourGuide.destination} right now?` : 'What is the current weather and best time to visit India?'
+      },
+      {
+        icon: Wallet,
+        label: 'Budget tips',
+        prompt: destination ? `Give me 3 budget travel tips for ${destination} under ₹5,000 per day.` : 'Give me 3 budget travel tips for my trip.'
+      }
+    ];
+
+    if (plannerStage === 'suggestions') {
+      return [
+        {
+          icon: Sparkles,
+          label: 'Compare these',
+          prompt: 'Help me compare these destination options. Which one offers the best value for my budget?'
+        },
+        {
+          icon: Compass,
+          label: 'Hidden Gems',
+          prompt: destination ? `Are there any offbeat or hidden gems near ${destination} that I should consider?` : 'Suggest some offbeat hidden gems in India.'
+        },
+        ...basePrompts
+      ];
+    }
+
+    if (plannerStage === 'selection' || plannerStage === 'results') {
+      const missing = !mixPicks.transport ? 'transport' : (!mixPicks.hotel ? 'hotel' : null);
+      return [
+        {
+          icon: Zap,
+          label: 'Optimize Plan',
+          prompt: 'Review my current selections in the Odyssey Cart. Are there any better combinations for my budget?'
+        },
+        ...(missing ? [{
+          icon: Info,
+          label: `Find ${missing}`,
+          prompt: `I haven't picked a ${missing} yet. Show me the best ${missing} options from the marketplace.`
+        }] : []),
+        {
+          icon: Utensils,
+          label: 'Local Food',
+          prompt: destination ? `What are the must-try local dishes in ${destination}?` : 'What are the must-try local dishes?'
+        },
+        ...basePrompts
+      ];
+    }
+
+    if (plannerStage === 'booking') {
+      return [
+        {
+          icon: ShieldCheck,
+          label: 'Insurance Info',
+          prompt: 'Tell me more about the Yatra Shield protection. What does it cover?'
+        },
+        {
+          icon: Send,
+          label: 'Next Steps',
+          prompt: 'I am about to finalize my booking. What happens after I pay?'
+        },
+        ...basePrompts
+      ];
+    }
+
+    return [
+      {
+        icon: Hotel,
+        label: '5 Best Hotels',
+        prompt: destination ? `Find me the 5 highest-rated hotels in ${destination} for ${startDate || 'my trip'} within budget. Return them as [SELECT: stay=index] items.` : 'Show me top 5 hotel options for my trip.'
+      },
+      ...basePrompts
+    ];
+  }, [origin, destination, startDate, plannerStage, mixPicks]);
 
 
 
@@ -1595,7 +1744,8 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
-
+  // ── Hand-in-hand refs (useEffect placed after sendMessage declaration below) ──
+  const prevMixPicksRef = useRef<typeof mixPicks>(mixPicks);
 
 
 
@@ -1712,20 +1862,55 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
               hotel: activeItinerary.hotel,
               local: activeItinerary.local,
             } : null,
+            odysseyCart: {
+              transport: mixPicks.transport ? { name: mixPicks.transport.name, price: mixPicks.transport.price, type: mixPicks.transport.type } : 'Not selected',
+              hotel: mixPicks.hotel ? { name: mixPicks.hotel.name, price: mixPicks.hotel.price } : 'Not selected',
+              returnTransport: mixPicks.returnTransport ? { name: mixPicks.returnTransport.name, price: mixPicks.returnTransport.price } : null,
+              totalSelectedValue: (
+                (parseInt(String(mixPicks.transport?.price || '0').replace(/[₹,]/g, '')) || 0) +
+                (parseInt(String(mixPicks.returnTransport?.price || '0').replace(/[₹,]/g, '')) || 0) +
+                ((parseInt(String(mixPicks.hotel?.price || '0').replace(/[₹,]/g, '')) || 0) * (activeItinerary?.nights || 1))
+              )
+            },
+            // Full itinerary for day-plan awareness
+            activeItineraryFull: activeItinerary ? {
+              from: activeItinerary.from,
+              to: activeItinerary.to,
+              nights: activeItinerary.nights,
+              tierLabel: activeItinerary.tierLabel,
+              total: activeItinerary.total,
+              totalEstimate: activeItinerary.totalEstimate,
+              days: activeItinerary.days || [],
+            } : null,
             tripTiers: tiers.length > 0 ? tiers.map(t => ({ label: t.label, total: t.total, transport: t.transport, hotel: t.hotel, local: t.local })) : null,
-            plannerSearchData: searchData.trains.length > 0 ? {
-              trains: searchData.trains.slice(0, 5),
-              flights: searchData.flights.slice(0, 5),
-              hotels: searchData.hotels.slice(0, 5),
+            plannerSearchData: (searchData.flights.length > 0 || searchData.trains.length > 0 || searchData.hotels.length > 0 || searchData.buses?.length > 0) ? {
+              flightCount: searchData.flights.length,
+              trainCount: searchData.trains.length,
+              hotelCount: searchData.hotels.length,
+              busCount: searchData.buses?.length || 0,
+              ferryCount: searchData.ferries?.length || 0,
+              trains: searchData.trains.slice(0, 10),
+              flights: searchData.flights.slice(0, 10),
+              hotels: searchData.hotels.slice(0, 10),
+              buses: searchData.buses?.slice(0, 10),
+              ferries: searchData.ferries?.slice(0, 10)
             } : null,
             // Premium Intelligence: Grounding in Indian Cultural Nuance
             grounding: {
               culturalSignificance: true,
               festivalAwareness: true,
               localEtiquette: true,
-              personaRole: persona
+              personaRole: persona,
+              isOdysseyCartActive: plannerStage === 'selection' || plannerStage === 'results'
             },
-            // Tour Guide shared state — all fields passed verbatim so the
+            weather: weather ? {
+              temp: weather.temp,
+              condition: weather.condition,
+              humidity: weather.humidity,
+              wind: weather.wind,
+              feelsLike: weather.feelsLike,
+            } : null,
+
             // system prompt can ground responses in the live trip object
             language:          tourGuide.language,
             from_city:         tourGuide.from_city,
@@ -1811,6 +1996,101 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
 
   useEffect(() => { sendMessageRef.current = sendMessage; }, [sendMessage]);
 
+  // ── Hand-in-hand: react when user picks hotel or transport in planner ────────
+  useEffect(() => {
+    const prev = prevMixPicksRef.current;
+    prevMixPicksRef.current = mixPicks;
+
+    const transportChanged = mixPicks.transport?.name !== prev.transport?.name;
+    const returnChanged    = mixPicks.returnTransport?.name !== prev.returnTransport?.name;
+    const hotelChanged     = mixPicks.hotel?.name !== prev.hotel?.name;
+
+    if (!transportChanged && !returnChanged && !hotelChanged) return;
+
+    // ── Hotel selected: open AI Brain + inject proximity-ready greeting ─────
+    if (hotelChanged && mixPicks.hotel) {
+      const hotelName = mixPicks.hotel.name;
+      const dest      = tourGuide.destination || destination || 'your destination';
+      const lang      = language || 'en';
+
+      const hotelMsgs: Record<string, string> = {
+        hi:  `🏨 **${hotelName}** बुक हो गया! अब आप मुझसे पूछ सकते हैं — पास के रेस्टोरेंट, बाज़ार, मंदिर या कोई भी जगह कितनी दूर है और वहाँ जाने का सबसे अच्छा तरीका क्या है।`,
+        ta:  `🏨 **${hotelName}** தேர்ந்தெடுக்கப்பட்டது! இப்போது அருகில் உள்ள உணவகங்கள், சந்தைகள் அல்லது எந்த இடமும் எவ்வளவு தூரம் என்று என்னிடம் கேளுங்கள்.`,
+        mr:  `🏨 **${hotelName}** निवडले! आता जवळचे रेस्टॉरंट, बाजार किंवा कोणतीही जागा किती दूर आहे ते मला विचारा — मी अंतर आणि सर्वोत्तम मार्ग सांगतो.`,
+        kn:  `🏨 **${hotelName}** ಆಯ್ಕೆಯಾಗಿದೆ! ಹತ್ತಿರದ ರೆಸ್ಟೋರೆಂಟ್, ಮಾರ್ಕೆಟ್ ಅಥವಾ ಯಾವುದೇ ಸ್ಥಳ ಎಷ್ಟು ದೂರ ಎಂದು ನನ್ನನ್ನು ಕೇಳಿ.`,
+        bn:  `🏨 **${hotelName}** বেছে নেওয়া হয়েছে! এখন কাছের রেস্তোরাঁ, বাজার বা যেকোনো জায়গা কত দূর তা আমাকে জিজ্ঞেস করুন।`,
+        te:  `🏨 **${hotelName}** ఎంచుకోబడింది! దగ్గరలో ఉన్న రెస్టారెంట్లు, మార్కెట్లు లేదా ఏ స్థలమైనా ఎంత దూరం అని నన్ను అడగండి.`,
+        gu:  `🏨 **${hotelName}** પસંદ થઈ ગઈ! નજીકના રેસ્ટોરાં, બજાર કે કોઈ પણ જગ્યા કેટલી દૂર છે — મને પૂછો, હું અંતર અને શ્રેષ્ઠ રસ્તો જણાવીશ.`,
+        ml:  `🏨 **${hotelName}** തിരഞ്ഞെടുത്തു! അടുത്തുള്ള റസ്റ്റോറന്റ്, മാർക്കറ്റ് അല്ലെങ്കിൽ ഏത് സ്ഥലവും എത്ര ദൂരമാണ് എന്ന് എന്നോട് ചോദിക്കൂ.`,
+        pa:  `🏨 **${hotelName}** ਚੁਣਿਆ ਗਿਆ! ਹੁਣ ਨੇੜੇ ਦੇ ਰੈਸਟੋਰੈਂਟ, ਬਾਜ਼ਾਰ ਜਾਂ ਕਿਸੇ ਵੀ ਜਗ੍ਹਾ ਤੋਂ ਦੂਰੀ ਬਾਰੇ ਮੈਨੂੰ ਪੁੱਛੋ।`,
+        en:  `🏨 **${hotelName}** selected in **${dest}**! I'm now your local guide for this hotel. Ask me anything like:\n- *"Best restaurants near my hotel?"*\n- *"How far is [place] from ${hotelName}?"*\n- *"Best way to get to the beach?"*\n\nI'll give you exact distances and the best transport options. 🗺️`,
+      };
+
+      const msg = hotelMsgs[lang] || hotelMsgs['en'];
+
+      // Open panel and inject message directly (no API call needed)
+      setOpen(true);
+      const t = setTimeout(() => addMessage({ role: 'assistant', content: msg }), 400);
+      return () => clearTimeout(t);
+    }
+
+    // ── Transport selected: fire API for a real contextual tip (only if panel is open) ──
+    if ((transportChanged || returnChanged) && isOpen) {
+      const parts: string[] = [];
+      if (transportChanged && mixPicks.transport)
+        parts.push(`I selected ${mixPicks.transport.name} (${mixPicks.transport.price}) as my ${mixPicks.transport.label || 'transport'}.`);
+      if (returnChanged && mixPicks.returnTransport)
+        parts.push(`Return: ${mixPicks.returnTransport.name} (${mixPicks.returnTransport.price}).`);
+      if (!parts.length) return;
+      const msg = parts.join(' ') + ' Give me one quick practical tip.';
+      const t = setTimeout(() => sendMessageRef.current?.(msg), 500);
+      return () => clearTimeout(t);
+    }
+  }, [mixPicks, plannerStage, isOpen, destination, tourGuide.destination, language, addMessage, setOpen]);
+  
+  // \u2500\u2500 Stage-aware Auto-Open: AI Brain activates when moving to specific stages \u2500\u2500
+  const prevStageRef = useRef(plannerStage);
+  useEffect(() => {
+    const prev = prevStageRef.current;
+    prevStageRef.current = plannerStage;
+
+    if (plannerStage === prev) return;
+
+    // Transition to results: destination selected and itinerary drafted
+    const targetDest = destination || activeItinerary?.destination || activeItinerary?.to;
+
+    if (plannerStage === 'results' && targetDest) {
+      setOpen(true);
+      const t = setTimeout(() => {
+        const weatherText = activeItinerary?.weather?.temp 
+          ? `The weather looks **${activeItinerary.weather.temp}** and **${activeItinerary.weather.condition || 'pleasant'}**.`
+          : "I'm checking the local conditions for you now.";
+        
+        const datesText = (activeItinerary?.startDate && activeItinerary?.endDate)
+          ? `from **${isoToDdMonthYy(activeItinerary.startDate)}** to **${isoToDdMonthYy(activeItinerary.endDate)}**`
+          : "for your selected dates";
+
+        addMessage({ 
+          role: 'assistant', 
+          content: `\u2728 **Excellent choice!** I've drafted your custom Odyssey for **${targetDest}** ${datesText}.\n\n🌡️ ${weatherText}\n\nI've mapped out the full itinerary for you. Should we upgrade any of the hotels, or does this look perfect?`
+        });
+      }, 800);
+      return () => clearTimeout(t);
+    }
+
+    // Transition to suggestions: user provided inputs, showing city options
+    if (plannerStage === 'suggestions' && targetDest) {
+      setOpen(true);
+      const t = setTimeout(() => {
+        addMessage({ 
+          role: 'assistant', 
+          content: `\ud83d\udccd Great choice! **${targetDest}** is a fantastic pick. I've fetched some curated options for you. \n\nWhich of these looks most like your dream trip? I can help you compare them if you're undecided!`
+        });
+      }, 800);
+      return () => clearTimeout(t);
+    }
+  }, [plannerStage, destination, activeItinerary, setOpen, addMessage]);
+
   // Planner / chips can queue a message when opening chat — flush via real send so assistant replies stream.
   useEffect(() => {
     const queued = pendingOutbound;
@@ -1826,14 +2106,14 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
 
 
 
-  if (!mounted || authLoading || !user) return null;
+  if (!mounted) return null;
 
   const hasContext = destination && startDate && destination.trim().length > 2;
 
   // ── Panel ──────────────────────────────────────────────────────────────────
   return (
     <motion.div
-      className={`fixed z-[100] transition-all duration-500 ease-in-out no-print ${
+      className={`fixed z-[9999] transition-all duration-500 ease-in-out no-print ${
         isPrimarySidebarOpen
           ? 'top-16 right-0 bottom-0 w-[100vw] lg:w-[380px] h-auto'
           : 'bottom-8 right-8'
@@ -1890,6 +2170,32 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
 
             <div className="relative z-10 flex flex-col h-full">
 
+              {/* Trip Info Bar: Displayed when destination is set */}
+              {destination && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="shrink-0 flex items-center gap-4 px-4 py-2 bg-saffron/5 border-b border-orange-100/50"
+                >
+                  <div className="flex items-center gap-1.5 overflow-hidden">
+                    <MapPin className="w-3 h-3 text-saffron shrink-0" />
+                    <span className="text-[10px] font-black text-[#000080] uppercase tracking-tighter truncate">{destination}</span>
+                  </div>
+                  {startDate && (
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Calendar className="w-3 h-3 text-green" />
+                      <span className="text-[9px] font-bold text-slate-500 uppercase">{isoToDdMonthYy(startDate)}</span>
+                    </div>
+                  )}
+                  {weather?.temp && (
+                    <div className="flex items-center gap-1.5 ml-auto shrink-0 bg-white/60 px-2.5 py-1 rounded-full border border-orange-100 shadow-sm">
+                      <Thermometer className="w-3 h-3 text-saffron" />
+                      <span className="text-[9px] font-black text-saffron">{weather.temp}</span>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
             {/* ── HEADER ── Gold standard: Siri-style translucent */}
             <div className="shrink-0 flex items-center gap-3 px-4 h-14 border-b border-slate-200 bg-white/[0.02]">
               {/* Identity */}
@@ -1899,11 +2205,11 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-black tracking-tight">AI Assistant</span>
+                    <span className="text-[10px] font-bold text-slate-800 tracking-tight">AI Assistant</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className={`w-1.5 h-1.5 rounded-full ${isStreaming || isListening || isSpeaking ? 'bg-saffron animate-pulse' : 'bg-green'}`} />
-                    <span className="text-[9px] text-black/40 font-medium">
+                    <span className="text-[9px] text-slate-400 font-medium">
                       {isStreaming ? 'Thinking…' : isSpeaking ? 'Speaking…' : isListening ? 'Listening…' : `${persona} · Ready`}
                     </span>
                   </div>
@@ -1917,26 +2223,26 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                 {/* Language Selection Dropdown */}
                 <div className="relative group/lang">
                   <button
-                    className="p-1.5 text-black/40 hover:bg-orange-50 hover:text-saffron rounded-lg transition-colors flex items-center gap-1"
+                    className="p-1.5 text-slate-400 hover:bg-orange-50 hover:text-saffron rounded-lg transition-colors flex items-center gap-1"
                     title="Change language"
                   >
                     <Globe className="w-4 h-4 text-green" />
                     <span className="text-[9px] font-black uppercase tracking-widest">{language?.toUpperCase() || 'EN'}</span>
                   </button>
                   
-                  <div className="absolute right-0 bottom-full mb-1 w-48 max-h-60 overflow-y-auto bg-slate-50 border border-black/5 rounded-xl py-1 shadow-2xl opacity-0 invisible group-hover/lang:opacity-100 group-hover/lang:visible transition-all z-50 flex flex-col">
+                  <div className="absolute right-0 bottom-full mb-1 w-48 max-h-60 overflow-y-auto bg-slate-50 border border-slate-200 rounded-xl py-1 shadow-2xl opacity-0 invisible group-hover/lang:opacity-100 group-hover/lang:visible transition-all z-50 flex flex-col">
                     {SUPPORTED_LANGUAGES.map(lang => (
                       <button
                         key={lang.code}
                         onClick={() => {
                           setLanguage(lang.code);
                         }}
-                        className={`flex items-center justify-between w-full text-left px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest hover:bg-orange-50 transition-colors ${language === lang.code ? 'text-green bg-green/10' : 'text-black/50'}`}
+                        className={`flex items-center justify-between w-full text-left px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest hover:bg-orange-50 transition-colors ${language === lang.code ? 'text-green bg-green/10' : 'text-slate-500'}`}
                       >
                         <span className="font-black normal-case tracking-normal text-[11px]">
                           {lang.native}
                         </span>
-                        <span className="text-black/40 normal-case tracking-normal text-[9px]">
+                        <span className="text-slate-400 normal-case tracking-normal text-[9px]">
                           {lang.name}
                         </span>
                       </button>
@@ -1950,7 +2256,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                     setAudioFeedback(!audioFeedback);
                     if (audioFeedback && audioRef.current) audioRef.current.pause();
                   }}
-                  className={`p-1.5 rounded-lg transition-all ${audioFeedback ? 'text-[#FF9933] bg-[#FF9933]/10 border border-[#FF9933]/20' : 'text-black/40 hover:bg-orange-50 hover:text-saffron'}`}
+                  className={`p-1.5 rounded-lg transition-all ${audioFeedback ? 'text-[#FF9933] bg-[#FF9933]/10 border border-[#FF9933]/20' : 'text-slate-400 hover:bg-orange-50 hover:text-saffron'}`}
                   title={audioFeedback ? 'Mute AI voice' : 'Enable AI voice'}
                 >
                   {audioFeedback ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -1962,7 +2268,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                 {messages.length > 0 && (
                   <button
                     onClick={() => clearChatHistory()}
-                    className="p-1.5 text-black/40 hover:bg-orange-50 hover:text-saffron rounded-lg transition-colors"
+                    className="p-1.5 text-slate-400 hover:bg-orange-50 hover:text-saffron rounded-lg transition-colors"
                     title="Clear conversation"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
@@ -1972,7 +2278,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                 {/* Close */}
                 <button
                   onClick={() => isPrimarySidebarOpen ? togglePrimarySidebar() : setOpen(false)}
-                  className="p-1.5 text-black/40 hover:bg-orange-50 hover:text-saffron rounded-lg transition-colors"
+                  className="p-1.5 text-slate-400 hover:bg-orange-50 hover:text-saffron rounded-lg transition-colors"
                   title="Close"
                 >
                   <X className="w-4 h-4" />
@@ -1992,7 +2298,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                 <div className="flex items-center gap-3 pl-5">
                   <div className="flex items-center gap-1.5">
                     <span className="text-[9px] font-black text-saffron uppercase italic">{isoToDdMonthYy(startDate)}</span>
-                    <span className="text-[8px] text-black/20">→</span>
+                    <span className="text-[8px] text-slate-300">→</span>
                     <span className="text-[9px] font-black text-saffron uppercase italic">{isoToDdMonthYy(endDate)}</span>
                   </div>
                   {weather ? (
@@ -2013,8 +2319,8 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
             )}
 
             {/* Synced Planner Stage Navigator (always visible) */}
-            <div className="shrink-0 px-3 py-2 border-b border-black/5 bg-white/30">
-              <div className="bg-black/5 border border-black/5 rounded-xl p-1 flex gap-1 overflow-x-auto no-scrollbar">
+            <div className="shrink-0 px-3 py-2 border-b border-slate-100 bg-white/30">
+              <div className="bg-slate-50 border border-slate-200/50 rounded-xl p-1 flex gap-1 overflow-x-auto no-scrollbar">
                 {syncedStages.map((st) => {
                   const isActive = plannerStage === st.id;
                   // Clean state policy: Don't allow clicking into stages that haven't been reached yet
@@ -2054,8 +2360,8 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                           : isActuallyDone
                             ? 'bg-green text-white shadow-[0_4px_12px_rgba(4,106,56,0.2)]'
                             : isAccessible 
-                              ? 'text-black/40 hover:text-black/80 hover:bg-black/5'
-                              : 'text-black/10 cursor-not-allowed opacity-30'
+                              ? 'text-slate-400 hover:text-slate-800 hover:bg-slate-100'
+                              : 'text-slate-200 cursor-not-allowed opacity-30'
                       }`}
                     >
                       {isActuallyDone && <Check className="w-2 h-2" />}
@@ -2099,7 +2405,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
             </div>
 
             {/* ── INPUT AREA ── */}
-            <div className="shrink-0 border-t border-black/5 bg-white px-4 pt-3 pb-4 space-y-2">
+            <div className="shrink-0 border-t border-slate-100 bg-white px-4 pt-3 pb-4 space-y-2">
 
               {/* Voice mode UI */}
               {useVoiceMode ? (
@@ -2112,8 +2418,8 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                         : isSpeaking
                         ? 'bg-green shadow-[0_0_28px_rgba(4,106,56,0.65)] scale-110 animate-pulse'
                         : isStreaming
-                        ? 'bg-black/5 animate-pulse'
-                        : 'bg-black/5 hover:bg-black/10 border border-black/10'}`}
+                        ? 'bg-slate-100 animate-pulse'
+                        : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'}`}
                   >
                     <Mic className="w-6 h-6 text-[#000080]" />
                   </button>
@@ -2123,7 +2429,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                         ? 'text-saffron'
                         : isSpeaking
                           ? 'text-green'
-                          : 'text-black/40'
+                          : 'text-slate-400'
                     }`}
                   >
                     {isListening
@@ -2178,15 +2484,15 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                   {/* Attach + Image preview */}
                   {selectedImage ? (
                     <div className="relative w-10 h-10 shrink-0">
-                      <img src={selectedImage} alt="Attached" className="w-full h-full object-cover rounded-lg border border-zinc-700" />
+                      <img src={selectedImage} alt="Attached" className="w-full h-full object-cover rounded-lg border border-orange-100" />
                       <button onClick={() => setSelectedImage(null)} className="absolute -top-1.5 -right-1.5 bg-red-500 w-4 h-4 rounded-full flex items-center justify-center shadow">
-                        <X size={8} className="text-[#000080]" />
+                        <X size={8} className="text-white" />
                       </button>
                     </div>
                   ) : (
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="p-2 text-black/30 hover:text-saffron hover:bg-orange-50 rounded-lg transition-colors shrink-0"
+                      className="p-2 text-slate-300 hover:text-saffron hover:bg-orange-50 rounded-lg transition-colors shrink-0"
                       title="Attach image"
                     >
                       <Plus className="w-4 h-4" />
@@ -2209,7 +2515,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                             }}
                             className="w-full bg-[#FF9933]/5 border border-[#FF9933]/20 rounded-xl pl-9 pr-3 py-2 text-xs font-black text-[#000080] outline-none focus:border-[#FF9933] focus:ring-1 focus:ring-[#FF9933]/20 transition-all cursor-pointer appearance-none"
                           />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-[#FF9933]/40 pointer-events-none uppercase tracking-tighter">Dropdown Calendar</span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-saffron/40 pointer-events-none uppercase tracking-tighter">Dropdown Calendar</span>
                         </div>
                       </div>
                     )}
@@ -2237,7 +2543,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                       }
                       disabled={isStreaming}
                       rows={1}
-                      className="w-full bg-black/5 border border-black/5 rounded-xl px-3 py-2 text-[13px] text-[#000080] placeholder-black/40 outline-none focus:border-saffron/30 transition-colors resize-none disabled:opacity-50 leading-relaxed"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[13px] text-[#000080] placeholder-slate-400 outline-none focus:border-saffron/30 transition-colors resize-none disabled:opacity-50 leading-relaxed"
                       style={{ maxHeight: '120px' }}
                     />
                   </div>
@@ -2246,7 +2552,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                   {isStreaming ? (
                     <button
                       onClick={handleStop}
-                      className="p-2.5 bg-white border border-black/10 text-black/80 rounded-xl hover:bg-orange-50 hover:text-saffron transition-all shrink-0"
+                      className="p-2.5 bg-white border border-slate-200 text-slate-500 rounded-xl hover:bg-orange-50 hover:text-saffron transition-all shrink-0"
                       title="Stop"
                     >
                       <X className="w-4 h-4" />
@@ -2266,11 +2572,11 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
               )}
 
               <div className="flex items-center justify-between pt-1">
-                <div className="flex items-center gap-0.5 bg-black/5 border border-black/10 rounded-xl p-1">
+                <div className="flex items-center gap-0.5 bg-slate-50 border border-slate-200 rounded-xl p-1">
                   <button
                     onClick={() => { setUseVoiceMode(false); if (audioRef.current) audioRef.current.pause(); }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all ${
-                      !useVoiceMode ? 'bg-white shadow-sm text-black' : 'text-black/40 hover:text-black/80'
+                      !useVoiceMode ? 'bg-white shadow-sm text-saffron' : 'text-slate-400 hover:text-slate-600'
                     }`}
                   >
                     <Send className="w-2.5 h-2.5" /> Text
@@ -2284,13 +2590,13 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                       }
                     }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${
-                      useVoiceMode ? 'bg-saffron text-white shadow-lg shadow-saffron/20' : 'text-black/40 hover:text-black/80'
+                      useVoiceMode ? 'bg-saffron text-white shadow-lg shadow-saffron/20' : 'text-slate-400 hover:text-slate-600'
                     }`}
                   >
                     <Mic className="w-2.5 h-2.5" /> {useVoiceMode ? (isListening ? 'Stop' : 'Voice') : 'Voice'}
                   </button>
                 </div>
-                <span className="text-[8px] text-black/50 select-none">Enter to send · Shift+Enter for newline</span>
+                <span className="text-[8px] text-slate-400 select-none">Enter to send · Shift+Enter for newline</span>
               </div>
             </div>
             </div>
@@ -2315,7 +2621,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
               {/* Siri Orb Gradient Mesh */}
               <div className="absolute inset-0 z-0 bg-gradient-to-br from-accent-amber via-orange-500 to-amber-600 opacity-80 group-hover:opacity-100 transition-opacity" />
               <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.4)_0%,transparent_50%)]" />
-              <div className="absolute inset-0 z-0 animate-pulse bg-[radial-gradient(circle_at_80%_80%,rgba(0,0,0,0.3)_0%,transparent_50%)]" />
+              <div className="absolute inset-0 z-0 animate-pulse bg-[radial-gradient(circle_at_80%_80%,rgba(255,153,51,0.2)_0%,transparent_50%)]" />
               
               <Sparkles className="w-7 h-7 relative z-10 text-[#000080]" />
               

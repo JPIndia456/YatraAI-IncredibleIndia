@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage, type LanguageCode } from '@/contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
@@ -37,18 +37,20 @@ export interface PlannerInputs {
   ecoFriendly: boolean;
   wheelchair: boolean;
   telegramId: string;
+  likes: string[];
+  dislikes: string[];
 }
 
 interface StepInputsProps {
   inputs: PlannerInputs;
-  activeLang: Language;
-  setActiveLang: (l: Language) => void;
+  activeLang: LanguageCode;
+  setActiveLang: (l: LanguageCode) => void;
   setInputs: React.Dispatch<React.SetStateAction<PlannerInputs>>;
   patchTourGuide: (patch: any) => void;
   onDiscover: () => void;
 }
 
-const LANG_OPTIONS: Array<{ code: Language; name: string; native: string }> = [
+const LANG_OPTIONS: Array<{ code: LanguageCode; name: string; native: string }> = [
   { code: 'en', name: 'English', native: 'English' },
   { code: 'hi', name: 'Hindi', native: 'हिन्दी' },
   { code: 'ta', name: 'Tamil', native: 'தமிழ்' },
@@ -68,15 +70,6 @@ const DEST_CONFIGS: Record<DestType, { label: string; emoji: string }> = {
   monuments:  { label: 'Heritage',   emoji: '🏛️' },
   riverside:  { label: 'Riverside',  emoji: '🌊' },
 };
-
-const BUDGET_PRESETS = [
-  { value: 15000,  label: '₹15k' },
-  { value: 30000,  label: '₹30k' },
-  { value: 50000,  label: '₹50k' },
-  { value: 100000, label: '₹1L' },
-  { value: 200000, label: '₹2L' },
-  { value: 300000, label: '₹3L' },
-];
 
 const toggleArr = <T,>(arr: T[], val: T): T[] =>
   arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
@@ -202,12 +195,12 @@ export default function StepInputs({
           <select
             value={activeLang}
             onChange={(e) => {
-              const next = e.target.value as Language;
-              setActiveLang(next);
-              // CRITICAL: Update global i18next language so t() reflects changes immediately
-              setLanguage(next);
-              setInputs((p) => ({ ...p, language: next }));
-              patchTourGuide({ language: next });
+                const next = e.target.value as Language;
+                setActiveLang(next);
+                // Update global store and local inputs
+                setLanguage(next);
+                setInputs(prev => ({ ...prev, language: next }));
+                patchTourGuide({ language: next });
             }}
             className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-2.5 py-1.5 text-[10px] text-saffron font-semibold outline-none cursor-pointer"
             style={{ colorScheme: 'dark' }}
@@ -415,9 +408,9 @@ export default function StepInputs({
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{t('destination')}</label>
+            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{t('destination', 'Destination')} <span className="text-[8px] font-normal normal-case opacity-60">(optional)</span></label>
             <LocationSearch
-              placeholder={t('dest_placeholder')}
+              placeholder="Surprise me! (or enter destination)"
               value={inputs.specificDest}
               onEnter={onDiscover}
               onChange={val => {
@@ -443,7 +436,7 @@ export default function StepInputs({
                         locationIntel.confidence === 'high'
                           ? 'border-green/35 text-green bg-green/10'
                           : locationIntel.confidence === 'medium'
-                            ? 'border-amber-500/35 text-amber-300 bg-black/20'
+                            ? 'border-amber-500/20 text-amber-600 bg-amber-500/10'
                             : 'border-rose-500/35 text-rose-300 bg-rose-500/10'
                       }`}
                     >
@@ -557,6 +550,7 @@ export default function StepInputs({
       {/* ── Section 3: Budget & Party ──────────────────────────────────── */}
       <div className="glass-panel relative z-10 p-4 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
           {/* Budget */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">

@@ -12,6 +12,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import CookieConsent from '@/components/CookieConsent';
 import FooterWrapper from '@/components/FooterWrapper';
 import GlobalFooter from '@/components/GlobalFooter';
+import ClientOnly from '@/components/ClientOnly';
 
 const notoSerif = Noto_Serif({ 
   subsets: ["latin"], 
@@ -69,9 +70,11 @@ export default function RootLayout({
         <FooterWrapper>
           <GlobalFooter />
         </FooterWrapper>
-        <AIBrain />
-        <CookieConsent />
-        <Toaster position="top-center" richColors theme="dark" />
+        <ClientOnly>
+          <AIBrain />
+          <CookieConsent />
+          <Toaster position="top-center" richColors theme="dark" />
+        </ClientOnly>
         </LanguageProvider>
         </AuthProvider>
       </body>

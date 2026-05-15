@@ -1,1371 +1,724 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Sparkles, X, MessageSquare, ShieldCheck, Send,
-  Mic, RotateCcw, Train, Plane, MapPin, ArrowRight,
-  Thermometer, Wallet, BrainCircuit, PartyPopper, Utensils,
-  ShoppingBag, Moon,
-  Plus, Globe, Volume2, VolumeX,
-  Calendar, Navigation, CheckCircle2, Hotel, Car, Ship,
-  CloudSun, Camera
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Sparkles, ArrowRight, RotateCcw, MapPin, Calendar, Wallet, Users, 
+  Search, ShieldCheck, Zap, Globe, MessageSquare, Info, Star, Clock,
+  Navigation, Plane, Train, Hotel, Bus, Ship
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+
+// Store & Context
+import { 
+  useTripStore, 
+  useTripPlannerStore, 
+  useAIBrainStore, 
+  useTourGuideStore 
+} from '@/lib/store';
+import { useLanguage, type LanguageCode } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import NavigationWrapper from '@/components/layout/NavigationWrapper';
-import { useTripStore, useAIBrainStore, useTripPlannerStore, useTourGuideStore } from '@/lib/store';
-import { parsePhone } from '@/lib/wizardParsers';
-
-import { parseAiItineraryJson } from '@/lib/parseAiItineraryJson';
 import { supabase } from '@/lib/supabase/client';
-import TripPlanner from '@/components/TripPlanner';
-import AIBrain from '@/components/AIBrain';
+import { mergeApiHotelsWithCuratedSeeds, supplementFerriesForDestination, supplementTransportForDestination } from '@/lib/hotelDestinationBoost';
 import { speakIndianText } from '@/lib/bhashini';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useTranslation } from 'react-i18next';
-import ProfilePanel from '@/components/profile/ProfilePanel';
 
-// Step components
-import StepInputs, { PlannerInputs, Language } from '@/components/planner/StepInputs';
+// Components
+import StepInputs, { type PlannerInputs } from '@/components/planner/StepInputs';
 import StepSuggestions from '@/components/planner/StepSuggestions';
 import StepPlanning from '@/components/planner/StepPlanning';
-import StepBooking from '@/components/planner/StepBooking';
-import StepIndicator from '@/components/planner/StepIndicator';
 import StepSelection from '@/components/planner/StepSelection';
+import StepBooking from '@/components/planner/StepBooking';
 import StepSuccess from '@/components/planner/StepSuccess';
+import StepIndicator from '@/components/planner/StepIndicator';
+import NavigationWrapper from '@/components/layout/NavigationWrapper';
 
-// ── Types ───────────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────────────────
+// Types & Schema
+// ──────────────────────────────────────────────────────────────────────────────
+
 type Stage = 'inputs' | 'suggestions' | 'planning' | 'results' | 'selection' | 'booking' | 'success';
 
-/** Next calendar day (UTC-safe) for single-trip hotel/checkout style ranges. */
-function addDaysToIsoDate(iso: string, days: number): string {
-  if (!iso) return '';
-  const [y, m, d] = iso.split('-').map(Number);
-  if (!y || !m || !d) return '';
-  const dt = new Date(Date.UTC(y, m - 1, d + days));
-  return dt.toISOString().slice(0, 10);
-}
-
-interface GeneratedPlan {
-  destination: string; duration: string; bestTime: string;
-  weather: { 
-    temp: string; 
-    condition: string; 
-    tip?: string;
-    forecast?: Array<{ day: number; temp: string; condition: string }>;
-  };
-  festivals: Array<{ name: string; date: string; desc: string }>;
-  hotels: Array<{ name: string; tier: string; price: string; rating: string; highlights: string }>;
-  transport: Array<{ mode: string; from: string; detail: string; price: string; duration: string }>;
-  foodSpots: Array<{ name: string; cuisine: string; type: string; must: string }>;
-  shopping: Array<{ market: string; specialty: string; timing: string; tip: string }>;
-  highlights: string[];
-  safety: { vaccines: string[]; tips: string[]; emergency: Array<{ label: string; number: string }>; dos: string[]; donts: string[] };
-  dayPlan: Array<{ day: number; date: string; title: string; activities: Array<{ time: string; activity: string; icon: string; cost?: string; kidFriendly?: boolean }> }>;
-  /** Some AI responses use `itinerary` instead of `dayPlan`; normalize below. */
-  itinerary?: GeneratedPlan['dayPlan'];
-  totalEstimate: string;
-}
-
 const WIZARD_STEPS = [
-  { id: 'inputs',      label: 'DETAILS' },
-  { id: 'suggestions', label: 'OPTIONS' },
-  { id: 'results',     label: 'ITINERARY' },
-  { id: 'selection',   label: 'SELECTION' },
-  { id: 'booking',     label: 'BOOK' },
-  { id: 'success',     label: 'COMPLETE' },
+  { id: 'inputs', label: 'Inputs', emoji: '📍' },
+  { id: 'suggestions', label: 'Suggestions', emoji: '✨' },
+  { id: 'results', label: 'Itinerary', emoji: '🗺️' },
+  { id: 'selection', label: 'Cart', emoji: '🛒' },
+  { id: 'booking', label: 'Checkout', emoji: '🔒' },
+  { id: 'success', label: 'Confirmed', emoji: '✅' },
 ];
 
 const DONE_MAP: Record<Stage, string[]> = {
-  inputs:      [],
-  planning:    ['inputs'],
+  inputs: [],
   suggestions: ['inputs'],
-  results:     ['inputs', 'suggestions'], 
-  selection:   ['inputs', 'suggestions', 'results'],
-  booking:     ['inputs', 'suggestions', 'results', 'selection'],
-  success:     ['inputs', 'suggestions', 'results', 'selection', 'booking'],
+  planning: ['inputs', 'suggestions'],
+  results: ['inputs', 'suggestions'],
+  selection: ['inputs', 'suggestions', 'results'],
+  booking: ['inputs', 'suggestions', 'results', 'selection'],
+  success: ['inputs', 'suggestions', 'results', 'selection', 'booking'],
 };
 
-/** Single source of truth for wizard defaults — must match handleReset / fresh planner UX */
-const INITIAL_PLANNER_INPUTS: PlannerInputs = {
+const WIZARD_SCHEMA = [
+  { id: 'origin', label: 'Departure City', question: 'Where are you starting your Odyssey from?', parse: (v: any) => v, confirm: (v: any) => `Starting from ${v}.` },
+  { id: 'specificDest', label: 'Destination', question: 'Where in incredible India would you like to explore?', parse: (v: any) => v, confirm: (v: any) => `Destination set to ${v}.` },
+  { id: 'startDate', label: 'Travel Date', question: 'When does your journey begin?', parse: (v: any) => v, confirm: (v: any) => `Starting on ${v}.` },
+  { id: 'targetBudget', label: 'Budget (₹)', question: 'What is your target investment for this trip?', parse: (v: any) => parseInt(v.replace(/[^0-9]/g, '')), confirm: (v: any) => `Budget set to ₹${v.toLocaleString()}.` },
+];
+
+const DEFAULT_INPUTS: PlannerInputs = {
+  origin: '',
+  specificDest: '',
   startDate: '',
   endDate: '',
-  dietary: ['veg'],
+  tripType: 'round',
+  targetBudget: 50000,
   adults: 1,
   kids: 0,
   kidAges: '',
-  budget: 'economy',
+  dietary: [],
+  likes: [],
+  dislikes: [],
   destTypes: [],
-  language: 'en',
-  specificDest: '',
-  origin: '',
-  tripType: 'round',
-  targetBudget: 10000,
   ecoFriendly: false,
   wheelchair: false,
   telegramId: '',
+  language: 'en',
+  budget: 'moderate'
 };
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function parsePrice(p?: string | number): number {
+  if (!p) return 0;
+  if (typeof p === 'number') return p;
+  return parseInt(String(p).replace(/[₹,]/g, '')) || 0;
+}
 
 // ── Component ───────────────────────────────────────────────────────────────
 export default function YatraStudio() {
   const router = useRouter();
-  const { t } = useTranslation();
-  const { setLanguage, language } = useLanguage();
+  const { setLanguage, language, t } = useLanguage();
   const { user, loading: authLoading } = useAuth();
+  
   const {
     isOpen: isAIBrainOpen, setOpen: setAIBrainOpen,
     addMessage: addAIMessage, clearHistory: clearAIMessages,
     registerInputUpdateHandler, registerWizardSchema, setWizardMode,
     setPendingOutbound,
   } = useAIBrainStore();
+
   const {
-    activeItinerary,
-    setActiveItinerary,
-    setActiveStep,
-    searchData,
-    activeBookingId,
-    setActiveBookingId,
-    mixPicks,
-    setMixPicks,
-    plannerStage: stage,
-    setPlannerStage: setStage,
-    isProfileOpen,
-    setIsProfileOpen,
-    setWeather
+    activeItinerary, setActiveItinerary,
+    searchData, setSearchData,
+    mixPicks, setMixPicks,
+    plannerStage: stage, setPlannerStage: setStage,
+    isProfileOpen, setIsProfileOpen,
+    activeBookingId, setActiveBookingId,
+    setActivePNR
   } = useTripPlannerStore();
 
   const {
-    setDestination: setGlobalDestination, setDates: setGlobalDates,
-    setOrigin, setTargetBudget, setTravelers, setBudget, setTravelType,
+    setOrigin, setDestination: setGlobalDestination, setDates: setGlobalDates,
+    setTargetBudget, setTravelers
   } = useTripStore();
-  const { patchTourGuide, resetTourGuide } = useTourGuideStore();
+
+  const { patchTourGuide } = useTourGuideStore();
 
   const [mounted, setMounted] = useState(false);
+  const [inputs, setInputs] = useState<PlannerInputs>(DEFAULT_INPUTS);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<number | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [plan, setPlan] = useState<any | null>(null);
+  const [activeLang, setActiveLang] = useState<LanguageCode>(language || 'en');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Auto-save effect
+  const announcedStages = useRef(new Set<string>());
+  const activeBookingIdRef = useRef<string | null>(null);
+  const tripConfirmed = useRef(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  // Wizard Sync
   useEffect(() => {
-    if (!activeItinerary || (stage !== 'selection' && stage !== 'booking' && stage !== 'success')) return;
-    
-    const savePlan = async () => {
+    if (!mounted || authLoading) return;
+    registerWizardSchema(WIZARD_SCHEMA);
+    registerInputUpdateHandler((id, val) => {
+      // 1. Update local form inputs
+      setInputs(prev => {
+        const next = { ...prev, [id]: val };
+        return next;
+      });
+      // 2. Propagate to TourGuide store so AI context stays in sync
+      const fieldMap: Record<string, string> = {
+        origin:        'from_city',
+        specificDest:  'destination',
+        destination:   'destination',
+        startDate:     'departure_date',
+        endDate:       'return_date',
+        targetBudget:  'budget',
+        adults:        'party_size',
+        kids:          'party_size',
+        tripType:      'trip_style',
+      };
+      const tourGuideField = fieldMap[id];
+      if (tourGuideField === 'party_size') {
+        const current = useTourGuideStore.getState().party_size || { adults: 1, kids: 0 };
+        const updated = id === 'adults'
+          ? { ...current, adults: Number(val) }
+          : { ...current, kids: Number(val) };
+        patchTourGuide({ party_size: updated });
+      } else if (tourGuideField) {
+        patchTourGuide({ [tourGuideField]: val } as any);
+      }
+      // 3. Propagate to global TripStore
+      if (id === 'origin')       setOrigin(String(val));
+      if (id === 'specificDest' || id === 'destination') setGlobalDestination(String(val));
+      if (id === 'startDate')    setGlobalDates(String(val), useTripStore.getState().endDate || '');
+      if (id === 'endDate')      setGlobalDates(useTripStore.getState().startDate || '', String(val));
+      if (id === 'targetBudget') setTargetBudget(Number(val));
+      if (id === 'adults')       setTravelers(Number(val), useTripStore.getState().kids || 0);
+    });
+    return () => {
+      registerWizardSchema([]);
+      registerInputUpdateHandler(null);
+    };
+  }, [mounted, authLoading, registerWizardSchema, registerInputUpdateHandler]);
+
+  // Global Store Sync
+  useEffect(() => {
+    if (!mounted) return;
+    setGlobalDestination(inputs.specificDest);
+    setOrigin(inputs.origin);
+    setGlobalDates(inputs.startDate, inputs.endDate || inputs.startDate);
+    setTargetBudget(inputs.targetBudget);
+    setTravelers(inputs.adults, inputs.kids);
+    patchTourGuide({
+      from_city: inputs.origin,
+      destination: inputs.specificDest,
+      budget: inputs.targetBudget,
+      party_size: { adults: inputs.adults, kids: inputs.kids },
+      planner_stage: stage
+    });
+  }, [inputs, stage, mounted, setGlobalDestination, setOrigin, setGlobalDates, setTargetBudget, setTravelers, patchTourGuide]);
+
+  // Supabase Tour Guide Session Sync (debounced 2s)
+  useEffect(() => {
+    if (!mounted || !user?.id) return;
+    const timer = setTimeout(async () => {
+      try {
+        const tg = useTourGuideStore.getState();
+        const { storeLikes, storeDislikes, storePersona } = {
+          storeLikes: useTripStore.getState().likes,
+          storeDislikes: useTripStore.getState().dislikes,
+          storePersona: useTripStore.getState().userPersona,
+        };
+        await supabase.from('yatra_tour_guide_sessions').upsert({
+          user_id: user.id,
+          language: tg.language || 'en',
+          from_city: tg.from_city || inputs.origin || '',
+          destination: tg.destination || inputs.specificDest || '',
+          departure_date: tg.departure_date || inputs.startDate || null,
+          return_date: tg.return_date || inputs.endDate || null,
+          budget: String(tg.budget || inputs.targetBudget || 0),
+          party_size: tg.party_size,
+          preferences: tg.preferences || [],
+          features: tg.features || [],
+          trip_style: tg.trip_style || inputs.tripType || 'leisure',
+          planner_stage: stage,
+          mix_picks: mixPicks,
+          discovered_tours: tg.discovered_tours || [],
+          selected_tour: tg.selected_tour || null,
+          conversation_summary: tg.conversation_summary || '',
+          // New fields from this session
+          user_persona: storePersona || null,
+          likes: storeLikes || [],
+          dislikes: storeDislikes || [],
+          hotel_name: mixPicks.hotel?.name || null,
+          hotel_selected_at: mixPicks.hotel ? new Date().toISOString() : null,
+          last_active_at: new Date().toISOString(),
+        }, { onConflict: 'user_id', ignoreDuplicates: false });
+      } catch (e) {
+        console.warn('[Planner] Session sync failed:', e);
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [
+    mounted, user?.id,
+    inputs.origin, inputs.specificDest, inputs.startDate, inputs.endDate,
+    inputs.targetBudget, inputs.adults, inputs.kids, inputs.tripType,
+    stage, mixPicks.hotel?.name, mixPicks.transport?.name,
+  ]);
+
+  // Auto-Save Effect
+  useEffect(() => {
+    if (!activeItinerary || (stage !== 'booking' && stage !== 'success')) return;
+    const save = async () => {
       setIsSaving(true);
       try {
         await fetch('/api/trips/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...activeItinerary,
-            totalPrice: activeItinerary.totalNum, // Aligned with API
-            fullPlan: activeItinerary.dayPlan,
-            // Ensure the latest Cart picks (mixPicks) are captured
-            transport: activeItinerary.transport,
-            hotel: activeItinerary.hotel,
-            local: activeItinerary.local
-          })
+          body: JSON.stringify({ ...activeItinerary, user_id: user?.id })
         });
-      } catch (e) {
-        console.error('Auto-save failed', e);
-      } finally {
-        setIsSaving(false);
-      }
+      } catch (e) { console.error('Save failed', e); }
+      finally { setIsSaving(false); }
     };
+    const t = setTimeout(save, 2000);
+    return () => clearTimeout(t);
+  }, [activeItinerary, stage, user]);
 
-    const timer = setTimeout(savePlan, 2000);
-    return () => clearTimeout(timer);
-  }, [activeItinerary, stage]);
-
-  // Sync local UI stage with Tour Guide state
-  useEffect(() => {
-    patchTourGuide({ planner_stage: stage, mix_picks: mixPicks });
-  }, [stage, mixPicks, patchTourGuide]);
-
-  const [activeLang, setActiveLang] = useState<Language>((language as Language) || 'en');
-
-  // Keep local language in sync with global context
-  useEffect(() => {
-    if (language && language !== activeLang) {
-      const next = language as Language;
-      setActiveLang(next);
-      setInputs(p => ({ ...p, language: next }));
-    }
-  }, [language, activeLang]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [plan, setPlan]         = useState<GeneratedPlan | null>(null);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [selectedSuggestion, setSelectedSuggestion] = useState<number | null>(null);
-  const [fetchedInputs, setFetchedInputs] = useState<{ adults: number; kids: number } | null>(null);
-  const activeBookingIdRef = useRef<string | null>(null);
-
-  // Sync ref for callback stability
-  useEffect(() => {
-    activeBookingIdRef.current = activeBookingId;
-  }, [activeBookingId]);
-  const paymentMethodRef = useRef<'direct'>('direct');
-
-  function handleReset() {
-    if (announcedStages.current) announcedStages.current.clear();
-    tripConfirmed.current = false;
-    useTripPlannerStore.getState().clearPlan();
-    setInputs({ ...INITIAL_PLANNER_INPUTS, language: (language as Language) || 'en' });
-    setActiveLang((language as Language) || 'en');
-    setGlobalDestination('');
+  const handleReset = () => {
+    setStage('inputs');
     setPlan(null);
     setSuggestions([]);
     setSelectedSuggestion(null);
-    setFetchedInputs(null);
+    setMixPicks({ transport: null, returnTransport: null, hotel: null, local: null });
+    setActiveItinerary(null);
     setActiveBookingId(null);
-    
-    // Comprehensive Reset
-    useTripStore.getState().resetTrip();
-    useTripPlannerStore.getState().clearPlan();
-    useTourGuideStore.getState().resetTourGuide();
-    clearAIMessages();
-    
-    setAIBrainOpen(false);
-    setWizardMode(false);
-    setStage('inputs');
-  }
-
-  const [inputs, setInputs] = useState<PlannerInputs>(() => ({ 
-    ...INITIAL_PLANNER_INPUTS, 
-    language: (language as Language) || 'en' 
-  }));
-
-  const effectiveEndDate = useMemo(() => {
-    if (inputs.tripType === 'round') return inputs.endDate;
-    if (!inputs.startDate) return '';
-    return addDaysToIsoDate(inputs.startDate, 1);
-  }, [inputs.tripType, inputs.startDate, inputs.endDate]);
-
-  // ── Session Auto-Save ──────────────────────────────────────────────────
-  useEffect(() => {
-    if (!user || !mounted) return;
-
-    const sync = async () => {
-      const state = useTourGuideStore.getState();
-      const { error } = await supabase
-        .from('yatra_tour_guide_sessions')
-        .upsert({
-          user_id: user.id,
-          language: state.language,
-          from_city: state.from_city,
-          destination: state.destination,
-          departure_date: state.departure_date,
-          return_date: state.return_date,
-          budget: state.budget,
-          party_size: state.party_size,
-          preferences: state.preferences,
-          features: state.features,
-          trip_style: state.trip_style,
-          constraints: state.constraints,
-          planner_stage: state.planner_stage,
-          mix_picks: state.mix_picks,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' }); // Assuming 1 active session per user for now
-
-      if (error) {
-        console.error('Session Sync Error:', error.message, error.details, error.hint);
-      }
-    };
-
-    const timer = setTimeout(sync, 2000);
-    return () => clearTimeout(timer);
-  }, [user, mounted, stage, inputs]);
-
-  useEffect(() => {
-    if (mounted) {
-      const stageNow = useTripPlannerStore.getState().plannerStage;
-      const hasPlan = useTripPlannerStore.getState().activeItinerary;
-      if (stageNow === 'inputs' && !hasPlan) {
-        handleReset();
-      }
-    }
-  }, [mounted]);
-
-  const announcedStages = useRef<Set<string>>(new Set());
-  const tripConfirmed   = useRef(false);
-   useEffect(() => { setMounted(true); window.scrollTo(0, 0); }, []);
- 
-   const [hasDeterminedInitialAuth, setHasDeterminedInitialAuth] = useState(false);
-
-  useEffect(() => {
-    if (!mounted || authLoading) return;
-    
-    const uid = user?.id ?? 'guest';
-    const sessionKey = `yatra_session_init_${uid}`;
-    
-    // Check if we've already initialized this planner session for this user in this tab
-    const hasInit = sessionStorage.getItem(sessionKey);
-    
-    if (!hasInit) {
-      console.log(`[Planner] Initializing fresh session for ${uid}. Forcing reset to Details.`);
-      handleReset();
-      sessionStorage.setItem(sessionKey, 'true');
-    }
-    
-    setHasDeterminedInitialAuth(true);
-  }, [mounted, authLoading, user?.id]);
-
-  // Sync Profile Open from URL
-  useEffect(() => {
-    if (mounted && typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('profile') === 'true') {
-        setIsProfileOpen(true);
-        // Clear the param to avoid re-opening on every mount/refresh
-        window.history.replaceState({}, '', '/planner');
-      }
-    }
-  }, [mounted, setIsProfileOpen]);
-
-  // ── Profile Sync to TripStore ──────────────────────────────────────────
-  useEffect(() => {
-    if (!user || !mounted) return;
-    const userId = user.id;
-    async function loadProfile() {
-      const { data, error } = await supabase
-        .from('yatra_profiles')
-        .select('user_persona, likes, dislikes')
-        .eq('user_id', userId)
-        .single();
-      
-      if (!error && data) {
-        const store = useTripStore.getState();
-        if (data.user_persona) store.setUserPersona(data.user_persona);
-        if (data.likes) store.setLikes(data.likes);
-        if (data.dislikes) store.setDislikes(data.dislikes);
-      }
-    }
-    loadProfile();
-  }, [user, mounted]);
-  // Refactor: Move global sync logic to a stable handler to avoid React render-update loops
-  const syncGlobalStore = (field: string, value: any) => {
-    const valStr = String(value);
-    const valNum = Number(value);
-    
-    // CRITICAL: If we are already past the inputs stage (e.g. in selection or success),
-    // we should NOT trigger a full reset of the planner just because the AI Brain 
-    // is syncing its understood destination/dates. 
-    // We only allow these to trigger resets if we are still in the 'inputs' stage.
-    const canTriggerReset = stage === 'inputs' || stage === 'suggestions';
-
-    if (field === 'specificDest') {
-      if (canTriggerReset) {
-        setGlobalDestination(valStr);
-      } else {
-        // Just sync the Tour Guide store without resetting the planner
-        patchTourGuide({ destination: valStr });
-      }
-    } else if (field === 'origin') {
-      if (canTriggerReset) {
-        setOrigin(valStr);
-      }
-      patchTourGuide({ from_city: valStr });
-    } else if (field === 'startDate') {
-      patchTourGuide({ departure_date: valStr });
-    } else if (field === 'endDate') {
-      if (canTriggerReset && inputs.startDate) {
-        setGlobalDates(inputs.startDate, valStr);
-      }
-      patchTourGuide({ return_date: valStr });
-    } else if (field === 'targetBudget') {
-      if (canTriggerReset) {
-        setTargetBudget(valNum);
-      }
-      patchTourGuide({ budget: valNum });
-    } else if (field === 'adults') {
-      if (canTriggerReset) {
-        setTravelers(valNum, inputs.kids);
-      }
-      patchTourGuide({ party_size: { adults: valNum, kids: inputs.kids } });
-    } else if (field === 'dietary') {
-      patchTourGuide({ constraints: `Dietary requirements: ${Array.isArray(value) ? value.join(', ') : value}` });
-    } else if (field === 'ecoFriendly') {
-      patchTourGuide({ features: value ? ['sustainable'] : [] });
-    } else if (field === 'wheelchair') {
-      patchTourGuide({ constraints: value ? 'Need Accessibility.' : '' });
-    } else if (field === 'telegramId') {
-      patchTourGuide({ telegramId: valStr.trim().replace(/^@/, '') });
-    }
+    activeBookingIdRef.current = null;
+    tripConfirmed.current = false;
   };
 
-  useEffect(() => {
-    if (!mounted || authLoading) return;
-
-    // We no longer use a fixed wizard schema. 
-    // The AI Brain now works hand-in-hand with the stage pages.
-    registerWizardSchema([]); 
-    setWizardMode(false);
-
-    registerInputUpdateHandler((id, val) => {
-      if (id === 'hotelTier') {
-        useTripPlannerStore.getState().setHotelTier(val as any);
-      }
-      if (id === 'destination') {
-        setInputs(prev => ({ ...prev, specificDest: val as string }));
-        setGlobalDestination(val as string);
-      }
-      if (id === 'dietary') {
-        setInputs(prev => ({ ...prev, dietary: [val as any] }));
-      } else {
-        setInputs(prev => ({ ...prev, [id]: val }));
-      }
-      if (id === 'language') {
-        setLanguage(val as string);
-        setActiveLang(val as any);
-      }
-    });
-
-    // We no longer auto-open the AI Brain on empty inputs to avoid distraction.
-    // The user can open it manually or it will be triggered by stage changes.
-
-    return () => {
-      registerInputUpdateHandler(null);
-      registerWizardSchema([]);
-      setWizardMode(false);
-    };
-  }, [mounted, authLoading, t]);
-
-  // Master Sync: Push Page State to AI Brain whenever inputs change
-  useEffect(() => {
-    if (!mounted) return;
-    patchTourGuide({
-      from_city: inputs.origin,
-      destination: inputs.specificDest,
-      trip_style: inputs.tripType === 'round' ? 'round-trip' : 'single-trip',
-      departure_date: inputs.startDate,
-      return_date: inputs.tripType === 'round' ? inputs.endDate : '',
-      budget: inputs.targetBudget,
-      party_size: { adults: inputs.adults, kids: inputs.kids },
-      preferences: inputs.destTypes as any[],
-      constraints: [
-        inputs.dietary.length > 0 ? `Dietary: ${inputs.dietary.join(', ')}` : '',
-        inputs.wheelchair ? 'Need Accessibility.' : '',
-      ].filter(Boolean).join('. '),
-      features: [
-        inputs.ecoFriendly ? 'sustainable' : '',
-      ].filter(Boolean) as any[],
-    });
-    // Sync to legacy stores
-    setGlobalDestination(inputs.specificDest);
-    setOrigin(inputs.origin);
-    if (inputs.startDate) {
-      if (inputs.tripType === 'round' && inputs.endDate) {
-        setGlobalDates(inputs.startDate, inputs.endDate);
-      } else if (inputs.tripType === 'single' && effectiveEndDate) {
-        setGlobalDates(inputs.startDate, effectiveEndDate);
-      }
-    } else {
-      setGlobalDates('', '');
-    }
-    setTargetBudget(inputs.targetBudget);
-    setTravelers(inputs.adults, inputs.kids);
-    
-    // Explicitly update planner stage on input changes if we are in inputs
-    if (stage === 'inputs') patchTourGuide({ planner_stage: 'inputs' });
-  }, [inputs, effectiveEndDate, mounted, patchTourGuide, stage]);
-
-  // Telegram: never clear store from empty inputs (booking-step Connect only updates store first).
-  useEffect(() => {
-    if (!mounted) return;
-    const v = inputs.telegramId.trim().replace(/^@/, '').trim();
-    if (v.length >= 3) patchTourGuide({ telegramId: v });
-  }, [inputs.telegramId, mounted, patchTourGuide]);
-
-  useEffect(() => { patchTourGuide({ language: activeLang }); }, [activeLang]);
-
-  // ── Stage-driven AI Brain messages ────────────────────────────────────────
-  useEffect(() => {
-    if (!mounted || authLoading) return;
-    const fire = (key: string, msg: string, delay = 1000) => {
-      if (announcedStages.current.has(key)) return;
-      announcedStages.current.add(key);
-      setTimeout(() => { setAIBrainOpen(true); addAIMessage({ role: 'assistant', content: msg }); }, delay);
-    };
-    if (stage === 'suggestions' && suggestions.length > 0 && !tripConfirmed.current)
-      fire('suggestions', `Found ${suggestions.length} handpicked options! Which vibe fits you best?`, 1500);
-    else if (stage === 'planning')
-      fire('planning', `Building your itinerary now…`, 500);
-    else if (stage === 'results' && plan) {
-      tripConfirmed.current = true;
-      const summary = `✅ **Odyssey Summary**\n\n` +
-        `• **Destination**: ${plan.destination}\n` +
-        `• **Origin**: ${inputs.origin || 'India'}\n` +
-        `• **Dates**: ${inputs.startDate}${inputs.tripType === 'round' && inputs.endDate ? ` to ${inputs.endDate}` : ` (one-way · checkout ${effectiveEndDate})`}\n` +
-        `• **Party**: ${inputs.adults} Adults${inputs.kids > 0 ? `, ${inputs.kids} Kids` : ''}\n\n` +
-        `*Your full elaborative itinerary is now displayed on the page. Feel free to ask me about specific highlights or local tips!* 🗺️`;
-      fire('results', summary, 2500); // 2.5s delay to ensure page results load first
-    }
-  }, [stage, mounted, authLoading, suggestions.length, plan, inputs.origin, inputs.startDate, inputs.endDate, inputs.tripType, effectiveEndDate]);
-
-  useEffect(() => {
-    // Only redirect when auth has fully resolved — never during a loading/refresh cycle.
-    // A short delay avoids race conditions where Supabase session refresh transiently
-    // sets user=null before re-establishing the session.
-    if (!mounted || authLoading) return;
-    const isTest = new URLSearchParams(window.location.search).get('test') === 'true';
-    if (!user && !isTest) {
-      const timer = setTimeout(() => {
-        // Double-check store state directly to avoid stale closures
-        const currentStage = useTripPlannerStore.getState().plannerStage;
-        if (!currentStage || currentStage === 'inputs') {
-          console.warn('Auth redirection: No active session found.');
-          router.replace('/');
-        }
-      }, 2000); // 2s grace period for hydration and session refresh
-      return () => clearTimeout(timer);
-    }
-  }, [user, authLoading, router, mounted]);
-
-  // ── Business logic handlers ───────────────────────────────────────────────
   const handleGetSuggestions = async () => {
-    if (!inputs.origin) return toast.error('Add departure city', { description: 'Enter the city you are starting from.' });
-    if (!inputs.startDate) return toast.error('Add departure date', { description: 'Select your journey start date.' });
-    if (inputs.tripType === 'round' && !inputs.endDate) {
-      return toast.error('Add return date', { description: 'Round trips need a return date.' });
+    if (!inputs.origin || !inputs.startDate) {
+      toast.error('Missing details', { description: 'Please provide origin and start date.' });
+      return;
     }
-    if (inputs.targetBudget < 10000 || inputs.targetBudget > 500000)
-      return toast.error('Budget out of range', { description: 'Use a budget between ₹10,000 and ₹5,00,000.' });
-
-    setSuggestions([]); setStage('planning');
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 120000);
-
+    setStage('planning');
     try {
       const res = await fetch('/api/discovery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          origin: inputs.origin, 
-          specificDestination: inputs.specificDest || '', 
-          targetBudget: inputs.targetBudget, 
-          startDate: inputs.startDate, 
-          endDate: effectiveEndDate, 
-          adults: inputs.adults, 
-          kids: inputs.kids, 
-          language: activeLang, 
-          destTypes: Array.isArray(inputs.destTypes) ? inputs.destTypes : [] 
-        }),
-        signal: controller.signal,
+        body: JSON.stringify(inputs)
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || data.error || 'Discovery Engine failed');
-      const suggestions = data.suggestions || [];
-      setSuggestions(suggestions);
-      setFetchedInputs({ adults: inputs.adults, kids: inputs.kids });
+      console.log('[Discovery] API response:', data);
+      const fetched = Array.isArray(data.suggestions) ? data.suggestions : [];
+      if (fetched.length === 0) {
+        const _nights = inputs.startDate && inputs.endDate
+          ? Math.max(1, Math.ceil((new Date(inputs.endDate).getTime() - new Date(inputs.startDate).getTime()) / 86400000))
+          : 3;
+        setSuggestions([
+          { title: 'Goa', destination: 'Goa', vibe: 'Beaches & Nightlife', why: "Sun, sand and sea — India's party capital.", totalPrice: 8500, flight_cost: '₹3,500', train_cost: '₹1,200', bus_cost: '₹800', hotel_cost: '₹3,500', tags: ['Beach', 'Nightlife'], safety_score: 8, weather_summary: 'Sunny', nights: _nights },
+          { title: 'Jaipur', destination: 'Jaipur', vibe: 'Heritage & Culture', why: 'The Pink City — palaces, forts and royal cuisine.', totalPrice: 9000, flight_cost: '₹4,000', train_cost: '₹1,500', bus_cost: '₹900', hotel_cost: '₹3,500', tags: ['Heritage', 'Culture'], safety_score: 8, weather_summary: 'Warm', nights: _nights },
+          { title: 'Manali', destination: 'Manali', vibe: 'Mountains & Adventure', why: 'Snow peaks and adventure sports in the Himalayas.', totalPrice: 10000, flight_cost: '₹5,000', train_cost: '₹2,000', bus_cost: '₹1,200', hotel_cost: '₹3,800', tags: ['Mountains', 'Adventure'], safety_score: 7, weather_summary: 'Cold', nights: _nights },
+          { title: 'Kerala', destination: 'Kerala', vibe: 'Nature & Wellness', why: 'Backwaters, ayurveda and lush greenery await.', totalPrice: 11000, flight_cost: '₹4,500', train_cost: '₹1,800', bus_cost: '₹1,000', hotel_cost: '₹4,500', tags: ['Nature', 'Wellness'], safety_score: 9, weather_summary: 'Tropical', nights: _nights },
+        ]);
+        toast.info('Using curated suggestions', { description: 'Live AI data syncing — showing popular options.' });
+      } else {
+        setSuggestions(fetched);
+      }
       setStage('suggestions');
-    } catch (err: any) {
-      const isAbort = err.name === 'AbortError';
-      const isRate = err.message?.toLowerCase().includes('rate') || err.message?.toLowerCase().includes('limit');
-      toast.error(isAbort ? '⏱️ Discovery timed out' : isRate ? '⏳ AI Engine Busy' : 'Search Interrupted', {
-        description: isAbort
-          ? 'AI is taking too long. Try a specific destination or simpler query.'
-          : isRate ? 'Please wait a minute and try again.' : (err.message || 'Discovery Engine unavailable.'),
-        duration: isRate || isAbort ? 8000 : 5000,
-      });
-      setSuggestions([]); setStage('inputs');
-    } finally {
-      clearTimeout(timeout);
+    } catch (e) {
+      console.error('[Discovery] fetch error:', e);
+      toast.error('Discovery failed');
+      setStage('inputs');
     }
   };
 
-
-
-  const handleGeneratePlan = async (overrideSuggestion?: any, overrideDest?: string) => {
-    if (isGenerating) return;
-    setIsGenerating(true);
-    setPlan(null); 
-    setStage('planning');
-    if (overrideDest || inputs.specificDest) {
-      const d = overrideDest || inputs.specificDest;
-      setGlobalDestination(d);
-      setInputs(prev => ({ ...prev, specificDest: d }));
-    }
-    if (inputs.startDate) {
-      setOrigin(inputs.origin);
-      if (inputs.tripType === 'round' && inputs.endDate) setGlobalDates(inputs.startDate, inputs.endDate);
-      else if (inputs.tripType === 'single' && effectiveEndDate) setGlobalDates(inputs.startDate, effectiveEndDate);
-    }
-
+  const fetchSearchData = async (dest: string, fallbackSuggestion?: any) => {
     try {
-      const suggCtx = overrideSuggestion || (selectedSuggestion !== null ? suggestions[selectedSuggestion] : null);
-      const destination = overrideDest || inputs.specificDest;
-      const dateRangeLabel =
-        inputs.tripType === 'round' && inputs.endDate
-          ? `${inputs.startDate} to ${inputs.endDate}`
-          : `${inputs.startDate} (one-way; plan through ${effectiveEndDate})`;
-      const tripRule =
-        inputs.tripType === 'round'
-          ? `All transport MUST BE ROUND-TRIP for ${inputs.adults + inputs.kids} people.`
-          : `All transport MUST BE ONE-WAY for ${inputs.adults + inputs.kids} people.`;
-      const prompt = `Generate a detailed 2026 Indian travel itinerary.\nDestination: ${destination}\nDates: ${dateRangeLabel}\nBudget Category: ${inputs.budget}\nTarget Total: ₹${inputs.targetBudget}\nContext from Discovery: ${suggCtx ? JSON.stringify(suggCtx) : 'None'}\nWEATHER RULE: Provide an elaborative weather object with a daily forecast. Include: Day-wise activities, specific hotel recommendations, local food spots (Diet: ${inputs.dietary.join(',')}), a final total estimate, and a 'highlights' array of 3-4 top attractions.\nPRICING RULE: ${tripRule} The 'price' for transport and the 'totalEstimate' MUST be the final combined sum for the entire party.\nJSON RULES: Return ONLY a raw JSON object. NO markdown fences (\`\`\`json). NO preamble. NO "Okay, here is your plan". NO postamble. The output must start with { and end with } and be perfectly parseable RFC 8259 JSON.\nCRITICAL: Return ONLY exactly these keys: { "destination": string, "duration": string, "bestTime": string, "weather": { "temp": string, "condition": string, "tip": string, "forecast": [] }, "festivals": [], "hotels": [], "transport": [], "foodSpots": [], "shopping": [], "highlights": [], "safety": {}, "dayPlan": [], "totalEstimate": string }`;
+      const res = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          destination: dest,
+          origin: inputs.origin,
+          startDate: inputs.startDate,
+          endDate: inputs.endDate || inputs.startDate,
+          adults: inputs.adults,
+          kids: inputs.kids
+        })
+      });
+      const data = await res.json();
+      
+      const transportSeeds = supplementTransportForDestination(dest, dest);
 
-      const gRes = await fetch('/api/ai-brain', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, stream: false }) });
-      const gData = await gRes.json();
-      const raw = gData.response || '';
-
-      const parsed = parseAiItineraryJson(raw) as unknown as GeneratedPlan;
-      if (parsed.itinerary && !parsed.dayPlan) parsed.dayPlan = parsed.itinerary;
-      if (!parsed.dayPlan || !parsed.destination) throw new Error(`AI response missing ${!parsed.dayPlan ? 'dayPlan' : 'destination'}.`);
-
-      setPlan(parsed);
-
-      const nights = inputs.startDate && effectiveEndDate
-        ? Math.ceil((new Date(effectiveEndDate).getTime() - new Date(inputs.startDate).getTime()) / 86400000)
-        : 1;
-      const totalNum = typeof parsed.totalEstimate === 'string' ? parseInt(parsed.totalEstimate.replace(/[^0-9]/g, '')) || 0 : Number(parsed.totalEstimate) || 0;
-
-      const itn = {
-        destination: parsed.destination, duration: parsed.duration, totalEstimate: parsed.totalEstimate,
-        bestTime: parsed.bestTime || '2026 Season', dayPlan: parsed.dayPlan, safety: parsed.safety,
-        tierLabel: inputs.budget.toUpperCase(), from: inputs.origin || 'Source', to: parsed.destination,
-        startDate: inputs.startDate, endDate: effectiveEndDate, nights, total: parsed.totalEstimate, totalNum,
-        transport: { name: parsed.transport?.[0]?.mode || 'Flight/Train', price: parsed.transport?.[0]?.price || 'Included', label: 'Primary', detail: parsed.transport?.[0]?.detail || '' },
-        hotel: { name: parsed.hotels?.[0]?.name || 'Premium Stay', price: parsed.hotels?.[0]?.price || 'Included', label: 'Primary', detail: parsed.hotels?.[0]?.highlights || '' },
-        local: { name: 'Premium Odyssey', price: 'Included', label: 'Curated', detail: 'Guided Heritage & Luxury Access' },
-        hotelsList: parsed.hotels, transportList: parsed.transport, foodSpotsList: parsed.foodSpots,
-        adults: inputs.adults, kids: inputs.kids,
-        weather: parsed.weather ? {
-          temp: parsed.weather.temp,
-          condition: parsed.weather.condition,
-          tip: (parsed.weather as any).tip || 'Pack according to seasonal shifts.',
-          forecast: (parsed.weather as any).forecast || []
-        } : undefined,
+      // Merge with synthetic fallbacks if live data is empty
+      const finalData = {
+        flights: data.flights?.length > 0 ? data.flights : [
+          { id: 'fb-flight-1', airline: 'IndiGo', airlineCode: '6E', flight: '6E-123', from: inputs.origin, to: inputs.specificDest, departure: '06:00', arrival: '08:15', duration: '2h 15m', stops: 'Non-stop', price: fallbackSuggestion?.flight_cost && fallbackSuggestion.flight_cost !== 'N/A' ? fallbackSuggestion.flight_cost : '₹3,400', cabin: 'Economy', baggage: '15kg', seats: 6, date: inputs.startDate, type: 'Flight' },
+          { id: 'fb-flight-2', airline: 'Air India', airlineCode: 'AI', flight: 'AI-456', from: inputs.origin, to: inputs.specificDest, departure: '09:30', arrival: '11:50', duration: '2h 20m', stops: 'Non-stop', price: '₹4,800', cabin: 'Economy', baggage: '25kg', seats: 4, date: inputs.startDate, type: 'Flight' },
+          { id: 'fb-flight-3', airline: 'SpiceJet', airlineCode: 'SG', flight: 'SG-789', from: inputs.origin, to: inputs.specificDest, departure: '12:00', arrival: '14:30', duration: '2h 30m', stops: 'Non-stop', price: '₹3,100', cabin: 'Economy', baggage: '15kg', seats: 8, date: inputs.startDate, type: 'Flight' },
+          { id: 'fb-flight-4', airline: 'Vistara', airlineCode: 'UK', flight: 'UK-202', from: inputs.origin, to: inputs.specificDest, departure: '15:00', arrival: '17:20', duration: '2h 20m', stops: 'Non-stop', price: '₹5,500', cabin: 'Economy', baggage: '20kg', seats: 3, date: inputs.startDate, type: 'Flight' },
+          { id: 'fb-flight-5', airline: 'Air India Express', airlineCode: 'IX', flight: 'IX-344', from: inputs.origin, to: inputs.specificDest, departure: '17:45', arrival: '20:15', duration: '2h 30m', stops: '1 Stop', price: '₹2,900', cabin: 'Economy', baggage: '15kg', seats: 10, date: inputs.startDate, type: 'Flight' },
+          { id: 'fb-flight-6', airline: 'Akasa Air', airlineCode: 'QP', flight: 'QP-512', from: inputs.origin, to: inputs.specificDest, departure: '20:30', arrival: '22:50', duration: '2h 20m', stops: 'Non-stop', price: '₹3,700', cabin: 'Economy', baggage: '15kg', seats: 5, date: inputs.startDate, type: 'Flight' },
+        ],
+        hotels: mergeApiHotelsWithCuratedSeeds(data.hotels, dest),
+        trains: data.trains?.length > 0 
+          ? data.trains 
+          : [...(transportSeeds.filter(s => s.type === 'Train')), {
+              id: 'fallback-train-1',
+              name: fallbackSuggestion?.train_name || 'Express Rail (3A/2A)',
+              class: '3A/2A',
+              price: fallbackSuggestion?.train_cost || '₹1,800',
+              type: 'Train'
+            }],
+        buses: data.buses?.length > 0 
+          ? data.buses 
+          : [...(transportSeeds.filter(s => s.type === 'Bus')), {
+              id: 'fallback-bus-1',
+              operator: fallbackSuggestion?.bus_operator || 'Premium AC Sleeper',
+              departure: '21:00',
+              arrival: '06:00',
+              price: fallbackSuggestion?.bus_cost || '₹1,200',
+              type: 'Bus'
+            }],
+        taxis: data.taxis || [],
+        ferries: data.ferries?.length > 0 
+          ? data.ferries 
+          : supplementFerriesForDestination(dest, dest)
       };
 
-      // Comprehensive Sync to Global State
-      setOrigin(inputs.origin);
-      setGlobalDestination(parsed.destination);
-      if (inputs.startDate) setGlobalDates(inputs.startDate, effectiveEndDate);
-      setTravelers(inputs.adults, inputs.kids);
-      setInputs(prev => ({ ...prev, specificDest: parsed.destination }));
-
-      setActiveItinerary(itn);
-      if (itn.weather) setWeather(itn.weather);
+      setSearchData(finalData);
       
-      // Auto-set mix picks from AI itinerary
-      setMixPicks({
-        transport: itn.transportList?.[0] ? { 
-          label: itn.transportList[0].mode || 'Flight', 
-          name: itn.transportList[0].mode?.toLowerCase().includes('flight') ? 'IndiGo | 6E-532' : (itn.transportList[0].mode || 'Premium Transit'), 
-          detail: itn.transportList[0].detail || 'Non-stop • 2h 15m', 
-          price: itn.transportList[0].price && itn.transportList[0].price !== 'Included' ? itn.transportList[0].price : '₹12,500', 
-          priceNum: parseInt(String(itn.transportList[0].price && itn.transportList[0].price !== 'Included' ? itn.transportList[0].price : '12500').replace(/[^0-9]/g, '')) || 12500,
-          icon: String(itn.transportList[0].mode || '').toLowerCase().includes('flight') ? Plane : Train
-        } : null,
-        hotel: itn.hotelsList?.[0] ? {
-          label: 'Hotel',
-          name: itn.hotelsList[0].name || 'The Grand Heritage',
-          detail: itn.hotelsList[0].highlights || '★ ★ ★ ★ ★ • City Center',
-          price: itn.hotelsList[0].price && itn.hotelsList[0].price !== 'Included' ? itn.hotelsList[0].price : '₹6,500',
-          priceNum: parseInt(String(itn.hotelsList[0].price && itn.hotelsList[0].price !== 'Included' ? itn.hotelsList[0].price : '6500').replace(/[^0-9]/g, '')) || 6500,
-          icon: Hotel
-        } : null,
-        local: {
-          label: 'Odyssey',
-          name: 'Curated Experiences',
-          detail: 'Exclusive access • Guided',
-          price: 'Included',
-          priceNum: 0,
-          icon: Compass
-        }
+      // Auto-pick first options from merged data
+      if (finalData.hotels.length > 0) setMixPicks({ hotel: finalData.hotels[0] });
+      if (finalData.flights.length > 0) setMixPicks({ transport: { ...finalData.flights[0], type: 'Flight' } });
+      else if (finalData.trains.length > 0) setMixPicks({ transport: { ...finalData.trains[0], type: 'Train' } });
+      else if (finalData.buses.length > 0) setMixPicks({ transport: { ...finalData.buses[0], type: 'Bus' } });
+    } catch (e) { console.error('Search failed', e); }
+  };
+
+  const handleGeneratePlan = async (suggestion?: any, destOverride?: string, mode?: string) => {
+    const targetDest = destOverride || suggestion?.destination || suggestion?.title || inputs.specificDest;
+    
+    if (!targetDest) {
+      toast.error('Drafting failed', { description: 'No destination selected for drafting.' });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const res = await fetch('/api/itinerary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Generate a detailed day-by-day itinerary for ${targetDest} for ${inputs.adults} adults and ${inputs.kids} kids. 
+          The budget is ₹${inputs.targetBudget}. Use a ${inputs.budget || 'standard'} tone.
+          
+          STRICT RULES:
+          1. Return ONLY a raw JSON object. 
+          2. NO markdown formatting, NO backticks, NO conversational text.
+          3. Start the response with { and end with }.
+          
+          Format:
+          {
+            "destination": "${targetDest}",
+            "totalEstimate": "₹X",
+            "dayPlan": [
+              { "day": 1, "title": "...", "activities": ["...", "..."] }
+            ]
+          }`,
+          suggestion,
+          mode
+        })
       });
       
-      // Sync AI recommendations to Selection Studio search data with better field mapping
-      useTripPlannerStore.getState().setSearchData({
-        hotels: parsed.hotels.map((h: any) => ({
-          ...h,
-          name: h.name,
-          location: parsed.destination,
-          area: h.highlights?.split(',')[0] || 'Prime Location',
-          id: `ai-hotel-${Math.random()}`,
-          isAI: true
-        })),
-        flights: parsed.transport.filter((t: any) => String(t.mode || '').toLowerCase().includes('flight')).map((t: any) => ({
-          ...t,
-          name: t.mode || 'AI Flight',
-          airline: t.mode || 'Domestic Flight',
-          departure: '08:00', // AI Placeholder
-          arrival: '10:30',   // AI Placeholder
-          id: `ai-flight-${Math.random()}`,
-          isAI: true
-        })),
-        trains: parsed.transport.filter((t: any) => String(t.mode || '').toLowerCase().includes('train')).map((t: any) => ({
-          ...t,
-          name: t.mode || 'AI Train',
-          train_name: t.mode || 'Express Train',
-          class: t.detail?.split(' ')[0] || '2A',
-          id: `ai-train-${Math.random()}`,
-          isAI: true
-        }))
-      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'API failed');
 
-      if (user) {
-        const { data: bookingRow, error } = await supabase
-          .from('yatra_bookings')
-          .upsert({
-            user_id: user.id,
-            booking_type: 'TRIP',
-            origin: inputs.origin,
-            destination: parsed.destination,
-            trip_details: {
-              ...parsed,
-              adults: inputs.adults,
-              kids: inputs.kids,
-              tripType: inputs.tripType,
-              from: inputs.origin,
-              to: parsed.destination,
-              startDate: inputs.startDate,
-              endDate: effectiveEndDate,
-            },
-            total_price: totalNum,
-            status: 'pending_payment',
-            tier: inputs.budget,
-            total_pax: (inputs.adults || 1) + (inputs.kids || 0)
-          }, { 
-            onConflict: 'user_id,destination,origin' 
-          })
-          .select('id')
-          .single();
-
-        if (error) {
-          console.error('Supabase Save Error:', error.message, error.code);
-          toast.error('Booking Sync Failed', { description: 'Plan was generated but could not be saved to cloud.' });
-        } else if (bookingRow?.id) {
-          setActiveBookingId(bookingRow.id);
+      let rawPlan;
+      if (typeof data.response === 'string') {
+        try {
+          // Find the first { or [ and last } or ]
+          const start = Math.min(
+            data.response.indexOf('{') === -1 ? Infinity : data.response.indexOf('{'),
+            data.response.indexOf('[') === -1 ? Infinity : data.response.indexOf('[')
+          );
+          const end = Math.max(
+            data.response.lastIndexOf('}'),
+            data.response.lastIndexOf(']')
+          );
+          
+          if (start !== Infinity && end !== -1 && end > start) {
+            const cleanJson = data.response.substring(start, end + 1);
+            rawPlan = JSON.parse(cleanJson);
+          } else {
+            // Last ditch effort: try to find anything that looks like JSON
+            const match = data.response.match(/[\{\[](.|[\r\n])*[\}\]]/);
+            if (match) {
+              rawPlan = JSON.parse(match[0]);
+            } else {
+              rawPlan = JSON.parse(data.response.replace(/```json|```/g, '').trim());
+            }
+          }
+        } catch (e) {
+          console.error('JSON Parse failed, trying direct fallback', e);
+          rawPlan = data.response; 
         }
+      } else {
+        rawPlan = data.response;
       }
+      
+      if (!rawPlan) throw new Error('No plan received');
 
-      setActiveStep('confirmed');
-      setStage('selection');
-    } catch (err: any) {
-      toast.error('AI Reasoning Interrupted', { description: err.message || 'Please refine your destination and try again.' });
-      setStage(stage === 'planning' ? 'suggestions' : stage);
+      // Robust mapping
+      const rawDayPlan = rawPlan.dayPlan || rawPlan.itinerary || rawPlan.plan || [];
+      const sanitizedDayPlan = Array.isArray(rawDayPlan) ? rawDayPlan.map((d: any, idx: number) => ({
+        day: d.day || idx + 1,
+        title: d.title || d.activity || d.label || `Day ${idx + 1}`,
+        activities: Array.isArray(d.activities) ? d.activities : [typeof d.activity === 'string' ? d.activity : 'Explore the local charm']
+      })) : [];
+
+      const finalPlan = {
+        ...rawPlan,
+        dayPlan: sanitizedDayPlan,
+        destination: targetDest,
+        to: targetDest,
+        from: inputs.origin,
+        startDate: inputs.startDate || null,
+        endDate: inputs.endDate || inputs.startDate || null,
+        totalEstimate: rawPlan.totalEstimate || rawPlan.budget || `₹${inputs.targetBudget.toLocaleString()}`,
+        totalNum: rawPlan.totalNum || inputs.targetBudget
+      };
+
+      const { setDestination } = useTripStore.getState();
+      setDestination(targetDest);
+
+      setPlan(finalPlan);
+      setActiveItinerary(finalPlan);
+      // Sync dates to tour guide store so StepSuccess fallback also resolves
+      patchTourGuide({
+        departure_date: inputs.startDate || null,
+        return_date: inputs.endDate || inputs.startDate || null,
+      });
+      setStage('results');
+      
+      // Auto-save this odyssey draft
+      if (user) {
+        fetch('/api/trips/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            origin: inputs.origin,
+            destination: targetDest,
+            startDate: inputs.startDate,
+            endDate: inputs.endDate || inputs.startDate,
+            nights: finalPlan.nights || 1,
+            tierLabel: finalPlan.tierLabel || 'Odyssey',
+            total: finalPlan.totalEstimate || '₹0',
+            totalPrice: finalPlan.totalNum || 0,
+            transport: finalPlan.transport || {},
+            hotel: finalPlan.hotel || {},
+            local: finalPlan.local || {},
+            fullPlan: finalPlan,
+            status: 'saved'
+          })
+        }).catch(err => console.error('Auto-save failed:', err));
+      }
+      
+      // Trigger live hotel/transport search with suggestion fallback
+      fetchSearchData(targetDest, suggestion);
+      
+    } catch (e: any) {
+      console.error('Drafting error:', e);
+      toast.error('Drafting failed', { description: e.message || 'The AI engine encountered a snag.' });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const ensureActiveBookingSession = async (): Promise<string | null> => {
-    if (!user) return null;
+  const handleBookAndPay = async (passengers: any[] | null) => {
+    const travelers = (inputs.adults || 1) + (inputs.kids || 0);
+    const nights = activeItinerary?.nights || 1;
+    const tp = parsePrice(mixPicks.transport?.price);
+    const hp = parsePrice(mixPicks.hotel?.price);
+    const total = (tp * travelers) + (hp * nights);
+
+    const pnr = 'YA-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    setActivePNR(pnr);
     
-    // 1. Check local store first
-    if (activeBookingId) return activeBookingId;
-
-    // 2. Try to fetch most recent pending booking for this user/destination
-    try {
-      const { data: existing, error: fetchErr } = await supabase
-        .from('yatra_bookings')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('status', 'pending_payment')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (!fetchErr && existing?.id) {
-        setActiveBookingId(existing.id);
-        return existing.id;
-      }
-    } catch (e) {
-      console.warn('Booking fetch failed', e);
-    }
-
-    // 3. Last resort: Create new if itinerary exists
-    if (!activeItinerary) return null;
-
-    try {
-      const totalNum =
-        typeof activeItinerary.totalNum === 'number'
-          ? activeItinerary.totalNum
-          : (typeof activeItinerary.totalEstimate === 'string'
-              ? parseInt(activeItinerary.totalEstimate.replace(/[^0-9]/g, '')) || 0
-              : Number(activeItinerary.totalEstimate) || 0);
-
-      const { data: bookingRow, error } = await supabase
-        .from('yatra_bookings')
-        .insert({
-          user_id: user.id,
-          booking_type: 'TRIP',
-          origin: activeItinerary.from || inputs.origin,
-          destination: activeItinerary.to || inputs.specificDest,
-          trip_details: activeItinerary,
-          trip_data: activeItinerary,
-          total_price: totalNum,
-          total_amount: totalNum,
-          status: 'pending_payment',
-          tier: inputs.budget,
-          total_pax: (inputs.adults || 1) + (inputs.kids || 0)
-        })
-        .select('id')
-        .single();
-
-      if (error) {
-        console.error('Booking Session Sync Error:', error);
-        toast.error('Booking Sync Failed', { description: error.message });
-        return null;
-      }
-
-      const recoveredId = bookingRow?.id ?? null;
-      setActiveBookingId(recoveredId);
-      return recoveredId;
-    } catch (err: any) {
-      console.error('Booking Session Recovery Exception:', err);
-      toast.error('Session Recovery Error', { description: err.message || 'An unexpected error occurred.' });
-      return null;
-    }
-  };
-
-  const finalizeBooking = useCallback(() => {
-    const method = paymentMethodRef.current;
-    const bookingIdForFlow = activeBookingIdRef.current;
-    const currentMix = useTripPlannerStore.getState().mixPicks;
-    const currentItn = useTripPlannerStore.getState().activeItinerary;
-    
-    // Merge user's final selections into the itinerary
-    const finalTotalNum = (currentMix.transport?.priceNum || 0) + 
-                         (currentMix.hotel?.priceNum || 0) + 
-                         (currentMix.local?.priceNum || 0);
-                         
-    const finalItn = {
-      ...currentItn,
-      transport: currentMix.transport,
-      hotel: currentMix.hotel,
-      local: currentMix.local,
-      totalNum: finalTotalNum,
-      total: `₹${finalTotalNum.toLocaleString()}`,
-      passengers: activeItinerary?.passengers || []
-    };
-    
-    // Update store so StepSuccess sees the final data
-    useTripPlannerStore.getState().setActiveItinerary(finalItn as any);
-
-    const passengers = finalItn.passengers;
-    const generatedPNR = 'YA-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    useTripPlannerStore.getState().setActivePNR(generatedPNR);
-    const passengerSummary = passengers.map((p: any) => `${p.name} (${p.type === 'adult' ? 'A' : 'K'})`).join(', ');
-
-    const travelStatus = 'confirmed';
-    setStage('success');
-
-    const statusHeadline = 'Booking Confirmed';
-    const statusLine = 'Your booking is confirmed and provider processing has started.';
-
-    addAIMessage({
-      role: 'assistant',
-      content: `**${statusHeadline}!** 🎉\n\n**PNR: ${generatedPNR}**\n\n**Travelers:** ${passengerSummary}\n\n${statusLine}\n\nI've sent your itinerary details to your **Telegram**. I'll also alert you if there are any delays or weather changes.\n\nEnjoy your Odyssey to **${inputs.specificDest}**!`,
-    });
-    speakIndianText(`Booking confirmed for ${passengers.length} travelers. Your PNR is ${generatedPNR}.`, 'en');
-
-    const storeTelegramId = useTourGuideStore.getState().telegramId;
-    const guestTelegramId = inputs.telegramId || storeTelegramId;
-
-    const sendTelegram = (targetContact: string) => {
-      if (!targetContact) return;
-      
-      const currentMix = useTripPlannerStore.getState().mixPicks;
-      const currentItn = activeItinerary;
-      
-      // Calculate real total from current mix to ensure accuracy
-      const totalDisplay = currentItn?.total || `₹${(currentItn?.totalNum || 0).toLocaleString()}`;
-
-      fetch('/api/telegram/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'booking_confirm',
-          to: targetContact,
-          payload: {
-            ref: generatedPNR,
-            origin: currentItn?.from || inputs.origin || 'India',
-            destination: currentItn?.to || inputs.specificDest,
-            dates: currentItn?.startDate && currentItn?.endDate ? `${currentItn.startDate} to ${currentItn.endDate}` : 'Dates in App',
-            transport: currentMix.transport?.name || currentItn?.transport?.name || 'Standard',
-            hotel: currentMix.hotel?.name || currentItn?.hotel?.name || 'Standard Hotel',
-            tier: inputs.budget,
-            total: totalDisplay,
-            passengers: passengers.map((p: any) => ({ name: p.name, type: p.type })),
-          },
-        }),
-      }).catch((e) => console.error('Telegram Send Error:', e));
-    };
-
+    // Save to DB
     if (user) {
-      supabase
-        .from('yatra_profiles')
-        .select('telegram_id, phone')
-        .eq('user_id', user.id)
-        .maybeSingle()
-        .then(({ data: profile }) => {
-          const targetContact = guestTelegramId || (profile as any)?.telegram_id || profile?.phone;
-          sendTelegram(targetContact);
-        });
+      const bookingData = {
+        user_id: user.id,
+        booking_type: 'TRIP',
+        pnr,
+        status: 'confirmed',
+        total_amount: Math.round(total),
+        trip_data: {
+          ...activeItinerary,
+          mixPicks
+        },
+        passengers: passengers || []
+      };
 
-      if (bookingIdForFlow) {
-        const bookingSnapshot = {
-          ...finalItn,
-          from: finalItn.from || inputs.origin,
-          to: finalItn.to || inputs.specificDest,
-          origin: inputs.origin,
-          destination: inputs.specificDest,
-          startDate: inputs.startDate,
-          endDate: effectiveEndDate,
-          tripType: inputs.tripType,
-          passengers,
-          pnr: generatedPNR,
-          bookingStatus: travelStatus,
-          bookedAt: new Date().toISOString(),
-        };
+      const tripPlanData = {
+        user_id: user.id,
+        origin: inputs.origin || '',
+        destination: activeItinerary?.destination || '',
+        start_date: inputs.startDate || null,
+        end_date: inputs.endDate || null,
+        nights: activeItinerary?.nights || 1,
+        tier_label: activeItinerary?.tierLabel || 'Custom',
+        total_estimate: activeItinerary?.totalEstimate || `₹${total.toLocaleString()}`,
+        total_amount: total,
+        transport: mixPicks.transport || {},
+        hotel: mixPicks.hotel || {},
+        local_transport: mixPicks.local || {},
+        full_plan: activeItinerary || {},
+        status: 'saved'
+      };
 
-        supabase
-          .from('yatra_bookings')
-          .update({
-            pnr: generatedPNR,
-            status: travelStatus,
-            confirmed_at: new Date().toISOString(),
-            trip_details: bookingSnapshot,
-            tier: inputs.budget,
-            total_price: finalTotalNum,
-            total_pax: (inputs.adults || 1) + (inputs.kids || 0),
-            passengers: passengers,
-          })
-          .eq('id', bookingIdForFlow)
-          .then(({ error }) => {
-            if (error) console.error('PNR Save Error:', error);
-          });
+      const [bookingRes, tripRes] = await Promise.all([
+        supabase.from('yatra_bookings').insert(bookingData),
+        supabase.from('yatra_trip_plans').insert(tripPlanData)
+      ]);
+
+      if (bookingRes.error || tripRes.error) {
+        console.error('Booking save error:', bookingRes.error || tripRes.error);
+        toast.error('Partial save failure', { description: (bookingRes.error || tripRes.error)?.message });
       }
-    } else {
-      sendTelegram(guestTelegramId);
-    }
-  }, [
-    activeItinerary,
-    effectiveEndDate,
-    inputs.budget,
-    inputs.origin,
-    inputs.specificDest,
-    inputs.startDate,
-    inputs.telegramId,
-    inputs.tripType,
-    user,
-    addAIMessage,
-    setStage,
-  ]);
-
-
-
-
-  const handleBookAndPay = async () => {
-    const bookingIdForFlow = await ensureActiveBookingSession();
-    if (user && !bookingIdForFlow) {
-      toast.error('Booking session missing', { description: 'Please regenerate itinerary before payment.' });
-      return;
     }
 
-    const passengers = activeItinerary?.passengers || [];
-    const incomplete = passengers.some((p: any) => {
-      const ageNum = Number(p?.age);
-      const gender = String(p?.gender || p?.sex || '').trim();
-      return !p?.name || p.name.trim().length < 2 || !ageNum || ageNum <= 0 || !gender;
-    });
-
-    if (incomplete) {
-      toast.error('Missing Traveler Info', { description: 'Please fill all name, age, and gender fields.' });
-      return;
-    }
-
-    finalizeBooking();
+    setStage('success');
   };
 
+  if (!mounted || authLoading) return null;
 
-
-  const estimateCost = () => {
-    if (!inputs.origin && !inputs.specificDest) return 0;
-    const endForDays = inputs.tripType === 'round' ? inputs.endDate : effectiveEndDate;
-    const days =
-      inputs.startDate && endForDays
-        ? Math.max(1, Math.ceil((new Date(endForDays).getTime() - new Date(inputs.startDate).getTime()) / 86400000))
-        : 1;
-    const rates: Record<string, number> = { economy: 3500, moderate: 9000, luxury: 28000, mix: 14000 };
-    const base = (rates[inputs.budget] || 9000) + ((Array.isArray(inputs.destTypes) ? inputs.destTypes : []).length * 800);
-    let total = base * days * (inputs.adults + inputs.kids * 0.7);
-    if (inputs.ecoFriendly) total *= 1.15;
-    if (inputs.wheelchair) total *= 1.05;
-    return Math.round(Math.min(Math.max(total, inputs.targetBudget - 5000), inputs.targetBudget + 5000));
-  };
-
-  const cost = estimateCost();
-
-  // COMPULSORY WIZARD: If the wizard is active, we lock navigation entirely.
-  const isWizardMode = useAIBrainStore(s => s.isWizardMode);
-  const wizardStep = useAIBrainStore(s => s.wizardStep);
-  const isWizardActive = !!(isWizardMode && wizardStep && wizardStep !== 'done');
-
-  // Visible steps for indicator (exclude 'planning' intermediate)
-  const indicatorSteps = useMemo(() => WIZARD_STEPS.map(s => ({ 
-    ...s, 
-    label: t(s.id === 'booking' ? 'booking_step' : s.id, s.label) 
-  })), [t]);
-  const currentStepId  = stage === 'planning' ? 'suggestions' : stage;
-  const doneSteps      = isWizardActive ? [] : (DONE_MAP[stage as Stage] || []);
-
-  const { isInitialized: langInitialized } = useLanguage();
-
-  if (!mounted || !langInitialized) return null;
+  const indicatorSteps = WIZARD_STEPS.map(s => ({ ...s, label: s.label }));
+  const currentStepId = stage === 'planning' ? 'suggestions' : stage;
+  const doneSteps = DONE_MAP[stage] || [];
 
   return (
-    <div key={language} className="planner-bg selection:bg-cyan-500/30">
-      
-      {!isProfileOpen && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setIsProfileOpen(true)}
-          className="fixed top-6 right-6 z-[150] w-12 h-12 rounded-2xl bg-white border border-orange-100 shadow-xl overflow-hidden group no-print"
-        >
-           <div className="absolute inset-0 bg-gradient-to-br from-saffron/10 to-green/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-           {user?.user_metadata?.avatar_url ? (
-             <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-           ) : (
-             <div className="w-full h-full flex items-center justify-center text-[#138808] font-black text-sm uppercase bg-green-50">
-               {user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U'}
-             </div>
-           )}
-        </motion.button>
-      )}
-
-      {stage === 'success' ? (
+    <div className="planner-bg min-h-screen pb-20">
       <NavigationWrapper
-        onBack={handleReset}
-        backLabel="Plan New Trip"
-        onNext={undefined}
-      >
-        <div className="max-w-2xl mx-auto px-4 md:px-6 pt-12 pb-24 relative z-10">
-          <StepSuccess
-            onReset={handleReset}
-            bookingId={activeBookingId}
-          />
-        </div>
-      </NavigationWrapper>
-      ) : (
-      <NavigationWrapper
-        onBack={() => {
-          // Read stage directly from store to avoid stale closure
-          const s = useTripPlannerStore.getState().plannerStage;
-          if (s === 'booking')    setStage('selection');
-          else if (s === 'selection') setStage('results');
-          // Once destination is selected (results), going back skips 'suggestions' and goes to 'inputs'
-          else if (s === 'results')   setStage('inputs'); 
-          else if (s === 'suggestions') setStage('inputs');
-          else if (s === 'planning')  setStage('suggestions');
-          // 'inputs' = already on first step, do nothing
-        }}
+        onBack={
+          stage === 'inputs'      ? undefined :
+          stage === 'suggestions' ? () => setStage('inputs') :
+          stage === 'planning'    ? () => setStage('inputs') :
+          stage === 'results'     ? () => setStage('suggestions') :
+          stage === 'selection'   ? () => setStage('results') :
+          stage === 'booking'     ? () => setStage('selection') :
+          undefined
+        }
         onNext={
-          stage === 'inputs' ? () => handleGetSuggestions() :
-          stage === 'suggestions' ? () => {
-            if (selectedSuggestion !== null) {
-              const s = suggestions[selectedSuggestion];
-              // Use the onConfirm logic from StepSuggestions
-              setInputs(p => ({ ...p, specificDest: s.destination }));
-              setGlobalDestination(s.destination); setOrigin(inputs.origin);
-              handleGeneratePlan(s, s.destination);
-              setAIBrainOpen(true);
-            }
-          } :
-          stage === 'results' ? () => setStage('selection') :
-          stage === 'selection' ? () => setStage('booking') :
-          stage === 'booking' ? () => handleBookAndPay() :
+          stage === 'inputs'      ? handleGetSuggestions :
+          stage === 'results'     ? () => setStage('selection') :
+          stage === 'selection'   ? () => setStage('booking') :
+          stage === 'booking'     ? () => handleBookAndPay(null) :
           undefined
         }
         nextLabel={
-          isWizardActive ? 'Answer AI to proceed' :
-          stage === 'inputs' ? t('discover_options') :
-          stage === 'suggestions' ? 'Select Destination' :
-          stage === 'results' ? 'Proceed to Selection' :
-          stage === 'selection' ? 'Confirm Itinerary' :
-          stage === 'booking' ? '🔒 Confirm & Finalize' :
-          t('next')
+          stage === 'inputs'    ? 'Generate Plan' :
+          stage === 'results'   ? 'View in Cart' :
+          stage === 'selection' ? 'Proceed to Booking' :
+          stage === 'booking'   ? 'Confirm & Pay' :
+          ''
         }
         disabledNext={
-          (stage === 'suggestions' && selectedSuggestion === null) ||
-          (stage === 'selection' && !mixPicks.transport && !mixPicks.hotel)
+          stage === 'inputs' ? (!inputs.origin || !inputs.specificDest || !inputs.startDate || isGenerating) :
+          stage === 'booking' ? isSaving :
+          false
         }
       >
-        <div className="max-w-4xl mx-auto px-4 md:px-5 pt-2 pb-20 md:pb-24 relative z-10">
- 
-           {/* ── Page Header ──────────────────────────────────────────────── */}
-          <motion.header
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-3"
-          >
-            <h1 className="text-xl font-black uppercase italic tracking-tighter">
-              <span className="text-saffron">YA</span>
-              <span className="text-slate-400">T</span>
-              <span className="text-green">RA</span> 
-              <span className="text-saffron ml-1">STUDIO</span>
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 md:pt-8">
+          <header className="text-center mb-4 sm:mb-6 md:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-black italic tracking-tighter">
+              <span className="text-saffron">YA</span>TRA <span className="text-green">STUDIO</span>
             </h1>
-          </motion.header>
+          </header>
 
-          {/* ── Step Indicator ────────────────────────────────────────────── */}
-          <div className="mb-6">
-            <StepIndicator 
-              steps={indicatorSteps} 
-              current={currentStepId} 
-              done={doneSteps} 
-              onStepClick={(stepId) => {
-                if (doneSteps.includes(stepId) || stepId === currentStepId) {
-                  setStage(stepId as Stage);
-                }
-              }}
-            />
-          </div>
-
-
-          {/* ── Step Renderer ─────────────────────────────────────────────── */}
+          <StepIndicator steps={indicatorSteps} current={currentStepId} done={doneSteps} />
           <AnimatePresence mode="wait">
             {stage === 'inputs' && (
-              <StepInputs
-                key="inputs"
-                inputs={inputs}
+              <StepInputs 
+                key="inputs" 
+                inputs={inputs} 
+                setInputs={setInputs} 
+                onDiscover={handleGetSuggestions} 
                 activeLang={activeLang}
                 setActiveLang={setActiveLang}
-                setInputs={setInputs}
                 patchTourGuide={patchTourGuide}
-                onDiscover={handleGetSuggestions}
               />
             )}
-
             {stage === 'planning' && <StepPlanning key="planning" />}
-
             {stage === 'suggestions' && (
-              <StepSuggestions
-                key="suggestions"
-                suggestions={suggestions}
-                inputs={inputs}
-                fetchedInputs={fetchedInputs}
-                selectedIdx={selectedSuggestion}
-                setInputs={setInputs}
-                onConfirm={(s, dest) => {
-                  setSelectedSuggestion(suggestions.indexOf(s));
-                  setInputs(p => ({ ...p, specificDest: dest }));
-                  setGlobalDestination(dest); setOrigin(inputs.origin);
-                  if (inputs.startDate) {
-                    if (inputs.tripType === 'round' && inputs.endDate) setGlobalDates(inputs.startDate, inputs.endDate);
-                    else if (inputs.tripType === 'single' && effectiveEndDate) setGlobalDates(inputs.startDate, effectiveEndDate);
-                  }
-                  handleGeneratePlan(s, dest);
+              <StepSuggestions 
+                key="suggestions" suggestions={suggestions} inputs={inputs} 
+                onConfirm={(s, d, m) => handleGeneratePlan(s, d, m)}
+                onBack={() => setStage('inputs')} onReset={handleReset}
+                onGenerate={() => handleGeneratePlan()} isLoading={isGenerating}
+                fetchedInputs={null} selectedIdx={null} setInputs={setInputs} 
+                onAskAI={(suggestion) => {
                   setAIBrainOpen(true);
-                  addAIMessage({ role: 'assistant', content: `**Trip Confirmed!** Building your itinerary for **${dest}**…` });
-                  speakIndianText('Trip confirmed.', 'en');
-                }}
-                onAskAI={(dest) => {
-                  const from = inputs.origin?.trim() || 'India';
                   setPendingOutbound({
-                    destinationBriefFormat: true,
-                    text: `Destination briefing for ${dest}. Traveller departs from ${from}.`,
+                    text: `Analyze this ${suggestion.title} Odyssey for me. Destination: ${suggestion.destination}, Vibe: ${suggestion.vibe}, Total: ${suggestion.totalPrice}. Is it good for my budget?`,
+                    destinationBriefFormat: true
                   });
-                  setAIBrainOpen(true);
                 }}
-                onBack={() => setStage('inputs')}
-                onReset={handleReset}
               />
             )}
-
-            {stage === 'results' && plan && (
-              <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                  <motion.div 
-                    whileHover={{ scale: 1.005 }}
-                    onClick={() => {
-                      if (plan) {
-                        const aiHotels = plan.hotels.map((h: any) => ({
-                          ...h,
-                          name: h.name,
-                          location: plan.destination,
-                          area: h.highlights?.split(',')[0] || 'Prime Location',
-                          id: `ai-hotel-${Math.random()}`,
-                          isAI: true
-                        }));
-                        const aiFlights = plan.transport.filter((t: any) => t.mode.toLowerCase().includes('flight')).map((t: any) => ({
-                          ...t,
-                          name: t.mode,
-                          airline: t.mode,
-                          departure: '08:00',
-                          arrival: '10:30',
-                          id: `ai-flight-${Math.random()}`,
-                          isAI: true
-                        }));
-                        const aiTrains = plan.transport.filter((t: any) => t.mode.toLowerCase().includes('train')).map((t: any) => ({
-                          ...t,
-                          name: t.mode,
-                          train_name: t.mode,
-                          class: t.detail?.split(' ')[0] || '2A',
-                          id: `ai-train-${Math.random()}`,
-                          isAI: true
-                        }));
-
-                        useTripPlannerStore.getState().setSearchData({
-                          hotels: aiHotels,
-                          flights: aiFlights,
-                          trains: aiTrains
-                        });
-
-                        setMixPicks({
-                          hotel: aiHotels[0] || null,
-                          transport: aiFlights[0] || aiTrains[0] || null
-                        });
-                      }
-                      setStage('selection');
-                    }}
-                    className="shell-panel p-10 bg-white border border-orange-100 text-[#000080] space-y-8 rounded-[3rem] shadow-3xl relative overflow-hidden cursor-pointer group/panel hover:border-saffron/30 transition-all"
-                  >
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-saffron/5 blur-[100px] pointer-events-none" />
-                    
-                    <div className="flex justify-between items-start relative z-10">
-                    <div className="space-y-2">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron/10 border border-saffron/20">
-                        <Sparkles className="w-3.5 h-3.5 text-saffron" />
-                        <span className="text-[10px] font-black text-saffron uppercase tracking-widest">Itinerary Drafted</span>
+            
+            {stage === 'results' && activeItinerary && (
+              <motion.div key="results" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
+                <div className="shell-panel p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 bg-white border-orange-100 shadow-2xl rounded-[2rem] sm:rounded-[3rem]">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-saffron" />
+                        <span className="text-[10px] font-black text-saffron uppercase tracking-widest">Odyssey Drafted</span>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <h3 className="text-2xl font-black italic uppercase leading-none tracking-tighter text-[#000080]">{plan.destination}</h3>
-                      </div>
-                      <div className="space-y-1.5">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] leading-none">{plan.duration}</p>
-                        <p className="text-[10px] font-black text-saffron uppercase tracking-[0.2em] leading-none flex items-center gap-2">
-                          Approx. Valuation:
-                          <span className="text-base font-black text-blue-700 tracking-tighter">
-                            {plan.totalEstimate.match(/₹\s?[\d,]+/)?.[0] || plan.totalEstimate}
-                          </span>
-                        </p>
-                      </div>
+                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#000080] uppercase italic leading-none">{activeItinerary.destination}</h2>
+                      <p className="text-sm font-bold text-slate-400">Valuation: {activeItinerary.totalEstimate}</p>
                     </div>
-
-                    {/* Elaborative Weather Timeline */}
-                    {plan.weather?.forecast && plan.weather.forecast.length > 0 && (
-                      <div className="flex flex-col gap-3 relative z-10">
-                        <div className="flex items-center gap-2">
-                           <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Trip Forecast</span>
-                           <div className="h-px flex-1 bg-blue-100/50" />
-                        </div>
-                        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                           {plan.weather.forecast.map((wf: any, idx: number) => {
-                             const d = new Date(inputs.startDate);
-                             d.setDate(d.getDate() + idx);
-                             const dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-                             
-                             return (
-                               <div key={idx} className="flex-shrink-0 w-24 p-3 bg-blue-50/30 border border-blue-100/50 rounded-2xl flex flex-col items-center gap-1">
-                                  <span className="text-[8px] font-black text-slate-400 uppercase">Day {wf.day || idx + 1}</span>
-                                  <span className="text-[9px] font-bold text-blue-600/60 uppercase">{dateStr}</span>
-                                  <span className="text-[11px] font-black text-blue-700">{wf.temp}</span>
-                                  <span className="text-[8px] font-bold text-slate-500 uppercase text-center leading-none">{wf.condition}</span>
-                               </div>
-                             );
-                           })}
-                        </div>
-                        {plan.weather.tip && (
-                          <p className="text-xs sm:text-sm text-blue-700 font-bold leading-relaxed ml-20 border-l-2 border-blue-100 pl-6 py-1">
-                            <span className="text-blue-900 uppercase text-[10px] tracking-widest mr-2 block mb-1">Pro Tip:</span> 
-                            {plan.weather.tip}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    <button 
-                      onClick={handleReset}
-                      className="p-3 bg-orange-50 hover:bg-orange-100 rounded-2xl transition-all border border-orange-100 group shadow-sm self-start"
-                      title="Cancel & Start Over"
-                    >
-                      <RotateCcw className="w-5 h-5 text-saffron group-hover:rotate-[-90deg] transition-transform" />
+                    <button onClick={handleReset} className="p-3 bg-orange-50 rounded-2xl hover:bg-orange-100 transition-all">
+                      <RotateCcw className="w-5 h-5 text-saffron" />
                     </button>
                   </div>
 
-                  <div className="relative z-10">
-                    <div className="space-y-8">
-                      <div className="space-y-3">
-                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Key Highlights</p>
-                         <div className="flex flex-wrap gap-2">
-                            {(plan.highlights || ['Historic Sites', 'Local Cuisine', 'Nature']).slice(0, 4).map((h: string, i: number) => (
-                              <span key={i} className="px-3 py-1.5 bg-orange-50/50 border border-orange-100 rounded-xl text-[9px] font-bold uppercase tracking-tight text-saffron">{h}</span>
-                            ))}
-                         </div>
-                      </div>
-
-                      {/* Refined Visual Experience Gallery */}
-                      <div className="space-y-4 mt-2 pt-6 border-t border-slate-100">
-                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-[#FF9933] uppercase tracking-[0.2em]">Regional Essence</span>
-                            <div className="h-px flex-1 bg-orange-100/30" />
-                         </div>
-                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {[
-                              { icon: MapPin, title: 'Heritage', desc: 'Historic Landmarks', color: '#FF9933', bg: 'bg-[#FF9933]/5' },
-                              { icon: CloudSun, title: 'Ambiance', desc: 'Climate & Views', color: '#000080', bg: 'bg-[#000080]/5' },
-                              { icon: Utensils, title: 'Flavors', desc: 'Culinary Depth', color: '#138808', bg: 'bg-[#138808]/5' },
-                              { icon: Camera, title: 'Moments', desc: 'Scenic Discovery', color: '#FF9933', bg: 'bg-[#FF9933]/5' }
-                            ].map((exp, i) => (
-                              <div key={i} className={`group relative py-6 px-4 rounded-[2rem] overflow-hidden border border-slate-100 ${exp.bg} transition-all duration-300 hover:scale-[1.02]`}>
-                                 <div className="space-y-3 flex flex-col items-center text-center">
-                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                                       <exp.icon className="w-5 h-5" style={{ color: exp.color }} />
-                                    </div>
-                                    <div>
-                                       <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: exp.color }}>{exp.title}</p>
-                                       <p className="text-[11px] font-extrabold text-[#000080] uppercase tracking-tight leading-tight">{exp.desc}</p>
-                                    </div>
-                                 </div>
-                              </div>
-                            ))}
-                         </div>
-                      </div>
+                  <div className="space-y-8">
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Planned Odyssey</h3>
+                    <div className="space-y-6">
+                      {(activeItinerary.dayPlan || []).map((day: any, i: number) => (
+                        <div key={i} className="relative pl-8 border-l-2 border-orange-100/50 pb-4">
+                          <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-2 border-saffron shadow-sm" />
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-black text-[#000080] uppercase italic">{day.title}</h4>
+                            <ul className="space-y-1">
+                              {day.activities.map((act: any, idx: number) => (
+                                <li key={idx} className="text-[12px] text-slate-600 font-medium flex items-center gap-2">
+                                  <div className="w-1 h-1 bg-saffron rounded-full" /> {typeof act === 'string' ? act : (act.activity || act.title || act.description || act.label || 'Explore')}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-
                   </div>
 
-                  {/* Implicit interaction: clicking the panel proceeds. Removed explicit navigation button. */}
-                  <div className="flex items-center justify-center gap-2 pt-4 opacity-20 group-hover/panel:opacity-60 transition-opacity">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#000080]">Enter Selection Studio</span>
-                    <ArrowRight className="w-4 h-4 text-saffron" />
-                  </div>
-                </motion.div>
+                  <button 
+                    onClick={() => setStage('selection')}
+                    className="w-full py-4 sm:py-6 bg-gradient-to-r from-saffron to-orange-600 text-white rounded-[1.5rem] sm:rounded-[2rem] font-black uppercase tracking-widest shadow-xl hover:shadow-saffron/30 transition-all flex items-center justify-center gap-3 text-sm sm:text-base"
+                  >
+                    View in Cart <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
               </motion.div>
             )}
 
-            {stage === 'selection' && (
-              <motion.div key="selection" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <TripPlanner
-                  origin={inputs.origin}
-                  destination={inputs.specificDest || useTripStore.getState().destination}
-                  startDate={inputs.startDate}
-                  endDate={effectiveEndDate}
-                  tripType={inputs.tripType}
-                  suggestion={selectedSuggestion !== null ? suggestions[selectedSuggestion] : null}
-                  onComplete={() => setStage('booking')}
-                  onBack={() => setStage('results')}
-                />
-              </motion.div>
+            {stage === 'selection' && activeItinerary && (
+              <StepSelection 
+                key="selection" 
+                onConfirm={() => setStage('booking')} 
+                onBack={() => setStage('results')} 
+                onUpdateParams={() => fetchSearchData(activeItinerary.destination, activeItinerary)}
+              />
             )}
-
-            {stage === 'booking' && (
-              <StepBooking
-                key="booking"
-                searchData={searchData}
-                setInputs={setInputs}
-                nights={activeItinerary?.nights || 1}
-                tripType={inputs.tripType}
-                onBack={() => setStage('selection')}
-                onBookAndPay={handleBookAndPay}
+            {stage === 'booking' && <StepBooking key="booking" searchData={searchData} setInputs={setInputs} nights={activeItinerary?.nights || 1} onBack={() => setStage('selection')} onBookAndPay={handleBookAndPay} />}
+            {stage === 'success' && (
+              <StepSuccess 
+                key="success" 
+                from_city={inputs.origin} 
+                destination={inputs.specificDest} 
+                onReset={handleReset} 
               />
             )}
           </AnimatePresence>
         </div>
       </NavigationWrapper>
-      )}
     </div>
   );
 }

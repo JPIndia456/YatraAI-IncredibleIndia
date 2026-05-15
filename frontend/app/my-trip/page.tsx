@@ -162,13 +162,13 @@ function MyTripContent() {
       try {
         let query = supabase
           .from('yatra_bookings')
-          .select('id, origin, destination, status, pnr, confirmed_at, created_at, total_price, trip_details');
+          .select('id, status, pnr, confirmed_at, created_at, total_amount, trip_data, passengers');
           
         if (tripId) {
           query = query.eq('id', tripId);
         } else {
           query = query.eq('user_id', user.id)
-            .in('status', ['pending_payment', 'paid', 'pending_provider', 'confirmed'])
+            .in('status', ['confirmed', 'pending_payment', 'paid', 'pending_provider'])
             .order('created_at', { ascending: false })
             .limit(1);
         }
@@ -181,30 +181,40 @@ function MyTripContent() {
         if (!data) {
           const { data: planData, error: planError } = await supabase
             .from('yatra_trip_plans')
-            .select('id, origin, destination, status, created_at, total_price, trip_details')
+            .select('id, origin, destination, status, created_at, total_amount, total_estimate, full_plan, transport, hotel')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
           
           if (!planError && planData) {
-            data = planData as any;
+            // Normalise trip_plan row to look like a booking row
+            const fp = (planData as any).full_plan || {};
+            setDbTrip({
+              ...fp,
+              id: planData.id,
+              destination: fp.destination || (planData as any).destination || '',
+              from: fp.from || (planData as any).origin || '',
+              totalEstimate: fp.totalEstimate || (planData as any).total_estimate || `₹${Number((planData as any).total_amount || 0).toLocaleString('en-IN')}`,
+              transport: fp.transport || (planData as any).transport || null,
+              hotel: fp.hotel || (planData as any).hotel || null,
+              passengers: fp.passengers || [],
+              bookingStatus: (planData as any).status || 'saved',
+            });
+            return;
           }
         }
 
         if (!data) return;
 
-        const tripData = data.trip_details as any;
-        const details = tripData?.details || {};
+        const tripData = (data as any).trip_data as any || {};
 
         setDbTrip({
           ...tripData,
           id: data.id,
-          totalEstimate: tripData.totalEstimate || (data.total_price ? `₹${Number(data.total_price).toLocaleString('en-IN')}` : '₹0'),
-          passengers: tripData.passengers || details.passengers || [],
-          total_price: details?.total || 0,
-          pnr: details?.pnr || data.pnr || null,
-          is_tatkal: details?.isTatkal || false,
+          totalEstimate: tripData.totalEstimate || ((data as any).total_amount ? `₹${Number((data as any).total_amount).toLocaleString('en-IN')}` : '₹0'),
+          passengers: (data as any).passengers || tripData.passengers || [],
+          pnr: data.pnr || tripData.pnr || null,
           bookingStatus: data.status || tripData.bookingStatus || 'confirmed',
         });
       } catch (err) {
@@ -232,15 +242,11 @@ function MyTripContent() {
       const { error } = await supabase.from('yatra_bookings').upsert({
         ...(effectivePlan.id ? { id: effectivePlan.id } : {}),
         user_id: user.id,
-        origin: effectivePlan.from,
-        destination: effectivePlan.destination,
-        trip_details: effectivePlan,
-        total_price: typeof effectivePlan.totalNum === 'number' ? effectivePlan.totalNum : 0,
         status: 'confirmed',
         booking_type: 'TRIP',
+        total_amount: typeof effectivePlan.totalNum === 'number' ? effectivePlan.totalNum : 0,
+        trip_data: effectivePlan,
         confirmed_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,destination,origin'
       });
 
       if (error) throw error;

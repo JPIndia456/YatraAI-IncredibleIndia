@@ -17,11 +17,13 @@ export type Profile = {
   preferred_language?: string;
   language_code?: string;
   travel_style?: string;
+  persona?: string;
   user_persona?: string;
   likes?: string[];
   dislikes?: string[];
   telegram_enabled?: boolean;
   telegram_id?: string;
+  preferred_voice?: 'male' | 'female';
   total_trips?: number;
   created_at?: string;
 };
