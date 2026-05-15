@@ -407,6 +407,7 @@ export default function YatraStudio() {
           1. Return ONLY a raw JSON object. 
           2. NO markdown formatting, NO backticks, NO conversational text.
           3. Start the response with { and end with }.
+          4. Keep all activity and place descriptions extremely SHORT AND SWEET. Maximum 1 concise sentence per activity.
           
           Format:
           {
