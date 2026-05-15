@@ -219,19 +219,20 @@ export async function generateIndianVoice(text: string, lang: string = 'hin', ge
         'pa': 'pa-IN', 'bn': 'bn-IN', 'ur': 'ur-IN', 'or': 'or-IN',
       };
       const sLang = langMap[lang] || 'hi-IN';
-      // Speaker varies by language for most natural output
+      // Sarvam bulbul:v2 native speakers per language for authentic pronunciation
       const speakerMap: Record<string, string> = {
         'hi-IN': gender === 'male' ? 'pawan' : 'meera',
         'en-IN': gender === 'male' ? 'pawan' : 'meera',
-        'ta-IN': gender === 'male' ? 'pawan' : 'meera',
-        'te-IN': gender === 'male' ? 'pawan' : 'meera',
-        'mr-IN': gender === 'male' ? 'pawan' : 'meera',
-        'gu-IN': gender === 'male' ? 'pawan' : 'meera',
-        'kn-IN': gender === 'male' ? 'pawan' : 'meera',
-        'ml-IN': gender === 'male' ? 'pawan' : 'meera',
-        'pa-IN': gender === 'male' ? 'pawan' : 'meera',
-        'bn-IN': gender === 'male' ? 'pawan' : 'meera',
+        'ta-IN': gender === 'male' ? 'surya' : 'kani',
+        'te-IN': gender === 'male' ? 'ramesh' : 'amulya',
+        'mr-IN': gender === 'male' ? 'sumit' : 'swara',
+        'gu-IN': gender === 'male' ? 'kishan' : 'dhwani',
+        'kn-IN': gender === 'male' ? 'chetan' : 'kavya',
+        'ml-IN': gender === 'male' ? 'nikhil' : 'amina',
+        'pa-IN': gender === 'male' ? 'aman' : 'jashan',
+        'bn-IN': gender === 'male' ? 'jayanta' : 'trisha',
         'ur-IN': gender === 'male' ? 'pawan' : 'meera',
+        'or-IN': gender === 'male' ? 'anil' : 'priya',
       };
       const response = await fetch('https://api.sarvam.ai/text-to-speech', {
         method: 'POST',
