@@ -164,7 +164,7 @@ function buildTourGuideSystemPrompt(context: Record<string, any>): string {
   }
   ${
     plannerStage === 'success'
-      ? `Trip is confirmed! PNR: ${activePNR || 'assigned'}. Celebrate warmly. Offer to help with: packing list, local phrases, currency tips, or things to do on Day 1 in ${resolvedDest}.`
+      ? `Trip is confirmed! PNR: ${activePNR || 'assigned'}. DO NOT repeat the confirmation message if you have already said it. Answer the user's specific questions directly without repeating "Your trip is confirmed" or "I can help with...".`
       : ''
   }
   `;
