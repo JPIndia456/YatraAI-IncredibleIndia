@@ -20,6 +20,7 @@ interface StepBookingProps {
   tripType?: 'round' | 'one-way' | 'single';
   onBack: () => void;
   onBookAndPay: (item: any) => void;
+  isSaving?: boolean;
 }
 
 function parsePrice(p?: string): number {
@@ -336,20 +337,29 @@ export default function StepBooking({ searchData, setInputs, nights, tripType, o
       <div className="pt-10 border-t border-slate-200 flex flex-col gap-3">
         <div className="flex flex-col gap-4 py-6">
           <motion.div 
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => onBookAndPay(passengers)}
-            className="glass-panel p-6 border-saffron/20 bg-saffron/5 rounded-3xl flex items-center justify-between mb-2 cursor-pointer group"
+            whileHover={!isSaving ? { scale: 1.02 } : {}}
+            whileTap={!isSaving ? { scale: 0.98 } : {}}
+            onClick={() => !isSaving && onBookAndPay(passengers)}
+            className={`glass-panel p-6 border-saffron/20 bg-saffron/5 rounded-3xl flex items-center justify-between mb-2 transition-all
+              ${isSaving ? 'opacity-50 cursor-not-allowed grayscale' : 'cursor-pointer group'}`}
           >
              <div className="space-y-1">
-                <p className="text-[10px] font-black text-saffron uppercase tracking-widest leading-none">{t('booking_grand_total')}</p>
+                <p className="text-[10px] font-black text-saffron uppercase tracking-widest leading-none">
+                  {isSaving ? 'Finalizing...' : t('booking_grand_total')}
+                </p>
                 <h3 className="text-3xl font-black text-[#003366] italic tracking-tighter">₹{grandTotal.toLocaleString()}</h3>
              </div>
              <div className="text-right flex flex-col items-end">
                 <p className="text-[9px] font-bold text-slate-400 uppercase">{totalCount} {t('booking_travelers_registered')} · {nights} {t('booking_nights')}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[10px] font-black text-saffron uppercase tracking-widest">Click to Finalize</span>
-                  <ArrowRight className="w-4 h-4 text-saffron animate-pulse" />
+                  {isSaving ? (
+                    <div className="w-4 h-4 border-2 border-saffron/30 border-t-saffron rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span className="text-[10px] font-black text-saffron uppercase tracking-widest">Click to Finalize</span>
+                      <ArrowRight className="w-4 h-4 text-saffron animate-pulse" />
+                    </>
+                  )}
                 </div>
              </div>
           </motion.div>

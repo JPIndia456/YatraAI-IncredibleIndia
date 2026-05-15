@@ -511,13 +511,27 @@ function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onA
           </button>
           
           <button
+            disabled={isLoading}
             onClick={(e) => {
               e.stopPropagation();
               onConfirm(s, s.destination, activeTab);
             }}
-            className="flex-[2] py-4 bg-[#FF9933] text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-saffron/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+            className={`flex-[2] py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2
+              ${isLoading 
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none' 
+                : 'bg-[#FF9933] text-white shadow-lg shadow-saffron/20 hover:scale-[1.02] active:scale-95 cursor-pointer'
+              }`}
           >
-            Secure this Odyssey <ChevronRight className="w-4 h-4" />
+            {isLoading ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin" />
+                <span>Securing...</span>
+              </>
+            ) : (
+              <>
+                Secure this Odyssey <ChevronRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </div>
       </div>

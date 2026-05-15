@@ -2048,7 +2048,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
     }
   }, [mixPicks, plannerStage, isOpen, destination, tourGuide.destination, language, addMessage, setOpen]);
   
-  // \u2500\u2500 Stage-aware Auto-Open: AI Brain activates when moving to specific stages \u2500\u2500
+  // ── Stage-aware Auto-Open: AI Brain activates when moving to specific stages ──
   const prevStageRef = useRef(plannerStage);
   useEffect(() => {
     const prev = prevStageRef.current;
@@ -2585,6 +2585,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
                     onClick={() => {
                       if (!useVoiceMode) {
                         setUseVoiceMode(true);
+                        setTimeout(() => handleVoiceInput(), 100);
                       } else {
                         handleVoiceInput();
                       }

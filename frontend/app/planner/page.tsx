@@ -520,6 +520,7 @@ export default function YatraStudio() {
   };
 
   const handleBookAndPay = async (passengers: any[] | null) => {
+    setIsSaving(true);
     const travelers = (inputs.adults || 1) + (inputs.kids || 0);
     const nights = activeItinerary?.nights || 1;
     const tp = parsePrice(mixPicks.transport?.price);
@@ -572,6 +573,7 @@ export default function YatraStudio() {
       }
     }
 
+    setIsSaving(false);
     setStage('success');
   };
 
@@ -707,7 +709,7 @@ export default function YatraStudio() {
                 onUpdateParams={() => fetchSearchData(activeItinerary.destination, activeItinerary)}
               />
             )}
-            {stage === 'booking' && <StepBooking key="booking" searchData={searchData} setInputs={setInputs} nights={activeItinerary?.nights || 1} onBack={() => setStage('selection')} onBookAndPay={handleBookAndPay} />}
+            {stage === 'booking' && <StepBooking key="booking" searchData={searchData} setInputs={setInputs} nights={activeItinerary?.nights || 1} onBack={() => setStage('selection')} onBookAndPay={handleBookAndPay} isSaving={isSaving} />}
             {stage === 'success' && (
               <StepSuccess 
                 key="success" 
