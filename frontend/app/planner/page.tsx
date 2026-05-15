@@ -113,7 +113,8 @@ export default function YatraStudio() {
     plannerStage: stage, setPlannerStage: setStage,
     isProfileOpen, setIsProfileOpen,
     activeBookingId, setActiveBookingId,
-    setActivePNR
+    setActivePNR,
+    inputs, setInputs
   } = useTripPlannerStore();
 
   const {
@@ -124,7 +125,6 @@ export default function YatraStudio() {
   const { patchTourGuide } = useTourGuideStore();
 
   const [mounted, setMounted] = useState(false);
-  const [inputs, setInputs] = useState<PlannerInputs>(DEFAULT_INPUTS);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [selectedSuggestion, setSelectedSuggestion] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -141,6 +141,12 @@ export default function YatraStudio() {
   // Wizard Sync
   useEffect(() => {
     if (!mounted || authLoading) return;
+    
+    // Safety Guard: Reset to inputs if we are in a 'data-heavy' stage but have no destination
+    if (stage !== 'inputs' && !inputs.specificDest) {
+      setStage('inputs');
+    }
+
     registerWizardSchema(WIZARD_SCHEMA);
     registerInputUpdateHandler((id, val) => {
       // 1. Update local form inputs

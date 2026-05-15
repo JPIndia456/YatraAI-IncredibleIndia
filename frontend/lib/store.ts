@@ -389,6 +389,8 @@ interface TripPlannerState {
   activeBookingId: string | null;
   activePNR: string | null;
   isProfileOpen: boolean;
+  inputs: PlannerInputs;
+  setInputs: (inputs: PlannerInputs) => void;
   setTiers: (tiers: TierSummary[]) => void;
   setActiveItinerary: (itinerary: ActiveItinerary | null) => void;
   setSearchData: (data: Partial<TripPlannerState['searchData']>) => void;
@@ -436,7 +438,28 @@ export const useTripPlannerStore = create<TripPlannerState>()(
       activeBookingId: null,
       activePNR: null,
       isProfileOpen: false,
+      inputs: {
+        origin: '',
+        specificDest: '',
+        startDate: '',
+        endDate: '',
+        tripType: 'round',
+        targetBudget: 50000,
+        adults: 1,
+        kids: 0,
+        kidAges: '',
+        dietary: [],
+        likes: [],
+        dislikes: [],
+        destTypes: [],
+        ecoFriendly: false,
+        wheelchair: false,
+        telegramId: '',
+        language: 'en',
+        budget: 'moderate'
+      },
 
+      setInputs: (inputs) => set({ inputs }),
       setTiers: (tiers) => set({ tiers }),
       setActiveItinerary: (activeItinerary) => set({ activeItinerary }),
       setSearchData: (data) =>
@@ -463,7 +486,28 @@ export const useTripPlannerStore = create<TripPlannerState>()(
           weather: null,
           activeBookingId: null,
           activePNR: null,
-          isProfileOpen: false
+          activePNR: null,
+          isProfileOpen: false,
+          inputs: {
+            origin: '',
+            specificDest: '',
+            startDate: '',
+            endDate: '',
+            tripType: 'round',
+            targetBudget: 50000,
+            adults: 1,
+            kids: 0,
+            kidAges: '',
+            dietary: [],
+            likes: [],
+            dislikes: [],
+            destTypes: [],
+            ecoFriendly: false,
+            wheelchair: false,
+            telegramId: '',
+            language: 'en',
+            budget: 'moderate'
+          },
         }),
     }),
     {
