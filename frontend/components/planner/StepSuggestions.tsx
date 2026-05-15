@@ -44,7 +44,8 @@ interface SuggestionCardProps {
   fetchedInputs: { adults: number; kids: number } | null;
   setInputs: Dispatch<SetStateAction<PlannerInputs>>;
   onConfirm: (s: any, dest: string, transportMode: string) => void;
-  onAskAI: (dest: string) => void;
+  onAskAI: (s: any) => void;
+  isLoading: boolean;
 }
 
 interface StepSuggestionsProps {
@@ -187,7 +188,7 @@ function EstimateTabs({
 }
 
 /* ── Single Suggestion Card ─────────────────────────────────────────────── */
-function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onAskAI }: SuggestionCardProps) {
+function SuggestionCard({ s, i, inputs, fetchedInputs, setInputs, onConfirm, onAskAI, isLoading }: SuggestionCardProps) {
   const [pending, setPending] = useState(false);
   const [locationCheckAnswer, setLocationCheckAnswer] = useState<'yes' | 'no' | null>(null);
   const [activeTab, setActiveTab] = useState<string>(
@@ -649,6 +650,7 @@ export default function StepSuggestions({
                 setInputs={setInputs} 
                 onConfirm={onConfirm} 
                 onAskAI={onAskAI} 
+                isLoading={isLoading}
               />
             </div>
           ));
