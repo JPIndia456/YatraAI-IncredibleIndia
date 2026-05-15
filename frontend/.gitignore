@@ -45,3 +45,4 @@ supabase/.temp/
 backups/
 temp/
 yatra15may/
+.vercel
