@@ -346,9 +346,7 @@ function MyTripContent() {
                >
                  <Sparkles className="w-4 h-4" /> Resume Odyssey
                </button>
-               <button className="flex-1 py-3 bg-slate-50 text-slate-400 border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">
-                 Archive Plan
-               </button>
+
             </div>
 
             <div className="grid grid-cols-2 gap-y-6 gap-x-8">
