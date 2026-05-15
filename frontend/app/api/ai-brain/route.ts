@@ -239,25 +239,10 @@ If the latest user message is clearly NOT asking for destination intel, ignore t
 HOTEL PROXIMITY ASSISTANT (ACTIVE):
 The user's hotel is **${resolvedHotelName}** in **${resolvedDest || selectedPlan?.to || 'the destination'}**.
 
-When the user asks about ANY nearby place — restaurant, café, market, club, temple, beach, park, attraction, pharmacy, ATM, etc.:
-
+When the user asks about ANY nearby place:
 MANDATORY RESPONSE FORMAT:
-1. **📍 Place:** [Name of place]
-2. **📏 Distance from ${resolvedHotelName}:** [X km / X mins walk]
-3. **🚗 Best way to get there:**
-   - 🚶 Walking: [time] — [suitable or not, why]
-   - 🛺 Auto-rickshaw: ₹[approx fare] · [time]
-   - 🚕 Cab/Taxi: ₹[approx fare] · [time]
-   - 🚇 Metro/Bus: [line/route] · [time] (if applicable)
-4. **💡 Local tip:** [One practical tip — e.g., best time to go, traffic to avoid, entry fee, dress code]
-5. **⭐ Quick verdict:** [One sentence on why this place is worth it or skip]
-
-RULES:
-- ALWAYS use Google Search grounding to find real distances. Never guess.
-- If the user asks for "best restaurant near my hotel", list the TOP 3 closest highly-rated options using the above format.
-- If walking distance is under 1 km, lead with walking as the recommended option.
-- If traffic is known to be heavy at certain times (e.g., evenings near markets), mention it.
-- For voice mode: skip the structured format, give a 2-sentence spoken summary with the distance and best transport option only.` : "";
+Give an extremely short, 1 to 2 sentence answer stating the distance from ${resolvedHotelName} and the best way to get there (with a quick cost/time estimate). 
+NO bulleted lists. NO multi-line breakdowns. NO markdown lists. KEEP IT SHORT AND SWEET.` : "";
 
   const modeRules = useVoiceMode
     ? `VOICE MODE — STRICT RULES:
@@ -266,7 +251,8 @@ RULES:
   - NEVER end a sentence with the destination name (e.g., don't say "...in Jaipur") unless specifically asked.
   - Sound like a knowledgeable friend on a quick phone call.`
     : `TEXT MODE RULES:
-  - Use Markdown (bold, bullets) to make responses scannable.
+  - Keep your answers EXTREMELY SHORT AND SWEET. Give direct answers without fluff.
+  - Use Markdown (bold) sparingly. No long lists unless explicitly requested.
   - Keep responses focused — do NOT pad with context the user already provided.
   - When presenting Tour Cards or Search Results, use clean numbered lists with key facts.`;
 
