@@ -102,7 +102,7 @@ ${systemPrompt ? `CONTEXT:\n${systemPrompt}\n\n` : ""}User Input: ${prompt}`;
     const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
     for (const groqModel of groqModels) {
       try {
-        const text = await withTimeout(callGroq(fullPrompt, groqModel), 12000);
+        const text = await withTimeout(callGroq(fullPrompt, groqModel), 15000);
         if (text) {
           // Simulate token streaming from Groq (no native streaming in current callGroq)
           // Emit in ~20-char chunks to give streaming feel
@@ -135,7 +135,7 @@ ${systemPrompt ? `CONTEXT:\n${systemPrompt}\n\n` : ""}User Input: ${prompt}`;
           contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
           tools: [{ googleSearch: {} }] as any,
         };
-        const streamResult = await withTimeout(model.generateContentStream(requestPayload));
+        const streamResult = await withTimeout(model.generateContentStream(requestPayload), 60000);
         for await (const chunk of streamResult.stream) {
           const token = chunk.text();
           if (token) yield token;
@@ -165,7 +165,7 @@ ${systemPrompt ? `CONTEXT:\n${systemPrompt}\n\n` : ""}User Input: ${prompt}`;
         });
         const streamResult = await withTimeout(
           model.generateContentStream(groundedPrompt),
-          20000
+          25000
         );
         for await (const chunk of streamResult.stream) {
           const token = chunk.text();
@@ -181,7 +181,7 @@ ${systemPrompt ? `CONTEXT:\n${systemPrompt}\n\n` : ""}User Input: ${prompt}`;
   // 3.5️⃣ ChatGPT Fallback (GPT-4o) — high reasoning
   if (IS_OPENAI_READY) {
     try {
-      const text = await withTimeout(callOpenAI(fullPrompt), 20000);
+      const text = await withTimeout(callOpenAI(fullPrompt), 30000);
       if (text) {
         const chunkSize = 25;
         for (let i = 0; i < text.length; i += chunkSize) {
@@ -200,7 +200,7 @@ ${systemPrompt ? `CONTEXT:\n${systemPrompt}\n\n` : ""}User Input: ${prompt}`;
       const groundedPrompt = useGrounding
         ? `${NO_LIVE_DATA_DISCLAIMER}\n\n${fullPrompt}`
         : fullPrompt;
-      const text = await withTimeout(callAnthropic(groundedPrompt), 20000);
+      const text = await withTimeout(callAnthropic(groundedPrompt), 30000);
       if (text) {
         const chunkSize = 25;
         for (let i = 0; i < text.length; i += chunkSize) {
@@ -216,7 +216,7 @@ ${systemPrompt ? `CONTEXT:\n${systemPrompt}\n\n` : ""}User Input: ${prompt}`;
   // 4.5️⃣ DeepSeek Fallback — high value
   if (IS_DEEPSEEK_READY) {
     try {
-      const text = await withTimeout(callDeepSeek(fullPrompt), 20000);
+      const text = await withTimeout(callDeepSeek(fullPrompt), 30000);
       if (text) {
         const chunkSize = 25;
         for (let i = 0; i < text.length; i += chunkSize) {
@@ -236,7 +236,7 @@ ${systemPrompt ? `CONTEXT:\n${systemPrompt}\n\n` : ""}User Input: ${prompt}`;
       : fullPrompt;
     for (const groqModel of ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]) {
       try {
-        const text = await withTimeout(callGroq(groundedPrompt, groqModel), 12000);
+        const text = await withTimeout(callGroq(groundedPrompt, groqModel), 20000);
         if (text) {
           const chunkSize = 20;
           for (let i = 0; i < text.length; i += chunkSize) {
