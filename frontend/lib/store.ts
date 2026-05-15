@@ -390,7 +390,7 @@ interface TripPlannerState {
   activePNR: string | null;
   isProfileOpen: boolean;
   inputs: PlannerInputs;
-  setInputs: (inputs: PlannerInputs) => void;
+  setInputs: (update: PlannerInputs | ((prev: PlannerInputs) => PlannerInputs)) => void;
   setTiers: (tiers: TierSummary[]) => void;
   setActiveItinerary: (itinerary: ActiveItinerary | null) => void;
   setSearchData: (data: Partial<TripPlannerState['searchData']>) => void;
@@ -459,7 +459,9 @@ export const useTripPlannerStore = create<TripPlannerState>()(
         budget: 'moderate'
       },
 
-      setInputs: (inputs) => set({ inputs }),
+      setInputs: (update) => set((state) => ({
+        inputs: typeof update === 'function' ? update(state.inputs) : update
+      })),
       setTiers: (tiers) => set({ tiers }),
       setActiveItinerary: (activeItinerary) => set({ activeItinerary }),
       setSearchData: (data) =>
