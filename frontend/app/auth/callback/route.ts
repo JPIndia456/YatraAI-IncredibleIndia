@@ -28,10 +28,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/?${q.toString()}`);
   };
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return failToHome(
+      'Sign-in service is not configured (missing Supabase URL or anon key on the server).',
+    );
+  }
+
   let response = NextResponse.redirect(successUrl);
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {

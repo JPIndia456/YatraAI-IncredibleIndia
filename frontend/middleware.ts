@@ -1,14 +1,43 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const protectedPaths = ['/planner', '/bookings', '/profile']
+
+function isProtectedPath(pathname: string) {
+  return protectedPaths.some((path) => pathname.startsWith(path))
+}
+
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+  const isTestRoute = pathname.startsWith('/test')
+  const isTest = request.nextUrl.searchParams.get('test') === 'true'
+  const BYPASS_AUTH = false
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+
+  /** Missing env: avoid crashing middleware; treat as signed-out (protected routes → home). */
+  if (!supabaseUrl || !supabaseAnonKey) {
+    if (isProtectedPath(pathname) && !BYPASS_AUTH && !isTest) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+    if (isTestRoute && process.env.NODE_ENV === 'production') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -27,21 +56,19 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // getUser(). A simple mistake can make it very hard to debug
-  // issues with sessions being lost.
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Keep getUser immediately after createServerClient (Supabase SSR cookie contract).
+  let user = null
+  try {
+    const {
+      data: { user: u },
+    } = await supabase.auth.getUser()
+    user = u ?? null
+  } catch {
+    user = null
+  }
 
   // ── Route Protection ──────────────────────────────────────────────────────
-  const protectedPaths = ['/planner', '/bookings', '/profile'];
-  const isProtected = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path));
-  const isTestRoute = request.nextUrl.pathname.startsWith('/test');
-
-  const isTest = request.nextUrl.searchParams.get('test') === 'true';
-  const BYPASS_AUTH = false; // Set to true to bypass auth for development
+  const isProtected = isProtectedPath(pathname)
 
   if (isProtected && !user && !BYPASS_AUTH && !isTest) {
     const url = request.nextUrl.clone();

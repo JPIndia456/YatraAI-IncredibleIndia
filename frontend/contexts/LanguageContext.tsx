@@ -32,20 +32,29 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const initLang = async () => {
-      // 1. Check local storage
-      const savedLang = localStorage.getItem('user-language');
-      
-      // 2. Check Supabase metadata if logged in
-      const { data: { user } } = await supabase.auth.getUser();
-      const metaLang = user?.user_metadata?.language;
-
-      const finalLang = metaLang || savedLang || i18nInstance.language || 'en';
-      
-      await handleLanguageChange(finalLang);
-      setIsInitialized(true);
+      try {
+        const savedLang = localStorage.getItem('user-language');
+        const { data: authData, error: authErr } = await supabase.auth.getUser();
+        if (authErr) {
+          console.warn('[Language] getUser:', authErr.message);
+        }
+        const user = authData?.user ?? null;
+        const metaLang = user?.user_metadata?.language;
+        const finalLang = metaLang || savedLang || i18nInstance.language || 'en';
+        await handleLanguageChange(finalLang);
+      } catch (e) {
+        console.warn('[Language] init failed:', e);
+        try {
+          await handleLanguageChange(i18nInstance.language || 'en');
+        } catch {
+          /* keep default UI language */
+        }
+      } finally {
+        setIsInitialized(true);
+      }
     };
 
-    initLang();
+    void initLang();
   }, []);
 
   const handleLanguageChange = async (lang: LanguageCode) => {
@@ -61,18 +70,26 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     htmlEl.className = htmlEl.className.replace(/\blang-\S+/g, '').trim();
     htmlEl.classList.add(`lang-${lang}`);
 
-    // Update Supabase metadata if user is logged in
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await Promise.all([
-        supabase.auth.updateUser({
-          data: { language: lang }
-        }),
-        supabase
-          .from('yatra_profiles')
-          .update({ preferred_language: lang, updated_at: new Date().toISOString() })
-          .eq('user_id', user.id)
-      ]);
+    try {
+      const { data: authData, error: authErr } = await supabase.auth.getUser();
+      if (authErr) {
+        console.warn('[Language] getUser:', authErr.message);
+        return;
+      }
+      const user = authData?.user ?? null;
+      if (user) {
+        await Promise.all([
+          supabase.auth.updateUser({
+            data: { language: lang },
+          }),
+          supabase
+            .from('yatra_profiles')
+            .update({ preferred_language: lang, updated_at: new Date().toISOString() })
+            .eq('user_id', user.id),
+        ]);
+      }
+    } catch (e) {
+      console.warn('[Language] Supabase sync failed:', e);
     }
   };
 

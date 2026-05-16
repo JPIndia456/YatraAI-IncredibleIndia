@@ -49,9 +49,12 @@ function hashOtp(target: string, otp: string) {
 }
 
 /** Supabase SSR: session cookies must be written onto this response (not `cookies()` alone). */
-function createRouteHandlerSupabase(req: NextRequest, response: NextResponse) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+function createRouteHandlerSupabase(
+  req: NextRequest,
+  response: NextResponse,
+  supabaseUrl: string,
+  supabaseAnonKey: string,
+) {
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
@@ -86,6 +89,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
+    const sbUrl = supabaseUrl.trim();
+    const sbAnon = supabaseAnonKey.trim();
+
     const target = normalizeEmailTarget(email);
     const now = Date.now();
     const rateKey = `${clientIp(req)}:email:${target}`;
@@ -108,7 +114,7 @@ export async function POST(req: NextRequest) {
     // Email: Supabase-native OTP (browser or API send path).
     if (otpChannel === 'supabase') {
       const res = NextResponse.json({ ok: true });
-      const supabase = createRouteHandlerSupabase(req, res);
+      const supabase = createRouteHandlerSupabase(req, res, sbUrl, sbAnon);
       const { error } = await supabase.auth.verifyOtp({
         email: target,
         token: providedOtp,
@@ -178,7 +184,7 @@ export async function POST(req: NextRequest) {
 
     const tokenHash = linkData.data.properties.hashed_token;
     const res = NextResponse.json({ ok: true });
-    const supabase = createRouteHandlerSupabase(req, res);
+    const supabase = createRouteHandlerSupabase(req, res, sbUrl, sbAnon);
     const { error: verifyErr } = await supabase.auth.verifyOtp({
       type: 'email',
       token_hash: tokenHash,

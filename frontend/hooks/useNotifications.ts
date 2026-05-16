@@ -28,18 +28,24 @@ export function useNotifications() {
     if (!user?.id) { setLoading(false); return; }
 
     async function fetchNotifications() {
-      const { data, error } = await supabase
-        .from('yatra_notifications')
-        .select('*')
-        .eq('user_id', user!.id)
-        .order('created_at', { ascending: false })
-        .limit(30);
+      try {
+        const { data, error } = await supabase
+          .from('yatra_notifications')
+          .select('*')
+          .eq('user_id', user!.id)
+          .order('created_at', { ascending: false })
+          .limit(30);
 
-      if (!error && data) setNotifications(data as Notification[]);
-      setLoading(false);
+        if (!error && data) setNotifications(data as Notification[]);
+        else if (error) console.warn('[Notifications] fetch:', error.message);
+      } catch (e) {
+        console.warn('[Notifications] fetch failed:', e);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    fetchNotifications();
+    void fetchNotifications();
   }, [user?.id]);
 
   // Subscribe to real-time new notifications via Supabase Realtime

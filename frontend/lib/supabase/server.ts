@@ -13,9 +13,16 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
  * const supabase = createClient(cookieStore);
  */
 export const createClient = (cookieStore: any) => {
+  const url = supabaseUrl?.trim();
+  const key = supabaseKey?.trim();
+  if (!url || !key) {
+    throw new Error(
+      "[Supabase] Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY for server routes.",
+    );
+  }
   return createServerClient(
-    supabaseUrl!,
-    supabaseKey!,
+    url,
+    key,
     {
       cookies: {
         getAll() {

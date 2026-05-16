@@ -64,34 +64,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let subscription: { unsubscribe: () => void } | undefined;
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        updateState(session);
-        syncUserChannels(session);
-      }
-    });
-
-    // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (mounted) {
-        console.log(`[Auth] Event: ${event}`);
-        updateState(session);
-        if (event === 'SIGNED_IN') {
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (mounted) {
+          updateState(session);
           syncUserChannels(session);
         }
-        
-        // Refresh the page data when auth state changes to ensure server components are in sync
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          router.refresh();
+      })
+      .catch((err) => {
+        console.warn('[Auth] getSession failed:', err);
+        if (mounted) updateState(null);
+      });
+
+    try {
+      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+        if (mounted) {
+          console.log(`[Auth] Event: ${event}`);
+          updateState(session);
+          if (event === 'SIGNED_IN') {
+            syncUserChannels(session);
+          }
+
+          if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+            router.refresh();
+          }
         }
-      }
-    });
+      });
+      subscription = data.subscription;
+    } catch (err) {
+      console.warn('[Auth] onAuthStateChange failed:', err);
+      if (mounted) updateState(null);
+    }
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, [updateState, router, syncUserChannels]);
 
