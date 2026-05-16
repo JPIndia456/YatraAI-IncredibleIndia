@@ -1,0 +1,8 @@
+# Dev-only / local MCP stacks — not imported by the Next.js app at build time
+bhashini-mcp-server/
+flights-mcp-server/
+indian-bhashini-mcp/
+indian-railways-mcp/
+yatra15may/
+tests/
+scripts/
