@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
+import { signPriceToken } from '@/lib/security/priceToken';
 
 /**
  * Price Verification API
@@ -66,7 +68,10 @@ function simulateLivePrice(basePrice: number, tier: string, transport: string): 
 
 export async function POST(req: Request) {
   try {
-    const { displayedPrice, tier, transport, hotel, origin, destination } = await req.json();
+    const limited = rateLimitOr429(req, 'price-verify', 30, 60_000);
+    if (limited) return limited;
+
+    const { displayedPrice, tier, transport, origin, destination } = await req.json();
 
     if (!displayedPrice || displayedPrice <= 0) {
       return NextResponse.json({ error: 'Invalid price' }, { status: 400 });
@@ -94,13 +99,12 @@ export async function POST(req: Request) {
       priceDiffPercent: Math.abs(Number(priceDiffPercent)),
       reason,
       verifiedAt: new Date().toISOString(),
-      // In production: also return a signed price token that Razorpay
-      // or your backend can validate to prevent client-side tampering
-      priceToken: Buffer.from(
-        JSON.stringify({ livePrice, ts: Date.now(), origin, destination })
-      ).toString('base64'),
+      // HMAC-signed token so the backend/Razorpay flow can validate the amount
+      // and reject client-side tampering. Falls back to null if no signing key.
+      priceToken: signPriceToken({ livePrice, ts: Date.now(), origin, destination }),
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Price verification failed';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

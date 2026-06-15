@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -7,6 +8,9 @@ function errorMessage(error: unknown, fallback: string) {
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'mcp-trip-packages', 20, 60_000);
+    if (limited) return limited;
+
     const { origin, destination, startDate, endDate, travelType, transportMode, selectedOption } = await req.json();
 
     const dest = destination || '';

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getIntelligenceReport } from "@/lib/services/ai/intelligence";
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -11,6 +12,9 @@ function errorMessage(error: unknown, fallback: string) {
  */
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'mcp-suggest', 20, 60_000);
+    if (limited) return limited;
+
     const { category, stateLocation, language } = await req.json();
     
     try {

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 /**
  * Proxy for RapidAPI MCP (Model Context Protocol).
@@ -7,9 +6,6 @@ import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
  */
 export async function POST(req: Request) {
   try {
-    const limited = rateLimitOr429(req, 'mcp-proxy', 30, 60_000);
-    if (limited) return limited;
-
     const body = await req.json();
     const apiKey = process.env.BOOKING_RAPIDAPI_KEY;
     const apiHost = process.env.BOOKING_RAPIDAPI_HOST || 'booking-com15.p.rapidapi.com';
@@ -54,11 +50,8 @@ export async function POST(req: Request) {
 /**
  * GET handler to list available tools from the MCP server.
  */
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const limited = rateLimitOr429(req, 'mcp-proxy', 30, 60_000);
-    if (limited) return limited;
-
     const apiKey = process.env.BOOKING_RAPIDAPI_KEY;
     const apiHost = process.env.BOOKING_RAPIDAPI_HOST || 'booking-com15.p.rapidapi.com';
 

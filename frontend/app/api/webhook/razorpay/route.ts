@@ -34,9 +34,8 @@ export async function POST(req: Request) {
     await PaymentAutomation.handleRazorpayEvent(event);
 
     return NextResponse.json({ success: true });
-  } catch (err: unknown) {
+  } catch (err: any) {
     console.error('[RAZORPAY_WEBHOOK_ERROR]:', err);
-    const message = err instanceof Error ? err.message : 'Webhook processing failed';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -8,6 +8,7 @@ import {
   type LocationIntelPayload,
 } from '@/lib/locationIntelligence';
 import { GEMINI_MODEL } from '@/lib/geminiModel';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 function parseIntelJson(text: string): Record<string, unknown> | null {
   const jsonStart = text.indexOf('{');
@@ -71,6 +72,9 @@ export async function POST(req: Request) {
   let origin = '';
   let destination = '';
   try {
+    const limited = rateLimitOr429(req, 'location-intelligence', 40, 60_000);
+    if (limited) return limited;
+
     const body = await req.json();
     origin = String(body.origin || '');
     destination = String(body.destination || '');
