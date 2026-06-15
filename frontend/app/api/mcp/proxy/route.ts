@@ -1,11 +1,23 @@
 import { NextResponse } from 'next/server';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
+import { requireUserOrInternal } from '@/lib/security/apiAuth';
 
 /**
  * Proxy for RapidAPI MCP (Model Context Protocol).
  * This allows the YatraAI frontend and AI Brain to call MCP tools via HTTP.
+ *
+ * This relay uses the server's paid RapidAPI key, so it is restricted to
+ * authenticated users (or trusted internal callers) to prevent anonymous
+ * abuse of the upstream quota.
  */
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'mcp-proxy', 30, 60_000);
+    if (limited) return limited;
+
+    const auth = await requireUserOrInternal(req);
+    if (auth instanceof NextResponse) return auth;
+
     const body = await req.json();
     const apiKey = process.env.BOOKING_RAPIDAPI_KEY;
     const apiHost = process.env.BOOKING_RAPIDAPI_HOST || 'booking-com15.p.rapidapi.com';
@@ -50,8 +62,14 @@ export async function POST(req: Request) {
 /**
  * GET handler to list available tools from the MCP server.
  */
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'mcp-proxy', 30, 60_000);
+    if (limited) return limited;
+
+    const auth = await requireUserOrInternal(req);
+    if (auth instanceof NextResponse) return auth;
+
     const apiKey = process.env.BOOKING_RAPIDAPI_KEY;
     const apiHost = process.env.BOOKING_RAPIDAPI_HOST || 'booking-com15.p.rapidapi.com';
 

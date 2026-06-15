@@ -3,8 +3,28 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const protectedPaths = ['/planner', '/bookings', '/profile']
 
+/**
+ * Cost-sensitive API routes that should only be used by signed-in users.
+ * Enforced centrally only when ENFORCE_API_AUTH=true so it can be enabled and
+ * verified without risking a surprise breakage of any pre-login flow.
+ */
+const protectedApiPrefixes = [
+  '/api/ai-brain',
+  '/api/itinerary',
+  '/api/discovery',
+  '/api/search',
+  '/api/live/',
+  '/api/mcp/',
+  '/api/voice/',
+  '/api/planner/',
+]
+
 function isProtectedPath(pathname: string) {
   return protectedPaths.some((path) => pathname.startsWith(path))
+}
+
+function isProtectedApiPath(pathname: string) {
+  return protectedApiPrefixes.some((path) => pathname.startsWith(path))
 }
 
 export async function middleware(request: NextRequest) {
@@ -74,6 +94,19 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/'; // Redirect to landing/login
     return NextResponse.redirect(url);
+  }
+
+  // Optional: gate cost-sensitive API routes behind a session. Enable by
+  // setting ENFORCE_API_AUTH=true once you've confirmed every caller runs
+  // in an authenticated context.
+  if (
+    process.env.ENFORCE_API_AUTH === 'true' &&
+    isProtectedApiPath(pathname) &&
+    !user &&
+    !BYPASS_AUTH &&
+    !isTest
+  ) {
+    return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
   }
 
   if (isTestRoute && process.env.NODE_ENV === 'production') {

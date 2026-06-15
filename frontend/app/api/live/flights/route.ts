@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { GoogleGenAI } from "@google/genai";
 import { GEMINI_MODEL } from '@/lib/geminiModel';
 import { getSearchCache, setSearchCache } from '@/lib/services/searchCache';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 const IATA_MAP: Record<string, string> = {
   'mumbai': 'BOM', 'delhi': 'DEL', 'bangalore': 'BLR', 'bengaluru': 'BLR',
@@ -43,6 +44,9 @@ const AIRLINES = [
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'live-flights', 30, 60_000);
+    if (limited) return limited;
+
     const { from, to, date, adults = 1, seat = 'economy' } = await req.json();
     if (!from || !to || !date) {
       return NextResponse.json({ success: false, error: 'Missing from, to, or date' }, { status: 400 });

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getTrainsBetweenStations } from '@/indian-railways-mcp/src/railwayService';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 type RailwayResponse = { success?: boolean } & Record<string, unknown>;
 
@@ -9,6 +10,9 @@ function errorMessage(error: unknown, fallback: string) {
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'mcp-live-trains', 30, 60_000);
+    if (limited) return limited;
+
     const { fromStation, toStation } = await req.json();
 
     if (!fromStation || !toStation) {

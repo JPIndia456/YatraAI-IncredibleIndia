@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { GoogleGenAI } from "@google/genai";
 import { GEMINI_MODEL } from '@/lib/geminiModel';
 import { getSearchCache, setSearchCache } from '@/lib/services/searchCache';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 const BUS_OPERATORS = [
   'KSRTC', 'MSRTC', 'UPSRTC', 'GSRTC', 'HRTC', 'RSRTC',
@@ -29,6 +30,9 @@ const CITY_MAP: Record<string, string> = {
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'live-buses', 30, 60_000);
+    if (limited) return limited;
+
     const { from, to, date } = await req.json();
     if (!to) return NextResponse.json({ success: false, error: 'Missing destination' }, { status: 400 });
 

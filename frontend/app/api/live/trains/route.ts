@@ -4,6 +4,7 @@ import { GEMINI_MODEL } from '@/lib/geminiModel';
 import { GoogleGenAI } from "@google/genai";
 import { getSearchCache, setSearchCache } from '@/lib/services/searchCache';
 import { getWaterCrossingSuggestions } from '@/lib/waterTransportSuggestions';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 const CITY_TO_STATION: Record<string, string> = {
   'mumbai': 'CSTM', 'delhi': 'NDLS', 'bangalore': 'SBC', 'bengaluru': 'SBC',
@@ -92,6 +93,9 @@ function buildStationNotes(from: string, to: string): { notes: string[]; fromRes
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'live-trains', 30, 60_000);
+    if (limited) return limited;
+
     const { from, to, date } = await req.json();
     if (!from || !to || !date) {
       return NextResponse.json({ success: false, error: 'Missing from, to, or date' }, { status: 400 });

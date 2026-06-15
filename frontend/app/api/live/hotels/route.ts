@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import { getSearchCache, setSearchCache } from '@/lib/services/searchCache';
 import { normalizeHotelSearchLocation, supplementHotelsForDestination } from '@/lib/hotelDestinationBoost';
 import { GEMINI_MODEL } from '@/lib/geminiModel';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 const HOTEL_CHAINS = [
   'Taj Hotels', 'Oberoi Hotels', 'ITC Hotels', 'Marriott', 'Leela Hotels',
@@ -94,6 +95,9 @@ Approximate INR per night only.`;
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'live-hotels', 30, 60_000);
+    if (limited) return limited;
+
     const { location, checkIn, checkOut, guests = 1 } = await req.json();
     if (!location) return NextResponse.json({ success: false, error: 'Missing location' }, { status: 400 });
 
