@@ -41,6 +41,27 @@ export interface PlannerInputs {
   dislikes: string[];
 }
 
+export const DEFAULT_PLANNER_INPUTS: PlannerInputs = {
+  origin: '',
+  specificDest: '',
+  startDate: '',
+  endDate: '',
+  tripType: 'round',
+  targetBudget: 50000,
+  adults: 1,
+  kids: 0,
+  kidAges: '',
+  dietary: [],
+  likes: [],
+  dislikes: [],
+  destTypes: [],
+  ecoFriendly: false,
+  wheelchair: false,
+  telegramId: '',
+  language: 'en',
+  budget: 'moderate',
+};
+
 interface StepInputsProps {
   inputs: PlannerInputs;
   activeLang: LanguageCode;
@@ -86,25 +107,8 @@ export default function StepInputs({
   
   // Memory Sanitizer: Ensure all fields exist even if loaded from a legacy localstorage state
   const inputs: PlannerInputs = {
-    origin: '',
-    specificDest: '',
-    startDate: '',
-    endDate: '',
-    tripType: 'round',
-    targetBudget: 50000,
-    adults: 1,
-    kids: 0,
-    kidAges: '',
-    dietary: [],
-    likes: [],
-    dislikes: [],
-    destTypes: [],
-    ecoFriendly: false,
-    wheelchair: false,
-    telegramId: '',
-    language: 'en',
-    budget: 'moderate',
-    ...(rawInputs || {})
+    ...DEFAULT_PLANNER_INPUTS,
+    ...(rawInputs || {}),
   };
   const { setLanguage } = useLanguage();
   const [showIntelDetail, setShowIntelDetail] = useState(false);

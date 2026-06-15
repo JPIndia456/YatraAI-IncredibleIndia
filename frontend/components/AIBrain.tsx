@@ -956,7 +956,7 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
       try {
         const { data, error } = await supabase
           .from('yatra_profiles')
-          .select('user_persona, likes, dislikes')
+          .select('user_persona, likes, dislikes, preferred_voice')
           .eq('user_id', user.id)
           .single();
         
@@ -964,7 +964,9 @@ export default function AIBrain({ context }: { context?: Record<string, unknown>
           if (data.user_persona) setUserPersona(data.user_persona);
           if (data.likes) setLikes(data.likes);
           if (data.dislikes) setDislikes(data.dislikes);
-          if (data.preferred_voice) setPreferredVoice(data.preferred_voice as any);
+          if (data.preferred_voice === 'male' || data.preferred_voice === 'female') {
+            setPreferredVoice(data.preferred_voice);
+          }
         }
       } catch (err) {
         console.warn('[AIBrain] Profile sync failed:', err);

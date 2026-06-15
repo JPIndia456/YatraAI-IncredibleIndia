@@ -150,7 +150,7 @@ export default function YatraStudio() {
     registerWizardSchema(WIZARD_SCHEMA);
     registerInputUpdateHandler((id, val) => {
       // 1. Update local form inputs
-      setInputs(prev => {
+      setInputs((prev: PlannerInputs) => {
         const next = { ...prev, [id]: val };
         return next;
       });

@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { User, Landmark, Sparkles, Heart, Utensils, Gem, Wallet, Mountain, History, Camera, Compass, Users, Languages, Check, X, Shield, LogOut, UserCircle, Fingerprint, Ban, ChevronDown, Send, Volume2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile, type Profile } from '@/hooks/useProfile';
 import { useLanguage, SUPPORTED_LANGUAGES } from '@/contexts/LanguageContext';
 import { useTripStore, useTripPlannerStore, useTourGuideStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase/client';
@@ -15,6 +15,23 @@ interface ProfilePanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+type ProfileFormState = {
+  full_name: string;
+  display_name: string;
+  email: string;
+  phone: string;
+  gender: string;
+  favorite_destinations: string[];
+  preferred_language: string;
+  persona: string;
+  user_persona: string;
+  likes: string;
+  dislikes: string;
+  telegram_id: string;
+  telegram_enabled: boolean;
+  preferred_voice: 'male' | 'female';
+};
 
 export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClose }: Partial<ProfilePanelProps> = {}) {
   const { isProfileOpen: storeIsOpen, setIsProfileOpen: setStoreIsOpen } = useTripPlannerStore();
@@ -31,7 +48,7 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasChanged = useRef(false);
 
-  const [form, setForm] = useState({ 
+  const [form, setForm] = useState<ProfileFormState>({ 
     full_name: '', 
     display_name: '',
     email: '',
@@ -85,7 +102,7 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
           dislikes: p.dislikes?.join(', ') || '',
           telegram_id: p.telegram_id || '',
           telegram_enabled: !!p.telegram_enabled,
-          preferred_voice: p.preferred_voice || 'female'
+          preferred_voice: p.preferred_voice === 'male' || p.preferred_voice === 'female' ? p.preferred_voice : 'female',
         });
         // Sync to TourGuideStore
         const { patchTourGuide } = useTourGuideStore.getState();
@@ -158,7 +175,7 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
 
   const handleSave = async () => {
     setSyncStatus('saving');
-    const updates = {
+    const updates: Partial<Profile> = {
       full_name: form.full_name,
       display_name: form.display_name,
       favorite_destinations: form.favorite_destinations,
@@ -166,12 +183,12 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
       phone: form.phone,
       gender: form.gender,
       preferred_language: form.preferred_language,
-      persona: form.user_persona || form.persona, // 'user_persona' is a generated column, we only write to 'persona'
+      persona: form.user_persona || form.persona,
       likes: form.likes.split(',').map(s => s.trim()).filter(Boolean),
       dislikes: form.dislikes.split(',').map(s => s.trim()).filter(Boolean),
       telegram_id: form.telegram_id,
       telegram_enabled: form.telegram_enabled,
-      preferred_voice: form.preferred_voice
+      preferred_voice: form.preferred_voice,
     };
     const { error } = await updateProfile(updates);
     if (error) {
@@ -180,10 +197,10 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
       const { setUserPersona, setLikes, setDislikes, setPreferredVoice } = useTripStore.getState();
       const { patchTourGuide } = useTourGuideStore.getState();
       
-      setUserPersona(updates.user_persona || updates.persona || 'Cultural Explorer');
+      setUserPersona(form.user_persona || form.persona || 'Cultural Explorer');
       setLikes(updates.likes || []);
       setDislikes(updates.dislikes || []);
-      setPreferredVoice(updates.preferred_voice || 'female');
+      setPreferredVoice(form.preferred_voice);
       
       // Keep TourGuideStore in sync for immediate use in other steps
       patchTourGuide({ 
@@ -470,7 +487,7 @@ export default function ProfilePanel({ isOpen: propsIsOpen, onClose: propsOnClos
                         <button
                           key={v}
                           onClick={() => {
-                            setForm({ ...form, preferred_voice: v as any });
+                            setForm({ ...form, preferred_voice: v as 'male' | 'female' });
                             useTripStore.getState().setPreferredVoice(v as any);
                           }}
                           className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${

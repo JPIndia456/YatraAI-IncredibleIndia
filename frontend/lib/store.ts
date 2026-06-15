@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { PlannerInputs } from '@/components/planner/StepInputs';
 
 // ────────────────────────────────────────────────
 // Types
@@ -487,7 +488,6 @@ export const useTripPlannerStore = create<TripPlannerState>()(
           searchData: { trains: [], flights: [], hotels: [], buses: [], taxis: [], ferries: [] },
           weather: null,
           activeBookingId: null,
-          activePNR: null,
           activePNR: null,
           isProfileOpen: false,
           inputs: {

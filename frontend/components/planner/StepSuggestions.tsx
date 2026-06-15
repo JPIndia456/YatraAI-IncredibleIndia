@@ -37,6 +37,14 @@ const TIERS = [
   { id: 'luxury',   label: 'Premium',  sub: 'Elite',    color: 'text-blue-600',   bg: 'bg-blue-50',    multiplier: 1.6 }
 ] as const;
 
+export interface DiscoverySuggestion {
+  title?: string;
+  destination?: string;
+  vibe?: string;
+  totalPrice?: number;
+  [key: string]: unknown;
+}
+
 interface SuggestionCardProps {
   s: any;
   i: number;
@@ -44,7 +52,7 @@ interface SuggestionCardProps {
   fetchedInputs: { adults: number; kids: number } | null;
   setInputs: Dispatch<SetStateAction<PlannerInputs>>;
   onConfirm: (s: any, dest: string, transportMode: string) => void;
-  onAskAI: (s: any) => void;
+  onAskAI: (suggestion: DiscoverySuggestion) => void;
   isLoading: boolean;
 }
 
@@ -55,7 +63,7 @@ interface StepSuggestionsProps {
   selectedIdx: number | null;
   setInputs: Dispatch<SetStateAction<PlannerInputs>>;
   onConfirm: (s: any, dest: string, transportMode: string) => void;
-  onAskAI: (dest: string) => void;
+  onAskAI: (suggestion: DiscoverySuggestion) => void;
   onBack: () => void;
   onReset: () => void;
   onGenerate: () => void;
