@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
+
+/** Cap base64 audio payload (~7.5MB of raw audio) to prevent memory-abuse DoS. */
+const MAX_AUDIO_BASE64_CHARS = 10_000_000;
 
 /** UI lang codes → Sarvam BCP-47 */
 const UI_LANG_TO_SARVAM: Record<string, string> = {
@@ -15,6 +19,9 @@ const UI_LANG_TO_BHASHINI: Record<string, string> = {
 };
 
 export async function POST(req: Request) {
+  const limited = rateLimitOr429(req, 'voice-transcribe', 30, 60_000);
+  if (limited) return limited;
+
   const sarvamKey  = process.env.SARVAM_API_KEY?.trim();
   const bhashiniKey = process.env.BHASHINI_API_KEY?.trim();
 
@@ -34,6 +41,9 @@ export async function POST(req: Request) {
 
   let raw = typeof body.audioBase64 === 'string' ? body.audioBase64.trim() : '';
   if (!raw) return NextResponse.json({ error: 'Missing audioBase64' }, { status: 400 });
+  if (raw.length > MAX_AUDIO_BASE64_CHARS) {
+    return NextResponse.json({ error: 'Audio payload is too large.' }, { status: 413 });
+  }
   if (raw.includes(',')) raw = raw.slice(raw.indexOf(',') + 1);
 
   const uiLang = String(body.language || 'en').split('-')[0].toLowerCase();
@@ -68,8 +78,8 @@ export async function POST(req: Request) {
         const err = await response.text();
         console.warn('[Sarvam STT] Non-OK response:', response.status, err);
       }
-    } catch (e: any) {
-      console.warn('[Sarvam STT] Failed, trying Bhashini fallback:', e.message);
+    } catch (e: unknown) {
+      console.warn('[Sarvam STT] Failed, trying Bhashini fallback:', e instanceof Error ? e.message : e);
     }
   }
 
@@ -83,8 +93,8 @@ export async function POST(req: Request) {
       if (trimmed) {
         return NextResponse.json({ text: trimmed, detectedLang, engine: 'bhashini' });
       }
-    } catch (e: any) {
-      console.error('[Bhashini STT] Failed:', e.message);
+    } catch (e: unknown) {
+      console.error('[Bhashini STT] Failed:', e instanceof Error ? e.message : e);
     }
   }
 

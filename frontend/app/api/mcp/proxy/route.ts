@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 /**
  * Proxy for RapidAPI MCP (Model Context Protocol).
@@ -6,6 +7,9 @@ import { NextResponse } from 'next/server';
  */
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'mcp-proxy', 30, 60_000);
+    if (limited) return limited;
+
     const body = await req.json();
     const apiKey = process.env.BOOKING_RAPIDAPI_KEY;
     const apiHost = process.env.BOOKING_RAPIDAPI_HOST || 'booking-com15.p.rapidapi.com';
@@ -40,17 +44,21 @@ export async function POST(req: Request) {
     const data = await response.json();
     return NextResponse.json(data);
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[MCP_PROXY_ERROR]:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'MCP proxy request failed';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 /**
  * GET handler to list available tools from the MCP server.
  */
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'mcp-proxy', 30, 60_000);
+    if (limited) return limited;
+
     const apiKey = process.env.BOOKING_RAPIDAPI_KEY;
     const apiHost = process.env.BOOKING_RAPIDAPI_HOST || 'booking-com15.p.rapidapi.com';
 
@@ -79,7 +87,8 @@ export async function GET() {
     const data = await response.json();
     return NextResponse.json(data);
 
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'MCP tools listing failed';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

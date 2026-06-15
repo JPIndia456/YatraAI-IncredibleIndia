@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'search', 20, 60_000);
+    if (limited) return limited;
+
     const body = await req.json();
     const { destination, origin, startDate, endDate, adults, kids } = body;
 
@@ -42,8 +46,9 @@ export async function POST(req: Request) {
       ferries: []
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Search Aggregator Error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Search failed';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

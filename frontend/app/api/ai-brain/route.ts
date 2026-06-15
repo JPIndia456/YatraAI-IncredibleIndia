@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { resilientGenerateContent, resilientStreamContent } from "@/lib/services/ai/resilience";
+import { rateLimitOr429 } from "@/lib/security/apiRateLimit";
 
 // ── Helper: compact INR formatter ────────────────────────────────────────────
 function inr(n: number) {
@@ -421,6 +422,9 @@ TONE: Warm, sharp, budget-focused and helpful. Authentic but never stuffy. NEVER
 // ── Route Handler ─────────────────────────────────────────────────────────────
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'ai-brain', 40, 60_000);
+    if (limited) return limited;
+
     const body = await req.json();
     const { messages, context, prompt, image } = body;
 

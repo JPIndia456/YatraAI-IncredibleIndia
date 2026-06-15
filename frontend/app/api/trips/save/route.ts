@@ -41,7 +41,6 @@ export async function POST(req: Request) {
       local,
       fullPlan,
       tierComparison,
-      tripDetails,
     } = body;
 
     if (!destination || !tierLabel || !total) {

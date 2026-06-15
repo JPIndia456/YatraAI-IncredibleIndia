@@ -18,11 +18,6 @@ function extractBearerToken(authHeader: string | null) {
   return authHeader.slice(7);
 }
 
-function normalizePhone(phone: string) {
-  const compact = phone.replace(/\s+/g, '');
-  return compact.startsWith('+') ? compact : `+${compact}`;
-}
-
 function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }

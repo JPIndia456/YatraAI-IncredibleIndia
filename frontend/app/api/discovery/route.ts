@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { resilientGenerateContent } from '@/lib/services/ai/resilience';
 import { parseDiscoverySuggestionsJson } from '@/lib/parseAiItineraryJson';
+import { rateLimitOr429 } from '@/lib/security/apiRateLimit';
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitOr429(req, 'discovery', 20, 60_000);
+    if (limited) return limited;
+
     const body = await req.json();
     const { 
       origin, targetBudget, startDate, endDate, adults, kids = 0, 
@@ -181,8 +185,9 @@ Format for each object:
       grounded: result.grounded
     });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Discovery Route Error:", err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'Discovery generation failed';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
